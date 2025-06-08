@@ -1,0 +1,26 @@
+{
+    "name": "agent",
+    "module": "index.ts",
+    "type": "module",
+    "scripts": {
+        "dev": "bunx --bun langgraph-dev",
+        "dev:node": "langgraph-dev",
+        "build": "langgraph-bundler"
+    },
+    "dependencies": {
+        "@langchain/core": "^0.3.57",
+        "@langchain/openai": "^0.5.10",
+        "@langgraph-js/api": "^0.2.39",
+        "@langgraph-js/crawler": "^1.4.1",
+        "@langgraph-js/pro": "^1.6.1",
+        "@langchain/langgraph": "^0.2.72"
+    },
+    "devDependencies": {
+        "@langgraph-js/bundler": "^1.4.2",
+        "@types/bun": "latest",
+        "@types/node": "^22.15.30"
+    },
+    "peerDependencies": {
+        "typescript": "^5"
+    }
+}
