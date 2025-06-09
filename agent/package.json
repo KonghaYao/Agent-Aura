@@ -12,8 +12,9 @@
         "@langchain/openai": "^0.5.10",
         "@langgraph-js/api": "^0.2.39",
         "@langgraph-js/crawler": "^1.4.1",
-        "@langgraph-js/pro": "^1.6.1",
-        "@langchain/langgraph": "^0.2.72"
+        "@langgraph-js/pro": "^1.7.2",
+        "@langchain/langgraph-swarm": "^0.0.4",
+        "@langchain/langgraph": "~0.2.0"
     },
     "devDependencies": {
         "@langgraph-js/bundler": "^1.4.2",
