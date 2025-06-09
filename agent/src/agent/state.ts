@@ -1,6 +1,5 @@
 import { Annotation, BaseStore } from "@langchain/langgraph";
-import { SwarmState } from "@langchain/langgraph-swarm";
-import { createState, FEToolsState } from "@langgraph-js/pro";
+import { createState, FEToolsState, SwarmState } from "@langgraph-js/pro";
 import { createModelHelper } from "@langgraph-js/pro";
 import { createReactAgentAnnotation } from "@langchain/langgraph/prebuilt";
 

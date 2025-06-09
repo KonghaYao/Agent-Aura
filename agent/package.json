@@ -11,19 +11,16 @@
         "@langchain/core": "^0.3.57",
         "@langchain/langgraph": "~0.2.0",
         "@langchain/langgraph-sdk": "^0.0.83",
-        "@langchain/langgraph-swarm": "^0.0.4",
         "@langchain/openai": "^0.5.10",
         "@langgraph-js/api": "^0.2.39",
-        "@langgraph-js/crawler": "^1.4.1",
-        "@langgraph-js/pro": "^1.7.2"
+        "@langgraph-js/crawler": "^1.6.3",
+        "@langgraph-js/pro": "^1.7.2",
+        "zod": "^3.25.56"
     },
     "devDependencies": {
         "@langgraph-js/bundler": "^1.4.2",
         "@langgraph-js/langgraph-pg": "^1.2.1",
         "@types/node": "^22.15.30"
-    },
-    "peerDependencies": {
-        "typescript": "^5"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
