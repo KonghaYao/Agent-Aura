@@ -14,6 +14,9 @@ importers:
       '@langchain/langgraph':
         specifier: ~0.2.0
         version: 0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56))
+      '@langchain/langgraph-sdk':
+        specifier: ^0.0.83
+        version: 0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))
       '@langchain/langgraph-swarm':
         specifier: ^0.0.4
         version: 0.0.4(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))
