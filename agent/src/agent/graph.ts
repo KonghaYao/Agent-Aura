@@ -5,7 +5,7 @@ import { tool } from "@langchain/core/tools";
 import { type ToolRunnableConfig } from "@langchain/core/tools";
 import z from "zod";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { crawler_tool, web_search_tool } from "../tools/web_tools.js";
+import { crawler_tool, web_search_tool } from "@langgraph-js/pro";
 import { create_artifacts } from "../tools/create_artifacts.js";
 import { getPrompt } from "./getPrompt.ts";
 const ask_user_for_approve = tool(

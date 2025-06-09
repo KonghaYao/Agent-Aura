@@ -13,7 +13,6 @@
         "@langchain/langgraph-sdk": "^0.0.83",
         "@langchain/openai": "^0.5.10",
         "@langgraph-js/api": "^0.2.39",
-        "@langgraph-js/crawler": "^1.6.3",
         "@langgraph-js/pro": "^1.7.2",
         "zod": "^3.25.56"
     },
