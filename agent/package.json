@@ -3,6 +3,7 @@
     "module": "index.ts",
     "type": "module",
     "scripts": {
+        "preinstall": "node patch_deps.mjs",
         "dev": "bunx --bun langgraph-dev",
         "dev:node": "langgraph-dev",
         "build": "langgraph-bundler"
