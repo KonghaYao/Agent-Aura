@@ -103,10 +103,6 @@ export default function ChatLayout({
                 </Sidebar>
 
                 <SidebarInset className="flex-1 flex flex-col overflow-hidden h-screen">
-                    <header className="flex h-14 items-center gap-2 px-4 border-b border-border/40">
-                        <SidebarTrigger />
-                        <div className="flex-1" />
-                    </header>
                     <main className="flex-1 overflow-hidden">{children}</main>
                 </SidebarInset>
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, memo } from "react";
 import { MessagesBox } from "./components/MessageBox";
 import HistoryList from "./components/HistoryList";
 import { ChatProvider, useChat } from "./context/ChatContext";
@@ -25,6 +25,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, StopCircle } from "lucide-react";
+import {
+    ResizablePanelGroup,
+    ResizablePanel,
+    ResizableHandle,
+} from "@/components/ui/resizable";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -210,6 +215,26 @@ const ChatInput: React.FC = () => {
     );
 };
 
+// 使用memo来记忆ChatContainer组件，避免不必要的重新渲染
+const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
+    return (
+        <div className="flex-1 flex flex-col h-full overflow-auto hide-scrollbar">
+            <div className="flex-1 flex flex-col items-center justify-center mb-8 max-w-4xl mx-auto">
+                {hasMessages ? (
+                    <ChatMessages />
+                ) : (
+                    <h1 className="text-4xl font-bold mb-24 text-center">
+                        <span className="text-4xl pr-2">👋</span>
+                        你好，我是 Aura
+                    </h1>
+                )}
+                <ChatInput />
+            </div>
+        </div>
+    );
+});
+ChatContainer.displayName = "ChatContainer";
+
 const Chat: React.FC = () => {
     const { showHistory, toggleHistoryVisible, renderMessages } = useChat();
     const { showArtifact } = useArtifacts();
@@ -229,32 +254,28 @@ const Chat: React.FC = () => {
     const hasMessages = renderMessages.length > 0;
 
     return (
-        <div className="flex h-full w-full justify-center overflow-hidden">
+        <div className="flex h-full w-full justify-center overflow-hidden bg-neutral-100">
             {showHistory && (
                 <HistoryList
                     onClose={() => toggleHistoryVisible()}
                     formatTime={formatTime}
                 />
             )}
-            <div className="flex-1 flex flex-col h-full overflow-auto">
-                <div className="flex-1 flex flex-col items-center justify-center mb-8 w-4xl mx-auto">
-                    {hasMessages ? (
-                        <ChatMessages />
-                    ) : (
-                        <h1 className="text-4xl font-bold mb-24 text-center">
-                            <span className="text-4xl pr-2">👋</span>
-                            你好，我是 Aura
-                        </h1>
-                    )}
-                    <ChatInput />
-                </div>
-            </div>
-
-            {showArtifact && (
-                <div className="overflow-hidden flex-1">
-                    <ArtifactViewer />
-                </div>
-            )}
+            <ResizablePanelGroup
+                direction="horizontal"
+                className="w-full h-full">
+                <ResizablePanel defaultSize={50} minSize={30}>
+                    <ChatContainer hasMessages={hasMessages} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                {showArtifact && (
+                    <ResizablePanel defaultSize={50} minSize={30}>
+                        <div className="h-full overflow-hidden px-4 py-12">
+                            <ArtifactViewer />
+                        </div>
+                    </ResizablePanel>
+                )}
+            </ResizablePanelGroup>
         </div>
     );
 };

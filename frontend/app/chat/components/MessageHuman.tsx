@@ -63,7 +63,7 @@ const MessageHuman: React.FC<MessageHumanProps> = ({ content }) => {
 
     return (
         <div className="flex flex-row w-full justify-end ">
-            <div className="flex flex-col w-fit bg-gray-100 rounded-lg max-w-[80%]">
+            <div className="flex flex-col w-fit bg-neutral-200 rounded-lg max-w-[80%]">
                 <div className="flex flex-col px-4 py-2">{renderContent()}</div>
             </div>
         </div>
