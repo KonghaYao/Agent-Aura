@@ -64,6 +64,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     const globalChatStore = useMemo(() => createGlobalChatStore(), []);
 
     const store = useUnionStore(globalChatStore, useStore);
+
     useEffect(() => {
         store
             .initClient()

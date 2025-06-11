@@ -24,7 +24,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, StopCircle } from "lucide-react";
+import { Brain, Send, StopCircle } from "lucide-react";
+import { models } from "./config/models";
 import {
     ResizablePanelGroup,
     ResizablePanel,
@@ -108,11 +109,10 @@ const ChatInput: React.FC = () => {
         loading,
         sendMessage,
         stopGeneration,
-        currentAgent,
         setCurrentAgent,
         client,
     } = useChat();
-    const { extraParams } = useExtraParams();
+    const { extraParams, setExtraParams } = useExtraParams();
     const [imageUrls, setImageUrls] = useState<string[]>([]);
 
     const handleFileUploaded = (url: string) => {
@@ -174,7 +174,26 @@ const ChatInput: React.FC = () => {
                 disabled={loading}
             />
             <div className="flex items-center gap-2 p-2">
-                <Select value={currentAgent} onValueChange={_setCurrentAgent}>
+                <Select
+                    value={extraParams.main_model || "gpt-4.1-mini"}
+                    onValueChange={(value) => {
+                        setExtraParams({ ...extraParams, main_model: value });
+                    }}>
+                    <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
+                        <Brain></Brain>
+                        <SelectValue placeholder="选择一个模型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {models.main_model.map((i) => {
+                            return (
+                                <SelectItem value={i} key={i}>
+                                    {i}
+                                </SelectItem>
+                            );
+                        })}
+                    </SelectContent>
+                </Select>
+                {/* <Select value={currentAgent} onValueChange={_setCurrentAgent}>
                     <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <SelectValue placeholder="选择一个 Agent" />
                     </SelectTrigger>
@@ -187,7 +206,7 @@ const ChatInput: React.FC = () => {
                             );
                         })}
                     </SelectContent>
-                </Select>
+                </Select> */}
                 {client?.tokenCounter?.output_tokens! > 0 && (
                     <UsageMetadata
                         usage_metadata={client?.tokenCounter || {}}
@@ -219,7 +238,7 @@ const ChatInput: React.FC = () => {
 const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
     return (
         <div className="flex-1 flex flex-col h-full overflow-auto hide-scrollbar">
-            <div className="flex-1 flex flex-col items-center justify-center mb-8 max-w-4xl mx-auto">
+            <div className="flex-1 flex flex-col items-center justify-center mb-8 w-full max-w-4xl mx-auto">
                 {hasMessages ? (
                     <ChatMessages />
                 ) : (
@@ -238,6 +257,10 @@ ChatContainer.displayName = "ChatContainer";
 const Chat: React.FC = () => {
     const { showHistory, toggleHistoryVisible, renderMessages } = useChat();
     const { showArtifact } = useArtifacts();
+    const [panelSizes, setPanelSizes] = useState({
+        chat: 50,
+        artifact: 50,
+    });
 
     // 监听来自 sidebar 的事件
     React.useEffect(() => {
@@ -253,6 +276,14 @@ const Chat: React.FC = () => {
 
     const hasMessages = renderMessages.length > 0;
 
+    // 处理面板大小变化
+    const handleResize = (sizes: number[]) => {
+        setPanelSizes({
+            chat: sizes[0],
+            artifact: sizes[1] || panelSizes.artifact,
+        });
+    };
+
     return (
         <div className="flex h-full w-full justify-center overflow-hidden bg-neutral-100">
             {showHistory && (
@@ -263,18 +294,27 @@ const Chat: React.FC = () => {
             )}
             <ResizablePanelGroup
                 direction="horizontal"
-                className="w-full h-full">
-                <ResizablePanel defaultSize={50} minSize={30}>
+                className="w-full h-full"
+                onLayout={handleResize}>
+                <ResizablePanel
+                    defaultSize={showArtifact ? panelSizes.chat : 100}
+                    minSize={30}>
                     <ChatContainer hasMessages={hasMessages} />
                 </ResizablePanel>
-                <ResizableHandle withHandle />
-                {showArtifact && (
-                    <ResizablePanel defaultSize={50} minSize={30}>
-                        <div className="h-full overflow-hidden px-4 py-12">
-                            <ArtifactViewer />
-                        </div>
-                    </ResizablePanel>
-                )}
+
+                {/* 始终渲染Handle和第二个面板，但在不显示时隐藏它们 */}
+                <div className={showArtifact ? "block" : "hidden"}>
+                    <ResizableHandle withHandle />
+                </div>
+
+                <ResizablePanel
+                    defaultSize={showArtifact ? panelSizes.artifact : 0}
+                    minSize={30}
+                    className={cn(showArtifact ? "block" : "hidden")}>
+                    <div className="h-full overflow-hidden px-4 py-12">
+                        {showArtifact && <ArtifactViewer />}
+                    </div>
+                </ResizablePanel>
             </ResizablePanelGroup>
         </div>
     );

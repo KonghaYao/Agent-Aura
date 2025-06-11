@@ -2,10 +2,9 @@ import { Annotation, BaseStore } from "@langchain/langgraph";
 import { createState, FEToolsState, SwarmState } from "@langgraph-js/pro";
 import { createModelHelper } from "@langgraph-js/pro";
 import { createReactAgentAnnotation } from "@langchain/langgraph/prebuilt";
+import { models } from "../models";
 
-export const { ModelState, createLLM } = createModelHelper({
-    main_model: ["gemini-2.5-flash-preview-05-20"],
-});
+export const { ModelState, createLLM } = createModelHelper(models);
 export const GraphState = createState(
     createReactAgentAnnotation(),
     ModelState,

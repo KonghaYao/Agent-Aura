@@ -14,13 +14,12 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
     const {
         historyList,
         currentChatId,
-        refreshHistoryList,
         createNewChat,
         deleteHistoryChat,
         toHistoryChat,
     } = useChat();
     return (
-        <div className=" bg-white rounded-lg shadow-xl h-[50%] border flex flex-col absolute top-16 left-4 w-96 z-10">
+        <div className=" bg-white rounded-lg shadow-xl h-[50%] border flex flex-col absolute top-16 left-4 w-96 z-20">
             <div className="p-4 flex justify-between items-center h-16">
                 <div className="flex items-center gap-3">
                     <h3 className="m-0 text-lg text-gray-800">历史记录</h3>
@@ -96,7 +95,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                                         </button>
                                         <button
                                             className="p-1.5 text-base rounded bg-red-100 hover:bg-red-200 transition-all duration-200 flex items-center justify-center hover:scale-110 group"
-                                            onClick={async () => {
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
                                                 await deleteHistoryChat(thread);
                                             }}
                                             title="删除对话">
