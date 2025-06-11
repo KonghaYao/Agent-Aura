@@ -10,6 +10,7 @@ import {
     Download,
     CheckCircle2,
     X,
+    Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -234,19 +235,31 @@ export const ArtifactViewer: React.FC = () => {
                     </Button>
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
                 {viewMode === "preview" ? (
-                    <iframe
-                        key={iframeKey}
-                        ref={iframeRef}
-                        src="https://langgraph-artifacts.netlify.app/index.html"
-                        className="w-full h-full border-none"
-                    />
+                    <>
+                        <iframe
+                            key={iframeKey}
+                            ref={iframeRef}
+                            src="https://langgraph-artifacts.netlify.app/index.html"
+                            className="w-full h-full border-none"
+                        />
+                        {isLoading && (
+                            <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] flex items-center justify-center z-10">
+                                <div className="flex flex-col items-center gap-2 bg-background/80 rounded-lg p-4 shadow-md">
+                                    <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                                    <p className="text-sm font-medium">
+                                        正在加载代码...
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <SourceCodeViewer />
                 )}
             </div>
-            <div className="border-t p-2 flex items-center justify-between">
+            <div className="border-t p-2 flex items-center justify-between bg-muted/30">
                 <div className="flex items-center gap-2">
                     <GitBranchPlus className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">版本:</span>
