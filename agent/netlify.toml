@@ -3,7 +3,3 @@ from = "/api/*"
 to = "/.netlify/functions/index"
 status = 200
 force = true
-
-[functions]
-directory = 'dist/netlify/functions'
-publish = 'dist'
