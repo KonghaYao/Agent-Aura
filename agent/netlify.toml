@@ -5,6 +5,5 @@ status = 200
 force = true
 
 [functions]
-directory = "netlify/functions"
-command = "pnpm build & cp -r netlify/functions dist/netlify/functions"
-publish = "dist"
+directory = 'dist/netlify/functions'
+publish = 'dist'

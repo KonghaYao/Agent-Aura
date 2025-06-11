@@ -31,8 +31,8 @@ importers:
         version: 3.25.56
     devDependencies:
       '@langgraph-js/bundler':
-        specifier: ^1.4.2
-        version: 1.4.2(@langgraph-js/api@0.2.39(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph-sdk@0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))(@types/pg@8.15.4)(openai@4.104.0(zod@3.25.56))(typescript@5.8.3))(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.42.0)(tsx@4.19.4)
+        specifier: ^1.5.0
+        version: 1.5.0(@langgraph-js/api@0.2.39(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph-sdk@0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))(@types/pg@8.15.4)(openai@4.104.0(zod@3.25.56))(typescript@5.8.3))(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.42.0)(tsx@4.19.4)
       '@langgraph-js/langgraph-pg':
         specifier: ^1.2.1
         version: 1.2.1(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))
@@ -333,8 +333,8 @@ packages:
       '@langchain/langgraph-sdk':
         optional: true
 
-  '@langgraph-js/bundler@1.4.2':
-    resolution: {integrity: sha512-bPY4sECVvyJ0+x+fyJS/dGLUdvriekJYcZQcdXymi5xx2Np5uBqNOslt8BITQwkCbYF0levA0pVsM8Z2JuvM9w==}
+  '@langgraph-js/bundler@1.5.0':
+    resolution: {integrity: sha512-Miyu+ezbgbSRo2iwFnwHH/4T164AUE+/hgBRBycr4AfWzoMAx9aestXvKIfA/ecmwECZJdKTcACCl9+jKxcslw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -1670,7 +1670,7 @@ snapshots:
       - pg-native
       - supports-color
 
-  '@langgraph-js/bundler@1.4.2(@langgraph-js/api@0.2.39(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph-sdk@0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))(@types/pg@8.15.4)(openai@4.104.0(zod@3.25.56))(typescript@5.8.3))(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.42.0)(tsx@4.19.4)':
+  '@langgraph-js/bundler@1.5.0(@langgraph-js/api@0.2.39(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph-sdk@0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))(@types/pg@8.15.4)(openai@4.104.0(zod@3.25.56))(typescript@5.8.3))(@types/node@22.15.30)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.42.0)(tsx@4.19.4)':
     dependencies:
       '@langgraph-js/api': 0.2.39(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph-sdk@0.0.83(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56))))(@langchain/langgraph@0.2.74(@langchain/core@0.3.57(openai@4.104.0(zod@3.25.56)))(zod-to-json-schema@3.24.5(zod@3.25.56)))(@types/pg@8.15.4)(openai@4.104.0(zod@3.25.56))(typescript@5.8.3)
       rollup-plugin-node-externals: 8.0.0(rollup@4.42.0)
