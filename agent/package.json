@@ -18,7 +18,7 @@
         "zod": "^3.25.56"
     },
     "devDependencies": {
-        "@langgraph-js/bundler": "^1.5.0",
+        "@langgraph-js/bundler": "^1.5.1",
         "@langgraph-js/langgraph-pg": "^1.2.1",
         "@types/node": "^22.15.30"
     },
