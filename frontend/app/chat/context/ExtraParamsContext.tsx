@@ -20,15 +20,7 @@ const ExtraParamsContext = createContext<ExtraParamsContextType | undefined>(
 export const ExtraParamsProvider: React.FC<{ children: ReactNode }> = ({
     children,
 }) => {
-    const [extraParams, setExtraParamsState] = useState<object>(() => {
-        const savedParams = localStorage.getItem("extraParams");
-        try {
-            return savedParams ? JSON.parse(savedParams) : {};
-        } catch (e) {
-            console.error("Failed to parse extraParams from localStorage", e);
-            return {};
-        }
-    });
+    const [extraParams, setExtraParamsState] = useState<object>({});
 
     useEffect(() => {
         localStorage.setItem("extraParams", JSON.stringify(extraParams));
