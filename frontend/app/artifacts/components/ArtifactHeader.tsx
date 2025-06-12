@@ -7,7 +7,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Artifact } from "../types";
+import { Artifact } from "../ArtifactsContext";
 
 interface ArtifactHeaderProps {
     currentArtifact: Artifact;
@@ -39,11 +39,13 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
             <div className="flex items-center space-x-4 flex-wrap">
                 <Popover
                     open={isFileSelectOpen}
-                    onOpenChange={setIsFileSelectOpen}>
+                    onOpenChange={setIsFileSelectOpen}
+                >
                     <PopoverTrigger asChild>
                         <Button
                             variant="outline"
-                            className="flex items-center justify-between gap-2 border-none">
+                            className="flex items-center justify-between gap-2 border-none"
+                        >
                             <span className="truncate max-w-[200px]">
                                 {currentArtifact.filename}
                             </span>
@@ -64,10 +66,11 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                                         className="w-full justify-start text-left px-3 py-2 rounded-none"
                                         onClick={() => {
                                             setCurrentArtifactById(
-                                                latestVersion.id
+                                                latestVersion.id,
                                             );
                                             setIsFileSelectOpen(false);
-                                        }}>
+                                        }}
+                                    >
                                         {filename}
                                     </Button>
                                 );
@@ -82,11 +85,10 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                     variant="outline"
                     onClick={refresh}
                     disabled={isLoading}
-                    className="ml-auto border-none">
+                    className="ml-auto border-none"
+                >
                     <RefreshCw
-                        className={`h-4 w-4 ${
-                            isLoading ? "animate-spin" : ""
-                        }`}
+                        className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
                     />
                     <span className="sr-only">刷新</span>
                 </Button>
@@ -98,7 +100,8 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                     setViewMode(value as "preview" | "source");
                     if (value === "preview") refresh();
                 }}
-                className="w-auto">
+                className="w-auto"
+            >
                 <TabsList>
                     <TabsTrigger value="preview">预览</TabsTrigger>
                     <TabsTrigger value="source">源代码</TabsTrigger>
@@ -111,10 +114,11 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                     className="border-none"
                     onClick={() => {
                         setShowArtifact(false);
-                    }}>
+                    }}
+                >
                     <X className="h-4 w-4" />
                 </Button>
             </div>
         </div>
     );
-}; 
+};

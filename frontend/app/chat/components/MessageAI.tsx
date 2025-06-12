@@ -4,8 +4,7 @@ import React from "react";
 import { RenderMessage } from "@langgraph-js/sdk";
 import { UsageMetadata } from "./UsageMetadata";
 import { getMessageContent } from "@langgraph-js/sdk";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { MarkdownRenderer } from "../../components/shared/MarkdownRenderer";
 
 interface MessageAIProps {
     message: RenderMessage;
@@ -18,11 +17,7 @@ const MessageAI: React.FC<MessageAIProps> = ({ message }) => {
                 <div className="text-sm font-medium text-gray-700 mb-2">
                     {message.name}
                 </div>
-                <div className="markdown-body max-w-none">
-                    <Markdown remarkPlugins={[remarkGfm]}>
-                        {getMessageContent(message.content)}
-                    </Markdown>
-                </div>
+                <MarkdownRenderer content={getMessageContent(message.content)} />
                 <UsageMetadata
                     response_metadata={message.response_metadata as any}
                     usage_metadata={message.usage_metadata || {}}

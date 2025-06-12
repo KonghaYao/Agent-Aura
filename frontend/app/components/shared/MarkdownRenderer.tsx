@@ -1,0 +1,67 @@
+"use client";
+
+import React from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import ShikiHighlighter, { isInlineCode } from "react-shiki";
+import "react-shiki/css";
+
+interface MarkdownRendererProps {
+    content: string;
+    className?: string;
+}
+
+// 代码块渲染组件
+const CodeBlock = ({ className, children, node, ...props }: any) => {
+    // 提取语言信息
+    const match = className?.match(/language-(\w+)/);
+    const language = match ? match[1] : "text";
+    const code = String(children).replace(/\n$/, "");
+    
+    // 检查是否为内联代码
+    const isInline = node ? isInlineCode(node) : false;
+
+    return !isInline ? (
+        <ShikiHighlighter
+            language={language}
+            theme="github-light"
+            showLineNumbers
+            style={{
+                // @ts-ignore - CSS 变量
+                "--line-numbers-foreground": "rgba(107, 114, 128, 0.6)",
+                "--line-numbers-width": "3ch",
+                fontSize: "0.9rem",
+                lineHeight: "1.5",
+                borderRadius: "0.5rem",
+                marginBottom: "1.25rem",
+            }}
+        >
+            {code}
+        </ShikiHighlighter>
+    ) : (
+        <code
+            className={`bg-gray-100 rounded-sm font-normal ${className}`}
+            {...props}
+        >
+            {children}
+        </code>
+    );
+};
+
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
+    content,
+    className = "markdown-body max-w-none"
+}) => {
+    return (
+        <div className={className}>
+            <Markdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                    code: CodeBlock,
+                }}
+            >
+                {content}
+            </Markdown>
+        </div>
+    );
+}; 

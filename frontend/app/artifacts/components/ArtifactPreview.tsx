@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { wrap, windowEndpoint } from "comlink";
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
 import { Artifact } from "../types";
+import { IframePreview } from "./IframePreview";
+import { SourceCodeViewer } from "../SourceCodeViewer";
+import { PreviewType, getPreviewConfig } from "../config/previewConfig";
+import { MarkdownRenderer } from "../../components/shared/MarkdownRenderer";
 
 interface ArtifactPreviewProps {
     currentArtifact: Artifact | null;
@@ -16,70 +18,51 @@ export const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({
     isLoading,
     setIsLoading,
 }) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
-
-    const getIframeAPI = async (iframe: HTMLIFrameElement) => {
-        const iframeApi = wrap(windowEndpoint(iframe.contentWindow!));
-
-        // 5 秒内，每 50 ms 检测一次 init 函数
-        const index = await Promise.race(
-            Array(100)
-                .fill(0)
-                .map((_, index) => {
-                    return new Promise((resolve) => {
-                        setTimeout(async () => {
-                            /* @ts-ignore */
-                            if (await iframeApi.init()) {
-                                resolve(index);
-                            }
-                        }, 100 * index);
-                    });
-                })
+    if (!currentArtifact) {
+        return (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+                请选择一个文件
+            </div>
         );
+    }
 
-        return iframeApi;
-    };
+    // 获取预览配置
+    const previewConfig = getPreviewConfig(currentArtifact.filetype);
 
-    const runCode = async () => {
-        if (!iframeRef.current || !currentArtifact) return;
-
-        setIsLoading(true);
-        try {
-            const iframeApi: any = await getIframeAPI(iframeRef.current);
-            await iframeApi.run(
-                currentArtifact.code,
-                currentArtifact.filename,
-                currentArtifact.filetype
+    // 根据预览类型选择不同的渲染方式
+    switch (previewConfig.type) {
+        case PreviewType.IFRAME:
+            return (
+                <IframePreview
+                    currentArtifact={currentArtifact}
+                    iframeKey={iframeKey}
+                    isLoading={isLoading}
+                    setIsLoading={setIsLoading}
+                />
             );
-        } catch (error) {
-            console.error("Failed to run code:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (iframeRef.current) {
-            runCode();
-        }
-    }, [iframeKey, currentArtifact]);
-
-    return (
-        <>
-            <iframe
-                key={iframeKey}
-                ref={iframeRef}
-                src="https://langgraph-artifacts.netlify.app/index.html"
-                className="w-full h-full border-none"
-            />
-            {isLoading && (
-                <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] flex items-center justify-center z-10">
-                    <div className="flex flex-col items-center gap-2 bg-background/80 rounded-lg p-4 shadow-md">
-                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                        <p className="text-sm font-medium">正在加载代码...</p>
+        
+        case PreviewType.MARKDOWN:
+            return (
+                <div className="h-full w-full overflow-auto p-6">
+                    <MarkdownRenderer content={currentArtifact.code} />
+                </div>
+            );
+            
+        case PreviewType.CODE:
+            return (
+                <div className="h-full w-full overflow-auto">
+                    <div className="p-4">
+                        <SourceCodeViewer />
                     </div>
                 </div>
-            )}
-        </>
-    );
-}; 
+            );
+        
+        case PreviewType.NONE:
+        default:
+            return (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                    该文件类型不支持预览
+                </div>
+            );
+    }
+};

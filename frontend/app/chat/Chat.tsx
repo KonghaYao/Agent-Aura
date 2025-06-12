@@ -12,7 +12,7 @@ import { UsageMetadata } from "./components/UsageMetadata";
 import { formatTime, Message } from "@langgraph-js/sdk";
 import FileList from "./components/FileList";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
-import "github-markdown-css/github-markdown.css";
+import "../markdown.css";
 import { ArtifactsProvider, useArtifacts } from "../artifacts/ArtifactsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -158,7 +158,7 @@ const ChatInput: React.FC = () => {
     return (
         <div
             className={cn(
-                "w-full border border-gray-200 p-2 rounded-xl sticky bottom-8 bg-white z-10 shadow-xl",
+                "w-full border border-gray-200 p-2 rounded-xl bg-white z-10 shadow-xl",
             )}
         >
             {imageUrls.length > 0 && (
@@ -251,7 +251,7 @@ const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
                         你好，我是 Aura
                     </h1>
                 )}
-                <div className="px-4 w-full">
+                <div className="px-4 w-full sticky bottom-8 ">
                     <ChatInput />
                 </div>
             </div>

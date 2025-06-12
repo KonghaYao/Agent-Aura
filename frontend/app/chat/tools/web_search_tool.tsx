@@ -65,7 +65,7 @@ export const web_search_tool = createToolUI({
                     {feedback.map((result, index) => (
                         <div
                             key={index}
-                            className="border rounded-lg p-2 hover:bg-gray-50"
+                            className="border rounded-lg p-2 bg-gray-50 hover:bg-gray-100"
                         >
                             <div
                                 className="flex items-center justify-between select-none cursor-pointer"
