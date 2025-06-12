@@ -1,18 +1,12 @@
 import { NextRequest } from "next/server";
 
 // 处理 GET 请求
-export async function GET(
-    request: NextRequest,
-    context: { params: { path: string[] } },
-) {
+export async function GET(request: NextRequest) {
     return handleStreamRequest(request, "GET");
 }
 
 // 处理 POST 请求
-export async function POST(
-    request: NextRequest,
-    context: { params: { path: string[] } },
-) {
+export async function POST(request: NextRequest) {
     console.log("POST", request.url);
     return handleStreamRequest(request, "POST");
 }
