@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import { createChatStore, UnionStore, useUnionStore } from "@langgraph-js/sdk";
 import { useStore } from "@nanostores/react";
-import { getLocalConfig } from "../store";
 import {
     ask_user_for_approve,
     update_plan,
@@ -22,7 +21,10 @@ const createGlobalChatStore = () =>
     createChatStore(
         process.env.NEXT_PUBLIC_AGENT_NAME || "",
         {
-            apiUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8123",
+            apiUrl: new URL(
+                "/api/langgraph/",
+                process.env.NEXT_PUBLIC_API_URL,
+            ).toString(),
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法
@@ -41,7 +43,7 @@ const createGlobalChatStore = () =>
                     update_plan,
                 ]);
             },
-        }
+        },
     );
 
 type ChatContextType = UnionStore<ReturnType<typeof createGlobalChatStore>>;

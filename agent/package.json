@@ -3,9 +3,10 @@
     "module": "index.ts",
     "type": "module",
     "scripts": {
-        "preinstall": "node patch_deps.mjs",
+        "postinstall": "node ./scripts/patch_deps.mjs",
         "dev": "bunx --bun langgraph-dev",
         "dev:node": "langgraph-dev",
+        "dev:deno": "deno run -A ./scripts/deno-dev.js",
         "build": "langgraph-bundler"
     },
     "dependencies": {
@@ -20,7 +21,8 @@
     "devDependencies": {
         "@langgraph-js/bundler": "^1.5.2",
         "@langgraph-js/langgraph-pg": "^1.2.1",
-        "@types/node": "^22.15.30"
+        "@types/node": "^22.15.30",
+        "tsx": "^4.19.4"
     },
     "pnpm": {
         "onlyBuiltDependencies": [

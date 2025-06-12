@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+    agent:
+        build:
+            context: ./agent
+            dockerfile: Dockerfile
+        ports:
+            - "5432:5432"
+        restart: unless-stopped
+        networks:
+            - agent-network
+
+networks:
+    agent-network:
+        driver: bridge
