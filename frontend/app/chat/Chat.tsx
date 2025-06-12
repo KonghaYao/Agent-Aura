@@ -77,7 +77,8 @@ const ChatMessages: React.FC = () => {
     return (
         <div
             className="flex-1 overflow-y-auto overflow-x-hidden p-4 w-full"
-            ref={MessageContainer}>
+            ref={MessageContainer}
+        >
             <MessagesBox
                 renderMessages={renderMessages}
                 collapsedTools={collapsedTools}
@@ -157,8 +158,9 @@ const ChatInput: React.FC = () => {
     return (
         <div
             className={cn(
-                "w-full border border-gray-200 p-2 rounded-xl sticky bottom-8 bg-white z-10 shadow-xl"
-            )}>
+                "w-full border border-gray-200 p-2 rounded-xl sticky bottom-8 bg-white z-10 shadow-xl",
+            )}
+        >
             {imageUrls.length > 0 && (
                 <div className="flex items-center justify-between mb-4">
                     <FileList onFileUploaded={handleFileUploaded} />
@@ -178,7 +180,8 @@ const ChatInput: React.FC = () => {
                     value={extraParams.main_model || "gpt-4.1-mini"}
                     onValueChange={(value) => {
                         setExtraParams({ ...extraParams, main_model: value });
-                    }}>
+                    }}
+                >
                     <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <Brain></Brain>
                         <SelectValue placeholder="选择一个模型" />
@@ -222,7 +225,8 @@ const ChatInput: React.FC = () => {
                     }
                     variant={loading ? "destructive" : "default"}
                     size="icon"
-                    className="rounded-full">
+                    className="rounded-full"
+                >
                     {loading ? (
                         <StopCircle className="h-5 w-5" />
                     ) : (
@@ -247,7 +251,9 @@ const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
                         你好，我是 Aura
                     </h1>
                 )}
-                <ChatInput />
+                <div className="px-4 w-full">
+                    <ChatInput />
+                </div>
             </div>
         </div>
     );
@@ -295,10 +301,12 @@ const Chat: React.FC = () => {
             <ResizablePanelGroup
                 direction="horizontal"
                 className="w-full h-full"
-                onLayout={handleResize}>
+                onLayout={handleResize}
+            >
                 <ResizablePanel
                     defaultSize={showArtifact ? panelSizes.chat : 100}
-                    minSize={30}>
+                    minSize={30}
+                >
                     <ChatContainer hasMessages={hasMessages} />
                 </ResizablePanel>
 
@@ -310,7 +318,8 @@ const Chat: React.FC = () => {
                 <ResizablePanel
                     defaultSize={showArtifact ? panelSizes.artifact : 0}
                     minSize={30}
-                    className={cn(showArtifact ? "block" : "hidden")}>
+                    className={cn(showArtifact ? "block" : "hidden")}
+                >
                     <div className="h-full overflow-hidden px-4 py-12">
                         {showArtifact && <ArtifactViewer />}
                     </div>

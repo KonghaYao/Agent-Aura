@@ -1,8 +1,14 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, {
+    createContext,
+    useContext,
+    useState,
+    ReactNode,
+    useEffect,
+} from "react";
 import { useChat } from "../chat/context/ChatContext";
 import { Message } from "@langgraph-js/sdk";
 
-interface Artifact {
+export interface Artifact {
     id: string;
     code: string;
     filename: string;
@@ -34,21 +40,29 @@ interface ArtifactsProviderProps {
     children: ReactNode;
 }
 
-export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({ children }) => {
+export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
+    children,
+}) => {
     const [artifacts, setArtifacts] = useState<Artifact[]>([]);
     const [showArtifact, setShowArtifact] = useState(false);
     const { renderMessages } = useChat();
-    const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(null);
+    const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(
+        null,
+    );
 
     // 获取指定文件名的所有版本
     const getArtifactVersions = (filename: string) => {
-        return artifacts.filter((artifact) => artifact.filename === filename).sort((a, b) => a.version - b.version);
+        return artifacts
+            .filter((artifact) => artifact.filename === filename)
+            .sort((a, b) => a.version - b.version);
     };
 
     useEffect(() => {
         if (!renderMessages) return;
 
-        const createArtifacts = renderMessages.filter((message) => message.type === "tool").filter((message) => message.name === "create_artifacts");
+        const createArtifacts = renderMessages
+            .filter((message) => message.type === "tool")
+            .filter((message) => message.name === "create_artifacts");
 
         // 创建文件名到最新版本的映射
         const filenameToLatestVersion = new Map<string, number>();
@@ -79,7 +93,9 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({ children }
 
     const setCurrentArtifactById = (id: string) => {
         setShowArtifact(true);
-        setCurrentArtifact(artifacts.find((artifact) => artifact.id === id) || null);
+        setCurrentArtifact(
+            artifacts.find((artifact) => artifact.id === id) || null,
+        );
     };
 
     return (

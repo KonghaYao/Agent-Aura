@@ -31,8 +31,11 @@ export const web_search_tool = createToolUI({
     onlyRender: true,
     render(tool: ToolRenderData<SearchInput, RenderResponse[]>) {
         const data = tool.getInputRepaired();
-        const feedback = tool.getJSONOutputSafe()?.flatMap((i) => i.results) || [];
-        const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+        const feedback =
+            tool.getJSONOutputSafe()?.flatMap((i) => i.results) || [];
+        const [expandedItems, setExpandedItems] = useState<Set<number>>(
+            new Set(),
+        );
 
         const toggleExpand = (index: number) => {
             const newExpanded = new Set(expandedItems);
@@ -53,11 +56,24 @@ export const web_search_tool = createToolUI({
                 <div className="text-sm text-gray-500">
                     Search Query: {data.query}；Get {feedback.length} results
                 </div>
+                {tool.state === "loading" && (
+                    <div className="text-sm text-gray-500">
+                        Searching for you...
+                    </div>
+                )}
                 <div className="space-y-3 max-h-[300px] overflow-y-auto">
                     {feedback.map((result, index) => (
-                        <div key={index} className="border rounded-lg p-2 hover:bg-gray-50">
-                            <div className="flex items-center justify-between select-none cursor-pointer" onClick={() => toggleExpand(index)}>
-                                <span className="font-xs flex-1">{result.title}</span>
+                        <div
+                            key={index}
+                            className="border rounded-lg p-2 hover:bg-gray-50"
+                        >
+                            <div
+                                className="flex items-center justify-between select-none cursor-pointer"
+                                onClick={() => toggleExpand(index)}
+                            >
+                                <span className="font-xs flex-1">
+                                    {result.title}
+                                </span>
                                 <div
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -67,16 +83,26 @@ export const web_search_tool = createToolUI({
                                 >
                                     <LinkIcon className="w-4 h-4" />
                                 </div>
-                                <span className="text-gray-400">{expandedItems.has(index) ? "▼" : "▶"}</span>
+                                <span className="text-gray-400">
+                                    {expandedItems.has(index) ? "▼" : "▶"}
+                                </span>
                             </div>
 
                             {expandedItems.has(index) && (
                                 <div className="mt-3 space-y-2">
-                                    <p className="text-sm text-gray-600">{result.description}</p>
+                                    <p className="text-sm text-gray-600">
+                                        {result.description}
+                                    </p>
                                     <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <span>{new Date(result.updateTime).toLocaleDateString()}</span>
+                                        <span>
+                                            {new Date(
+                                                result.updateTime,
+                                            ).toLocaleDateString()}
+                                        </span>
                                         <span>•</span>
-                                        <span>{result.metadata.engines.join(", ")}</span>
+                                        <span>
+                                            {result.metadata.engines.join(", ")}
+                                        </span>
                                     </div>
                                 </div>
                             )}
