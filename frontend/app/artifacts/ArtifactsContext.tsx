@@ -69,6 +69,9 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
 
         // 处理每个 artifact，分配版本号
         const processedArtifacts = createArtifacts.map((message) => {
+            if (!message.additional_kwargs?.done) {
+                return null;
+            }
             const content = JSON.parse(message.tool_input as string);
             const filename = content.filename;
 
@@ -88,7 +91,9 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
             };
         });
 
-        setArtifacts(processedArtifacts);
+        setArtifacts(
+            processedArtifacts.filter((artifact) => artifact !== null),
+        );
     }, [renderMessages]);
 
     const setCurrentArtifactById = (id: string) => {
