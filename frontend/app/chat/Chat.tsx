@@ -31,6 +31,7 @@ import {
     ResizablePanel,
     ResizableHandle,
 } from "@/components/ui/resizable";
+import AnimatedBackground from "../components/AnimatedBackground";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -76,7 +77,7 @@ const ChatMessages: React.FC = () => {
 
     return (
         <div
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 w-full"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 w-full pt-12"
             ref={MessageContainer}
         >
             <MessagesBox
@@ -291,7 +292,7 @@ const Chat: React.FC = () => {
     };
 
     return (
-        <div className="flex h-full w-full justify-center overflow-hidden bg-neutral-100">
+        <div className="flex h-full w-full justify-center overflow-hidden">
             {showHistory && (
                 <HistoryList
                     onClose={() => toggleHistoryVisible()}
@@ -325,6 +326,7 @@ const Chat: React.FC = () => {
                     </div>
                 </ResizablePanel>
             </ResizablePanelGroup>
+            {!hasMessages && <AnimatedBackground />}
         </div>
     );
 };

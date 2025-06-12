@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useChat } from "../context/ChatContext";
 import { getHistoryContent } from "@langgraph-js/sdk";
 import { RefreshCw, X, RotateCcw, Trash2 } from "lucide-react";
@@ -17,7 +17,11 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
         createNewChat,
         deleteHistoryChat,
         toHistoryChat,
+        refreshHistoryList,
     } = useChat();
+    useEffect(() => {
+        refreshHistoryList();
+    }, []);
     return (
         <div className=" bg-white rounded-lg shadow-xl h-[50%] border flex flex-col absolute top-16 left-4 w-96 z-20">
             <div className="p-4 flex justify-between items-center h-16">
@@ -33,7 +37,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                 <button
                     className="p-1.5 text-base rounded bg-red-100 hover:bg-red-200 transition-all duration-200 flex items-center justify-center hover:scale-110 group"
                     onClick={onClose}
-                    title="关闭">
+                    title="关闭"
+                >
                     <X className="w-4 h-4 text-red-600 group-hover:text-red-700" />
                 </button>
             </div>
@@ -42,7 +47,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                     className="flex flex-col gap-3 cursor-pointer"
                     onClick={() => {
                         createNewChat();
-                    }}>
+                    }}
+                >
                     <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <div className="text-sm text-gray-800 truncate">
                             New Chat
@@ -59,7 +65,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                             .sort(
                                 (a, b) =>
                                     new Date(b.created_at).getTime() -
-                                    new Date(a.created_at).getTime()
+                                    new Date(a.created_at).getTime(),
                             )
                             .map((thread) => (
                                 <div
@@ -71,7 +77,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                                     onClick={() => {
                                         toHistoryChat(thread);
                                     }}
-                                    key={thread.thread_id}>
+                                    key={thread.thread_id}
+                                >
                                     <div className="flex-1 min-w-0 mr-2">
                                         <div className="text-sm text-gray-800 mb-1 truncate max-w-[180px]">
                                             {getHistoryContent(thread)}
@@ -79,7 +86,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                                         <div className="flex gap-3 text-xs text-gray-500">
                                             <span className="truncate max-w-[100px]">
                                                 {formatTime(
-                                                    new Date(thread.created_at)
+                                                    new Date(thread.created_at),
                                                 )}
                                             </span>
                                             <span className="truncate max-w-[60px]">
@@ -90,7 +97,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                                     <div className="flex gap-2 shrink-0">
                                         <button
                                             className="p-1.5 text-base rounded bg-green-100 hover:bg-green-200 transition-all duration-200 flex items-center justify-center hover:scale-110 group"
-                                            title="恢复对话">
+                                            title="恢复对话"
+                                        >
                                             <RotateCcw className="w-4 h-4 text-green-600 group-hover:text-green-700 group-hover:-rotate-180 transition-all duration-300" />
                                         </button>
                                         <button
@@ -99,7 +107,8 @@ const HistoryList: React.FC<HistoryListProps> = ({ onClose, formatTime }) => {
                                                 e.stopPropagation();
                                                 await deleteHistoryChat(thread);
                                             }}
-                                            title="删除对话">
+                                            title="删除对话"
+                                        >
                                             <Trash2 className="w-4 h-4 text-red-600 group-hover:text-red-700" />
                                         </button>
                                     </div>

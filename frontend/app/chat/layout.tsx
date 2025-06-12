@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Settings, MessageSquare, History, Home, Users } from "lucide-react";
 import sidebarConfig from "./config/sidebar.json";
+import AnimatedBackground from "../components/AnimatedBackground";
 
 interface SidebarConfig {
     title: string;
@@ -68,7 +69,8 @@ export default function ChatLayout({
                                 className="text-4xl font-bold tracking-tight"
                                 style={{
                                     writingMode: "sideways-rl",
-                                }}>
+                                }}
+                            >
                                 {config.title}
                             </h1>
                         </div>
@@ -90,7 +92,8 @@ export default function ChatLayout({
                                                     onClick={() =>
                                                         handleItemClick(item)
                                                     }
-                                                    className="w-full justify-start hover:bg-gray-200 cursor-pointer transition-colors">
+                                                    className="w-full justify-start hover:bg-gray-200 cursor-pointer transition-colors"
+                                                >
                                                     <IconComponent className="h-5 w-5" />
                                                 </SidebarMenuButton>
                                             </SidebarMenuItem>

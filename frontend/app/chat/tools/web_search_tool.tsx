@@ -1,7 +1,7 @@
 // 入参 {"query":"Gemini Diffusion vs other diffusion models advantages disadvantages unique features"}
 
 import { createToolUI, ToolRenderData } from "@langgraph-js/sdk";
-import { LinkIcon } from "lucide-react";
+import { ChevronDownIcon, LinkIcon } from "lucide-react";
 import { useState } from "react";
 
 interface SearchResult {
@@ -33,19 +33,6 @@ export const web_search_tool = createToolUI({
         const data = tool.getInputRepaired();
         const feedback =
             tool.getJSONOutputSafe()?.flatMap((i) => i.results) || [];
-        const [expandedItems, setExpandedItems] = useState<Set<number>>(
-            new Set(),
-        );
-
-        const toggleExpand = (index: number) => {
-            const newExpanded = new Set(expandedItems);
-            if (newExpanded.has(index)) {
-                newExpanded.delete(index);
-            } else {
-                newExpanded.add(index);
-            }
-            setExpandedItems(newExpanded);
-        };
 
         const openLink = (url: string) => {
             window.open(url, "_blank", "noopener,noreferrer");
@@ -61,20 +48,14 @@ export const web_search_tool = createToolUI({
                         Searching for you...
                     </div>
                 )}
-                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                <div className="py-3 pl-3 max-h-[300px] overflow-y-auto bg-white border rounded-2xl">
                     {feedback.map((result, index) => (
-                        <div
-                            key={index}
-                            className="border rounded-lg p-2 bg-gray-50 hover:bg-gray-100"
-                        >
-                            <div
-                                className="flex items-center justify-between select-none cursor-pointer"
-                                onClick={() => toggleExpand(index)}
-                            >
+                        <div key={index} className="p-2">
+                            <div className="flex items-center justify-between select-none cursor-pointer">
                                 <span className="font-xs flex-1">
                                     {result.title}
                                 </span>
-                                <div
+                                {/* <div
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         openLink(result.url);
@@ -82,29 +63,36 @@ export const web_search_tool = createToolUI({
                                     className="px-3 py-1 text-sm"
                                 >
                                     <LinkIcon className="w-4 h-4" />
+                                </div> */}
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <span>
+                                        {new Date(
+                                            result.updateTime,
+                                        ).toLocaleDateString()}
+                                    </span>
+                                    <span>•</span>
+                                    <span>
+                                        {result.metadata.engines.join(", ")}
+                                    </span>
+                                    <span>•</span>
+                                    <span className="text-gray-400">
+                                        <LinkIcon
+                                            className="w-4 h-4"
+                                            onClick={() => {
+                                                openLink(result.url);
+                                            }}
+                                        ></LinkIcon>
+                                    </span>
                                 </div>
-                                <span className="text-gray-400">
-                                    {expandedItems.has(index) ? "▼" : "▶"}
-                                </span>
                             </div>
 
-                            {expandedItems.has(index) && (
-                                <div className="mt-3 space-y-2">
-                                    <p className="text-sm text-gray-600">
-                                        {result.description}
-                                    </p>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <span>
-                                            {new Date(
-                                                result.updateTime,
-                                            ).toLocaleDateString()}
-                                        </span>
-                                        <span>•</span>
-                                        <span>
-                                            {result.metadata.engines.join(", ")}
-                                        </span>
-                                    </div>
-                                </div>
+                            <div className="mt-3 space-y-2">
+                                <p className="text-sm text-gray-600">
+                                    {result.description}
+                                </p>
+                            </div>
+                            {index < feedback.length - 1 && (
+                                <div className="border-t border-gray-200 my-2"></div>
                             )}
                         </div>
                     ))}
