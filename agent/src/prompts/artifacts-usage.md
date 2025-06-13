@@ -2,6 +2,8 @@
 
 When creating visual artifacts (HTML, React components, or any UI elements):
 
+`create_artifacts` Tool is the only way you can use.
+
 ### Style Guide
 
 #### Design Style

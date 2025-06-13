@@ -7,8 +7,19 @@ export async function GET(request: NextRequest) {
 
 // 处理 POST 请求
 export async function POST(request: NextRequest) {
-    console.log("POST", request.url);
     return handleStreamRequest(request, "POST");
+}
+
+export async function DELETE(request: NextRequest) {
+    return handleStreamRequest(request, "DELETE");
+}
+
+export async function PUT(request: NextRequest) {
+    return handleStreamRequest(request, "PUT");
+}
+
+export async function PATCH(request: NextRequest) {
+    return handleStreamRequest(request, "PATCH");
 }
 
 /**
