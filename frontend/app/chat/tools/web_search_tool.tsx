@@ -72,7 +72,7 @@ export const web_search_tool = createToolUI({
                                     </span>
                                     <span>•</span>
                                     <span>
-                                        {result.metadata.engines.join(", ")}
+                                        {result.metadata.engines?.join(", ")}
                                     </span>
                                     <span>•</span>
                                     <span className="text-gray-400">
