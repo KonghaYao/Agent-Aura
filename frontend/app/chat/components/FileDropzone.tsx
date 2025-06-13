@@ -88,7 +88,7 @@ const FileDropzone: React.FC<FileDropzoneProps> = ({
             onDrop={handleDrop}
         >
             {isDragging && (
-                <div className="absolute inset-0 bg-blue-500/20 z-50 flex items-center justify-center border-4 border-dashed border-blue-600 rounded-lg">
+                <div className="absolute inset-0 bg-blue-500/20 z-50 flex items-center justify-center border-4 border-dashed border-blue-300 rounded-lg">
                     <div className="text-2xl font-bold text-white">
                         {overlayText}
                     </div>
