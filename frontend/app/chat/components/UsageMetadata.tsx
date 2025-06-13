@@ -33,7 +33,7 @@ export const UsageMetadata: React.FC<UsageMetadataProps> = ({
         ? ((usage_metadata.output_tokens || 0) * 1000) / (spend_time || 1)
         : 0;
     return (
-        <div className="flex items-center justify-between text-xs text-gray-500 mt-4">
+        <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-3">
                 {spend_time !== 0 && (
                     <span className="text-gray-500">
@@ -77,19 +77,19 @@ export const TokenPanel = ({ usage_metadata }: any) => {
                                 <div>
                                     {" "}
                                     {JSON.stringify(
-                                        usage_metadata.prompt_tokens_details
+                                        usage_metadata.prompt_tokens_details,
                                     )}
                                 </div>
                             </span>
                             <span className="flex items-center gap-1">
                                 <span>📤</span>
                                 {formatTokens(
-                                    usage_metadata.output_tokens || 0
+                                    usage_metadata.output_tokens || 0,
                                 )}
                                 <div>
                                     {" "}
                                     {JSON.stringify(
-                                        usage_metadata.completion_tokens_details
+                                        usage_metadata.completion_tokens_details,
                                     )}
                                 </div>
                             </span>

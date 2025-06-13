@@ -32,6 +32,8 @@ import {
     ResizableHandle,
 } from "@/components/ui/resizable";
 import AnimatedBackground from "../components/AnimatedBackground";
+import FileDropzone from "./components/FileDropzone";
+import { defaultUploader } from "./services/uploaders";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -120,11 +122,34 @@ const ChatInput: React.FC = () => {
     const handleFileUploaded = (url: string) => {
         setImageUrls((prev) => [...prev, url]);
     };
+
+    // 移除图片
+    const removeImage = (index: number) => {
+        setImageUrls((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    // 监听来自FileDropzone的文件上传成功事件
+    useEffect(() => {
+        const handleFileUploadedEvent = (event: Event) => {
+            const customEvent = event as CustomEvent<{ url: string }>;
+            handleFileUploaded(customEvent.detail.url);
+        };
+
+        window.addEventListener("fileUploaded", handleFileUploadedEvent);
+        return () => {
+            window.removeEventListener("fileUploaded", handleFileUploadedEvent);
+        };
+    }, []);
+
     const _setCurrentAgent = (agent: string) => {
         localStorage.setItem("agent_name", agent);
         setCurrentAgent(agent);
     };
+
     const sendMultiModalMessage = () => {
+        if (userInput.trim() === "" && imageUrls.length === 0) {
+            return;
+        }
         const content: Message[] = [
             {
                 type: "human",
@@ -145,7 +170,8 @@ const ChatInput: React.FC = () => {
             extraParams,
         });
 
-        // 清空图片列表
+        // 清空输入和图片列表
+        // setUserInput("");
         setImageUrls([]);
     };
 
@@ -163,12 +189,88 @@ const ChatInput: React.FC = () => {
             )}
         >
             {imageUrls.length > 0 && (
-                <div className="flex items-center justify-between mb-4">
-                    <FileList onFileUploaded={handleFileUploaded} />
+                <div className="flex flex-wrap gap-2 p-2 border-b border-gray-200">
+                    {imageUrls.map((url, index) => (
+                        <div
+                            key={index}
+                            className="relative w-20 h-20 rounded-lg overflow-hidden"
+                        >
+                            <img
+                                src={url}
+                                alt={`上传图片 ${index + 1}`}
+                                className="w-full h-full object-cover border border-gray-200"
+                            />
+                            <button
+                                className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center text-base leading-none hover:bg-black/70 transition-colors"
+                                onClick={() => removeImage(index)}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                    <label className="inline-flex items-center justify-center w-20 h-20 text-gray-500 bg-gray-100 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-200">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="32"
+                            height="32"
+                            fill="currentColor"
+                        >
+                            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                            <path d="M20 4h-3.17l-1.24-1.35A1.99 1.99 0 0 0 14.12 2H9.88c-.56 0-1.1.24-1.48.65L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+                        </svg>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={async (e) => {
+                                const selectedFiles = Array.from(
+                                    e.target.files || [],
+                                );
+                                const imageFiles = selectedFiles.filter(
+                                    (file) => file.type.startsWith("image/"),
+                                );
+
+                                for (const file of imageFiles) {
+                                    try {
+                                        const formData = new FormData();
+                                        formData.append("file", file);
+
+                                        const response = await fetch(
+                                            "https://tmpfiles.org/api/v1/upload",
+                                            {
+                                                method: "POST",
+                                                body: formData,
+                                            },
+                                        );
+
+                                        if (response.ok) {
+                                            const data = await response.json();
+                                            if (
+                                                data &&
+                                                data.data &&
+                                                data.data.url
+                                            ) {
+                                                const fileId = data.data.url
+                                                    .split("/")
+                                                    .pop();
+                                                const url = `https://tmpfiles.org/dl/${fileId}`;
+                                                handleFileUploaded(url);
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error("Upload failed:", error);
+                                    }
+                                }
+
+                                e.target.value = "";
+                            }}
+                            className="hidden"
+                        />
+                    </label>
                 </div>
             )}
             <Textarea
-                className="flex-1 resize-none border-0 shadow-none  p-3 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                className="flex-1 max-h-24 resize-none border-0 shadow-none  p-3 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
                 rows={1}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
@@ -217,6 +319,67 @@ const ChatInput: React.FC = () => {
                     />
                 )}
                 <div className="flex-1"></div>
+                {imageUrls.length === 0 && (
+                    <label className="w-8 h-8 flex items-center justify-center text-gray-500 bg-gray-100 rounded-full cursor-pointer hover:bg-gray-200 transition-colors">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="currentColor"
+                        >
+                            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                            <path d="M20 4h-3.17l-1.24-1.35A1.99 1.99 0 0 0 14.12 2H9.88c-.56 0-1.1.24-1.48.65L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
+                        </svg>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={async (e) => {
+                                const selectedFiles = Array.from(
+                                    e.target.files || [],
+                                );
+                                const imageFiles = selectedFiles.filter(
+                                    (file) => file.type.startsWith("image/"),
+                                );
+
+                                for (const file of imageFiles) {
+                                    try {
+                                        const formData = new FormData();
+                                        formData.append("file", file);
+
+                                        const response = await fetch(
+                                            "https://tmpfiles.org/api/v1/upload",
+                                            {
+                                                method: "POST",
+                                                body: formData,
+                                            },
+                                        );
+
+                                        if (response.ok) {
+                                            const data = await response.json();
+                                            if (
+                                                data &&
+                                                data.data &&
+                                                data.data.url
+                                            ) {
+                                                const fileId = data.data.url
+                                                    .split("/")
+                                                    .pop();
+                                                const url = `https://tmpfiles.org/dl/${fileId}`;
+                                                handleFileUploaded(url);
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error("Upload failed:", error);
+                                    }
+                                }
+
+                                e.target.value = "";
+                            }}
+                            className="hidden"
+                        />
+                    </label>
+                )}
                 <Button
                     onClick={() =>
                         loading ? stopGeneration() : sendMultiModalMessage()
@@ -241,6 +404,8 @@ const ChatInput: React.FC = () => {
 
 // 使用memo来记忆ChatContainer组件，避免不必要的重新渲染
 const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
+    const { renderMessages } = useChat();
+
     return (
         <div className="flex-1 flex flex-col h-full overflow-auto hide-scrollbar">
             <div className="flex-1 flex flex-col items-center justify-center mb-8 w-full max-w-4xl mx-auto">
@@ -292,42 +457,53 @@ const Chat: React.FC = () => {
     };
 
     return (
-        <div className="flex h-full w-full justify-center overflow-hidden">
-            {showHistory && (
-                <HistoryList
-                    onClose={() => toggleHistoryVisible()}
-                    formatTime={formatTime}
-                />
-            )}
-            <ResizablePanelGroup
-                direction="horizontal"
-                className="w-full h-full"
-                onLayout={handleResize}
-            >
-                <ResizablePanel
-                    defaultSize={showArtifact ? panelSizes.chat : 100}
-                    minSize={30}
+        <FileDropzone
+            uploader={defaultUploader}
+            onFileUploaded={(url) => {
+                // 通过自定义事件将上传的URL传递给ChatInput组件
+                const event = new CustomEvent("fileUploaded", {
+                    detail: { url },
+                });
+                window.dispatchEvent(event);
+            }}
+        >
+            <div className="flex h-full w-full justify-center overflow-hidden">
+                {showHistory && (
+                    <HistoryList
+                        onClose={() => toggleHistoryVisible()}
+                        formatTime={formatTime}
+                    />
+                )}
+                <ResizablePanelGroup
+                    direction="horizontal"
+                    className="w-full h-full"
+                    onLayout={handleResize}
                 >
-                    <ChatContainer hasMessages={hasMessages} />
-                </ResizablePanel>
+                    <ResizablePanel
+                        defaultSize={showArtifact ? panelSizes.chat : 100}
+                        minSize={30}
+                    >
+                        <ChatContainer hasMessages={hasMessages} />
+                    </ResizablePanel>
 
-                {/* 始终渲染Handle和第二个面板，但在不显示时隐藏它们 */}
-                <div className={showArtifact ? "block" : "hidden"}>
-                    <ResizableHandle withHandle />
-                </div>
-
-                <ResizablePanel
-                    defaultSize={showArtifact ? panelSizes.artifact : 0}
-                    minSize={30}
-                    className={cn(showArtifact ? "block" : "hidden")}
-                >
-                    <div className="h-full overflow-hidden px-4 py-12">
-                        {showArtifact && <ArtifactViewer />}
+                    {/* 始终渲染Handle和第二个面板，但在不显示时隐藏它们 */}
+                    <div className={showArtifact ? "block" : "hidden"}>
+                        <ResizableHandle withHandle />
                     </div>
-                </ResizablePanel>
-            </ResizablePanelGroup>
-            {!hasMessages && <AnimatedBackground />}
-        </div>
+
+                    <ResizablePanel
+                        defaultSize={showArtifact ? panelSizes.artifact : 0}
+                        minSize={30}
+                        className={cn(showArtifact ? "block" : "hidden")}
+                    >
+                        <div className="h-full overflow-hidden px-4 py-12">
+                            {showArtifact && <ArtifactViewer />}
+                        </div>
+                    </ResizablePanel>
+                </ResizablePanelGroup>
+                {!hasMessages && <AnimatedBackground />}
+            </div>
+        </FileDropzone>
     );
 };
 
