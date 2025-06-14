@@ -7,6 +7,7 @@
         "dev": "bunx --bun langgraph-dev",
         "dev:node": "langgraph-dev",
         "dev:deno": "deno run -A ./scripts/deno-dev.js",
+        "deploy:serverless": "sh ./scripts/deploy-serverless.sh",
         "build": "langgraph-bundler"
     },
     "dependencies": {

@@ -1,5 +1,0 @@
-[[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/netlify"
-status = 200
-force = true
