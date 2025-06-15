@@ -21,10 +21,7 @@ const createGlobalChatStore = () =>
     createChatStore(
         process.env.NEXT_PUBLIC_AGENT_NAME || "",
         {
-            apiUrl: new URL(
-                "/api/langgraph/",
-                process.env.NEXT_PUBLIC_API_URL,
-            ).toString(),
+            apiUrl: process.env.LANGGRAPH_API_URL,
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法
