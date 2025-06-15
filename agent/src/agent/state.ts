@@ -6,10 +6,10 @@ import { models } from "../models";
 
 export const { ModelState, createLLM } = createModelHelper(models);
 export const GraphState = createState(
-    createReactAgentAnnotation(),
+    // createReactAgentAnnotation(),
     ModelState,
     FEToolsState,
-    SwarmState
+    SwarmState,
 ).build({});
 export type GraphState = typeof GraphState.State;
 

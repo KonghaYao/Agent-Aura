@@ -1,5 +1,4 @@
-import Image from "next/image";
-
+"use client";
 export default function Home() {
     return (
         <main className="flex flex-col items-center justify-center min-h-screen gap-10 p-8 sm:p-20">
@@ -12,7 +11,8 @@ export default function Home() {
             <div className="flex gap-4 flex-col sm:flex-row">
                 <a
                     href="/chat"
-                    className="rounded-md bg-primary text-primary-foreground px-8 py-3 text-lg font-medium shadow hover:bg-primary/90 transition-colors">
+                    className="rounded-md bg-primary text-primary-foreground px-8 py-3 text-lg font-medium shadow hover:bg-primary/90 transition-colors"
+                >
                     开始聊天
                 </a>
             </div>

@@ -30,7 +30,7 @@ resources:
             role: ""
             disableOndemand: false
             description: agent-aura-api
-            timeout: 30
+            timeout: 600
             diskSize: 512
             customRuntimeConfig:
                 port: 8123

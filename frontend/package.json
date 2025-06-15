@@ -25,6 +25,7 @@
         "comlink": "^4.4.2",
         "github-markdown-css": "^5.8.1",
         "lucide-react": "^0.513.0",
+        "mcp-client": "^1.12.3",
         "motion": "^12.17.0",
         "next": "15.3.3",
         "next-themes": "^0.4.6",

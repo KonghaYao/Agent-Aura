@@ -16,6 +16,7 @@ import {
     read_web_page_tool,
 } from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
+import { mcpToFETools } from "@/app/fe_mcp";
 
 // 创建 store 工厂函数
 const createGlobalChatStore = () =>
@@ -33,7 +34,7 @@ const createGlobalChatStore = () =>
             },
         },
         {
-            onInit(client) {
+            async onInit(client) {
                 client.tools.bindTools([
                     create_artifacts,
                     web_search_tool,

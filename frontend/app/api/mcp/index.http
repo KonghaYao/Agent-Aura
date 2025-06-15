@@ -1,0 +1,24 @@
+POST http://localhost:3000/api/mcp
+Content-Type: application/json
+
+{
+    "mcpConfig": {
+        "langgraph-docs": {
+            "url": "https://gitmcp.io/langchain-ai/langgraph"
+        }
+    }
+}
+
+###
+PUT http://localhost:3000/api/mcp
+Content-Type: application/json
+
+{
+    "mcpConfig": {
+        "langgraph-docs": {
+            "url":"https://gitmcp.io/langchain-ai/langgraph"
+        }
+    },
+    "toolName":"fetch_langgraph_documentation",
+    "args":{}
+}

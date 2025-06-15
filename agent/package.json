@@ -11,8 +11,8 @@
         "build": "langgraph-bundler"
     },
     "dependencies": {
-        "@langchain/core": "^0.3.57",
-        "@langchain/langgraph": "~0.2.0",
+        "@langchain/core": "^0.3.58",
+        "@langchain/langgraph": "^0.3.3",
         "@langchain/langgraph-sdk": "^0.0.84",
         "@langchain/openai": "^0.5.10",
         "@langgraph-js/api": "^0.3.2",

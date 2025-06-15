@@ -1,6 +1,10 @@
 import { interrupt, entrypoint } from "@langchain/langgraph";
 import { GraphState, createLLM } from "./state.js";
-import { SequentialThinkingTool, createSwarm } from "@langgraph-js/pro";
+import {
+    SequentialThinkingTool,
+    createFeTools,
+    createSwarm,
+} from "@langgraph-js/pro";
 import { tool } from "@langchain/core/tools";
 import { type ToolRunnableConfig } from "@langchain/core/tools";
 import z from "zod";
@@ -23,20 +27,24 @@ const ask_user_for_approve = tool(
                 .describe("Title or subject of the content to be reviewed"),
         }),
         responseFormat: "content_and_artifact",
-    }
+    },
 );
+
 const AuraMainAgent = entrypoint(
     "main",
     async (state: typeof GraphState.State, config) => {
+        const feTools = await createFeTools(state.fe_tools);
         const executorPrompt = await getPrompt("executor", false);
         const artifactsPrompt = await getPrompt("artifacts-usage", false);
         const stylePrompt = await getPrompt("style", false);
         const tools = [
-            web_search_tool,
             ask_user_for_approve,
+            web_search_tool,
             crawler_tool,
             SequentialThinkingTool,
             create_artifacts,
+            ...feTools,
+            // { type: "image_generation" },
         ];
         const llm = await createLLM(state, "main_model");
 
@@ -54,7 +62,7 @@ const AuraMainAgent = entrypoint(
         return {
             messages: response.messages,
         };
-    }
+    },
 );
 
 export const graph = createSwarm({
