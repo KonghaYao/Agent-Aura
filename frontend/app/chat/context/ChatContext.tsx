@@ -13,6 +13,7 @@ import {
     ask_user_for_approve,
     update_plan,
     web_search_tool,
+    read_web_page_tool,
 } from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
 
@@ -21,7 +22,7 @@ const createGlobalChatStore = () =>
     createChatStore(
         process.env.NEXT_PUBLIC_AGENT_NAME || "",
         {
-            apiUrl: process.env.LANGGRAPH_API_URL,
+            apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_UR,
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法
@@ -38,6 +39,7 @@ const createGlobalChatStore = () =>
                     web_search_tool,
                     ask_user_for_approve,
                     update_plan,
+                    read_web_page_tool,
                 ]);
             },
         },
