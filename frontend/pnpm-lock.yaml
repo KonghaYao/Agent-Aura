@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@langgraph-js/sdk':
-        specifier: ^1.7.11
-        version: 1.7.11(react@19.1.0)
+        specifier: ^1.8.0
+        version: 1.8.0(react@19.1.0)
       '@nanostores/react':
         specifier: ^1.0.0
         version: 1.0.0(nanostores@1.0.1)(react@19.1.0)
@@ -95,6 +95,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.0
         version: 3.3.0
+      zod:
+        specifier: ^3.25.64
+        version: 3.25.64
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -405,8 +408,8 @@ packages:
       react:
         optional: true
 
-  '@langgraph-js/sdk@1.7.11':
-    resolution: {integrity: sha512-3PgHKT0eF+C2Efm851lr9FvcXmWilCUyjzM9DN6DNutdvNc1uTby8KTMdJ4QPYbf4OCcHifly5QpGyCOVqyogA==}
+  '@langgraph-js/sdk@1.8.0':
+    resolution: {integrity: sha512-ify8cffxnBC1r/DXWXE4naAACO5Qp6SUbQ04f2lfc2+jJTDFKqKQ6ZztNckE7dSlIWBOJ8cKhweNk4+bJh3Lxw==}
 
   '@nanostores/react@1.0.0':
     resolution: {integrity: sha512-eDduyNy+lbQJMg6XxZ/YssQqF6b4OXMFEZMYKPJCCmBevp1lg0g+4ZRi94qGHirMtsNfAWKNwsjOhC+q1gvC+A==}
@@ -3019,8 +3022,8 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod@3.25.57:
-    resolution: {integrity: sha512-6tgzLuwVST5oLUxXTmBqoinKMd3JeesgbgseXeFasKKj8Q1FCZrHnbqJOyiEvr4cVAlbug+CgIsmJ8cl/pU5FA==}
+  zod@3.25.64:
+    resolution: {integrity: sha512-hbP9FpSZf7pkS7hRVUrOjhwKJNyampPgtXKc3AN6DsWtoHsg2Sb4SQaS4Tcay380zSwd2VPo9G9180emBACp5g==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -3262,13 +3265,13 @@ snapshots:
     optionalDependencies:
       react: 19.1.0
 
-  '@langgraph-js/sdk@1.7.11(react@19.1.0)':
+  '@langgraph-js/sdk@1.8.0(react@19.1.0)':
     dependencies:
       '@langchain/langgraph-sdk': 0.0.77(react@19.1.0)
       jsonrepair: 3.12.0
       nanostores: 1.0.1
-      zod: 3.25.57
-      zod-to-json-schema: 3.24.5(zod@3.25.57)
+      zod: 3.25.64
+      zod-to-json-schema: 3.24.5(zod@3.25.64)
     transitivePeerDependencies:
       - '@langchain/core'
       - react
@@ -6400,10 +6403,10 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-to-json-schema@3.24.5(zod@3.25.57):
+  zod-to-json-schema@3.24.5(zod@3.25.64):
     dependencies:
-      zod: 3.25.57
+      zod: 3.25.64
 
-  zod@3.25.57: {}
+  zod@3.25.64: {}
 
   zwitch@2.0.4: {}

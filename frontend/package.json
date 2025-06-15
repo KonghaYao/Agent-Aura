@@ -9,7 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@langgraph-js/sdk": "^1.7.11",
+        "@langgraph-js/sdk": "^1.8.0",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-dialog": "^1.1.14",
         "@radix-ui/react-popover": "^1.1.14",
@@ -37,7 +37,8 @@
         "remark-gfm": "^4.0.1",
         "shiki": "^3.6.0",
         "sonner": "^2.0.5",
-        "tailwind-merge": "^3.3.0"
+        "tailwind-merge": "^3.3.0",
+        "zod": "^3.25.64"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",

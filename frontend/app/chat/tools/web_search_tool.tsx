@@ -1,8 +1,8 @@
 // 入参 {"query":"Gemini Diffusion vs other diffusion models advantages disadvantages unique features"}
 
-import { createToolUI, ToolRenderData } from "@langgraph-js/sdk";
-import { ChevronDownIcon, LinkIcon } from "lucide-react";
-import { useState } from "react";
+import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
+import { LinkIcon } from "lucide-react";
+import { z } from "zod";
 
 interface SearchResult {
     title: string;
@@ -23,21 +23,24 @@ interface SearchInput {
     query: string;
 }
 
-export const web_search_tool = createToolUI({
+export const web_search_tool = createUITool({
     name: "web_search",
     description:
         "A powerful web search tool that provides comprehensive, real-time results using search engine. Returns relevant web content with customizable parameters for result count, content type, and domain filtering. Ideal for gathering current information, news, and detailed web content analysis.",
-    parameters: [],
+    parameters: {
+        query: z.string(),
+    },
     onlyRender: true,
-    render(tool: ToolRenderData<SearchInput, RenderResponse[]>) {
+    render(tool) {
         const data = tool.getInputRepaired();
-        const feedback =
-            tool.getJSONOutputSafe()?.flatMap((i) => i.results) || [];
+        const feedback: SearchResult[] =
+            (tool.getJSONOutputSafe() as RenderResponse[])?.flatMap(
+                (i) => i.results,
+            ) || [];
 
         const openLink = (url: string) => {
             window.open(url, "_blank", "noopener,noreferrer");
         };
-
         return (
             <div className="p-4 space-y-4">
                 <div className="text-sm text-gray-500">

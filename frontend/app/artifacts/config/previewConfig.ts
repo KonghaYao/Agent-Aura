@@ -19,6 +19,10 @@ export const fileTypeToPreviewConfig: Record<string, PreviewConfig> = {
         type: PreviewType.IFRAME,
         description: "React 应用预览",
     },
+    "application/vnd.ant.mermaid": {
+        type: PreviewType.IFRAME,
+        description: "Mermaid 预览",
+    },
 
     // HTML 文件
     "text/html": {

@@ -49,7 +49,9 @@ export const update_plan = createToolUI({
                     {plan.thought && (
                         <div className="text-sm">
                             <span className="text-gray-500">思考：</span>
-                            <span className="whitespace-pre-wrap">{plan.thought}</span>
+                            <span className="whitespace-pre-wrap">
+                                {plan.thought}
+                            </span>
                         </div>
                     )}
 
@@ -57,13 +59,28 @@ export const update_plan = createToolUI({
                         <div className="space-y-1.5">
                             <div className="text-sm text-gray-500">步骤：</div>
                             {plan.steps.map((step, index) => (
-                                <div key={index} className="pl-2 border-l-2 border-gray-200">
+                                <div
+                                    key={index}
+                                    className="pl-2 border-l-2 border-gray-200"
+                                >
                                     <div className="flex items-center gap-1.5 text-sm">
-                                        {step!.step_type === "research" ? <Globe className="w-3.5 h-3.5 text-blue-500" /> : <Brain className="w-3.5 h-3.5 text-purple-500" />}
-                                        <span className="font-medium">{step!.title}</span>
-                                        {step!.need_web_search && <span className="text-xs text-blue-500">[搜索]</span>}
+                                        {step!.step_type === "research" ? (
+                                            <Globe className="w-3.5 h-3.5 text-blue-500" />
+                                        ) : (
+                                            <Brain className="w-3.5 h-3.5 text-purple-500" />
+                                        )}
+                                        <span className="font-medium">
+                                            {step!.title}
+                                        </span>
+                                        {step!.need_web_search && (
+                                            <span className="text-xs text-blue-500">
+                                                [搜索]
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="text-sm text-gray-600 pl-5">{step!.description}</div>
+                                    <div className="text-sm text-gray-600 pl-5">
+                                        {step!.description}
+                                    </div>
                                 </div>
                             ))}
                         </div>
