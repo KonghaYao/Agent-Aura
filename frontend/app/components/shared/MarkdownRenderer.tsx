@@ -3,6 +3,7 @@
 import React from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkFrontmatter from "remark-frontmatter";
 import ShikiHighlighter, { isInlineCode } from "react-shiki";
 import "react-shiki/css";
 
@@ -17,7 +18,7 @@ const CodeBlock = ({ className, children, node, ...props }: any) => {
     const match = className?.match(/language-(\w+)/);
     const language = match ? match[1] : "text";
     const code = String(children).replace(/\n$/, "");
-    
+
     // 检查是否为内联代码
     const isInline = node ? isInlineCode(node) : false;
 
@@ -48,14 +49,14 @@ const CodeBlock = ({ className, children, node, ...props }: any) => {
     );
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ 
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
     content,
-    className = "markdown-body max-w-none"
+    className = "markdown-body max-w-none",
 }) => {
     return (
         <div className={className}>
             <Markdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkFrontmatter]}
                 components={{
                     code: CodeBlock,
                 }}
@@ -64,4 +65,4 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             </Markdown>
         </div>
     );
-}; 
+};

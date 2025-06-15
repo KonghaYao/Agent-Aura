@@ -14,6 +14,7 @@ export interface Artifact {
     filename: string;
     filetype: string;
     version: number;
+    isTmp?: boolean;
 }
 
 interface ArtifactsContextType {
@@ -23,6 +24,13 @@ interface ArtifactsContextType {
     getArtifactVersions: (filename: string) => Artifact[];
     showArtifact: boolean;
     setShowArtifact: (show: boolean) => void;
+    createTmpArtifact: (
+        code: string,
+        filename: string,
+        filetype: string,
+    ) => void;
+    tmpArtifact: Artifact | null;
+    clearTmpArtifact: () => void;
 }
 
 const ArtifactsContext = createContext<ArtifactsContextType>({
@@ -32,6 +40,9 @@ const ArtifactsContext = createContext<ArtifactsContextType>({
     getArtifactVersions: () => [],
     showArtifact: false,
     setShowArtifact: () => {},
+    createTmpArtifact: () => {},
+    tmpArtifact: null,
+    clearTmpArtifact: () => {},
 });
 
 export const useArtifacts = () => useContext(ArtifactsContext);
@@ -49,6 +60,7 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(
         null,
     );
+    const [tmpArtifact, setTmpArtifact] = useState<Artifact | null>(null);
 
     // 获取指定文件名的所有版本
     const getArtifactVersions = (filename: string) => {
@@ -103,6 +115,34 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         );
     };
 
+    // 创建临时 artifact 并立即展示
+    const createTmpArtifact = (
+        code: string,
+        filename: string,
+        filetype: string,
+    ) => {
+        const newTmpArtifact: Artifact = {
+            id: `tmp-${Date.now()}`,
+            code,
+            filename,
+            filetype,
+            version: 0,
+            isTmp: true,
+        };
+
+        setTmpArtifact(newTmpArtifact);
+        setCurrentArtifact(newTmpArtifact);
+        setShowArtifact(true);
+    };
+
+    // 清除临时 artifact
+    const clearTmpArtifact = () => {
+        setTmpArtifact(null);
+        if (currentArtifact?.isTmp) {
+            setCurrentArtifact(null);
+        }
+    };
+
     return (
         <ArtifactsContext.Provider
             value={{
@@ -112,6 +152,9 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
                 getArtifactVersions,
                 showArtifact,
                 setShowArtifact,
+                createTmpArtifact,
+                tmpArtifact,
+                clearTmpArtifact,
             }}
         >
             {children}

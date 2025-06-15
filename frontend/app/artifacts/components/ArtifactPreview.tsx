@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Artifact } from "../types";
 import { IframePreview } from "./IframePreview";
+import { UrlMarkdownPreview } from "./UrlMarkdownPreview";
 import { SourceCodeViewer } from "../SourceCodeViewer";
 import { PreviewType, getPreviewConfig } from "../config/previewConfig";
 import { MarkdownRenderer } from "../../components/shared/MarkdownRenderer";
@@ -40,14 +41,17 @@ export const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({
                     setIsLoading={setIsLoading}
                 />
             );
-        
+
         case PreviewType.MARKDOWN:
             return (
                 <div className="h-full w-full overflow-auto p-6">
                     <MarkdownRenderer content={currentArtifact.code} />
                 </div>
             );
-            
+
+        case PreviewType.URL_MARKDOWN:
+            return <UrlMarkdownPreview currentArtifact={currentArtifact} />;
+
         case PreviewType.CODE:
             return (
                 <div className="h-full w-full overflow-auto">
@@ -56,7 +60,7 @@ export const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({
                     </div>
                 </div>
             );
-        
+
         case PreviewType.NONE:
         default:
             return (

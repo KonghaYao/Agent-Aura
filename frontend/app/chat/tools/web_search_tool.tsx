@@ -1,5 +1,6 @@
 // 入参 {"query":"Gemini Diffusion vs other diffusion models advantages disadvantages unique features"}
 
+import { useArtifacts } from "@/app/artifacts/ArtifactsContext";
 import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
 import { LinkIcon } from "lucide-react";
 import { z } from "zod";
@@ -32,6 +33,7 @@ export const web_search_tool = createUITool({
     },
     onlyRender: true,
     render(tool) {
+        const { createTmpArtifact } = useArtifacts();
         const data = tool.getInputRepaired();
         const feedback: SearchResult[] =
             (tool.getJSONOutputSafe() as RenderResponse[])?.flatMap(
@@ -39,7 +41,8 @@ export const web_search_tool = createUITool({
             ) || [];
 
         const openLink = (url: string) => {
-            window.open(url, "_blank", "noopener,noreferrer");
+            createTmpArtifact(url, "search_result.url", "text/url");
+            // window.open(url, "_blank", "noopener,noreferrer");
         };
         return (
             <div className="p-4 space-y-4">

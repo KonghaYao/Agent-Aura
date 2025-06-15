@@ -3,6 +3,7 @@ export enum PreviewType {
     IFRAME = "iframe",
     CODE = "code",
     MARKDOWN = "markdown",
+    URL_MARKDOWN = "url_markdown",
     NONE = "none",
 }
 
@@ -34,6 +35,12 @@ export const fileTypeToPreviewConfig: Record<string, PreviewConfig> = {
     "text/markdown": {
         type: PreviewType.MARKDOWN,
         description: "Markdown 预览",
+    },
+
+    // URL Markdown 文件
+    "text/url": {
+        type: PreviewType.URL_MARKDOWN,
+        description: "URL Markdown 预览",
     },
 
     // 默认为代码预览
