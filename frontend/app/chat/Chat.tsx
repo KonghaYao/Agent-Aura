@@ -35,6 +35,8 @@ import AnimatedBackground from "../components/AnimatedBackground";
 import FileDropzone from "./components/FileDropzone";
 import { defaultUploader } from "./services/uploaders";
 import ImageUploader from "./components/ImageUploader";
+import { ToolsProvider } from "./context/ToolsContext";
+import { MCPConfigDialog } from "./components/MCPConfigDialog";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -362,6 +364,7 @@ const Chat: React.FC = () => {
                 window.dispatchEvent(event);
             }}
         >
+            {/* <MCPConfigDialog></MCPConfigDialog> */}
             <div className="flex h-full w-full justify-center overflow-hidden">
                 {showHistory && (
                     <HistoryList
@@ -405,11 +408,13 @@ const Chat: React.FC = () => {
 const ChatWrapper: React.FC = () => {
     return (
         <ChatProvider>
-            <ExtraParamsProvider>
-                <ArtifactsProvider>
-                    <Chat />
-                </ArtifactsProvider>
-            </ExtraParamsProvider>
+            <ToolsProvider>
+                <ExtraParamsProvider>
+                    <ArtifactsProvider>
+                        <Chat />
+                    </ArtifactsProvider>
+                </ExtraParamsProvider>
+            </ToolsProvider>
         </ChatProvider>
     );
 };

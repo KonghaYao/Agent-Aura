@@ -9,14 +9,6 @@ import React, {
 } from "react";
 import { createChatStore, UnionStore, useUnionStore } from "@langgraph-js/sdk";
 import { useStore } from "@nanostores/react";
-import {
-    ask_user_for_approve,
-    update_plan,
-    web_search_tool,
-    read_web_page_tool,
-} from "../tools/index";
-import { create_artifacts } from "../tools/create_artifacts";
-import { mcpToFETools } from "@/app/fe_mcp";
 
 // 创建 store 工厂函数
 const createGlobalChatStore = () =>
@@ -34,15 +26,7 @@ const createGlobalChatStore = () =>
             },
         },
         {
-            async onInit(client) {
-                client.tools.bindTools([
-                    create_artifacts,
-                    web_search_tool,
-                    ask_user_for_approve,
-                    update_plan,
-                    read_web_page_tool,
-                ]);
-            },
+            async onInit(client) {},
         },
     );
 

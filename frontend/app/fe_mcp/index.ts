@@ -29,7 +29,8 @@ export const mcpToFETools = async (
     return mcpTools.map((tool: any) => ({
         name: tool.name,
         description: tool.description,
-        parameters: tool.inputSchema,
+        parameters: tool.inputSchema.$schema ? tool.inputSchema : {},
+        isPureParams: true,
         execute: async (args: any) => {
             return await callTool(config, tool.name, args);
         },
