@@ -22,7 +22,7 @@ const createGlobalChatStore = () =>
     createChatStore(
         process.env.NEXT_PUBLIC_AGENT_NAME || "",
         {
-            apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_UR,
+            apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_URL,
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法
