@@ -21,7 +21,7 @@ export const update_plan = createToolUI({
     name: "update_plan",
     description: "展示当前执行计划，等待用户确认",
     parameters: [],
-    onlyRender: false,
+    onlyRender: true,
     render(tool: ToolRenderData<Plan, string>) {
         const data = tool.getInputRepaired();
         const plan = data || {

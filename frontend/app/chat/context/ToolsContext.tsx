@@ -7,6 +7,8 @@ import React, {
     useEffect,
     useState,
     useMemo,
+    useRef,
+    useCallback,
 } from "react";
 import { UnionTool } from "@langgraph-js/sdk";
 import { useChat } from "./ChatContext";
@@ -19,6 +21,7 @@ import {
 import { create_artifacts } from "../tools/create_artifacts";
 import { mcpToFETools } from "@/app/fe_mcp";
 import { MCPServerConfig } from "@/app/api/mcp/route";
+import { useLocalStorage } from "usehooks-ts";
 
 // 内置工具列表
 const BUILTIN_TOOLS = [
@@ -57,16 +60,26 @@ interface ToolsProviderProps {
 export const ToolsProvider: React.FC<ToolsProviderProps> = ({ children }) => {
     const { setTools } = useChat();
 
-    const [mcpConfig, setMcpConfig] = useState<Record<string, MCPServerConfig>>(
-        {
-            langgraph_docs: {
-                url: "https://gitmcp.io/langchain-ai/langgraph",
-            },
-        },
-    );
+    // 从 localStorage 获取初始配置
+    const getInitialConfig = () => {
+        if (typeof window === "undefined") return {};
+        try {
+            const stored = localStorage.getItem("mcpConfig");
+            return stored ? JSON.parse(stored) : {};
+        } catch {
+            return {};
+        }
+    };
+
+    const [mcpConfig, setMcpConfigState] =
+        useState<Record<string, MCPServerConfig>>(getInitialConfig);
     const [mcpTools, setMcpTools] = useState<UnionTool<any, any, any>[]>([]);
     const [isLoadingMcpTools, setIsLoadingMcpTools] = useState(false);
     const [mcpToolsError, setMcpToolsError] = useState<string | null>(null);
+
+    // 用于防止重复请求的 ref
+    const loadingPromiseRef = useRef<Promise<void> | null>(null);
+    const lastConfigHashRef = useRef<string>("");
 
     // 内置工具保持不变
     const builtinTools = useMemo(() => BUILTIN_TOOLS, []);
@@ -76,45 +89,99 @@ export const ToolsProvider: React.FC<ToolsProviderProps> = ({ children }) => {
         return [...builtinTools, ...mcpTools];
     }, [builtinTools, mcpTools]);
 
-    // 加载 MCP 工具
-    const loadMcpTools = async (config: Record<string, MCPServerConfig>) => {
-        if (Object.keys(config).length === 0) {
-            setMcpTools([]);
+    // 设置 MCP 配置并保存到 localStorage
+    const setMcpConfig = useCallback(
+        (config: Record<string, MCPServerConfig>) => {
+            setMcpConfigState(config);
+            if (typeof window !== "undefined") {
+                try {
+                    localStorage.setItem("mcpConfig", JSON.stringify(config));
+                } catch (error) {
+                    console.error("保存 MCP 配置到 localStorage 失败:", error);
+                }
+            }
+        },
+        [],
+    );
+
+    // 生成配置的哈希值用于比较
+    const getConfigHash = useCallback(
+        (config: Record<string, MCPServerConfig>) => {
+            return JSON.stringify(config);
+        },
+        [],
+    );
+
+    // 加载 MCP 工具（带去重机制）
+    const loadMcpTools = useCallback(
+        async (config: Record<string, MCPServerConfig>, force = false) => {
+            const configHash = getConfigHash(config);
+
+            // 如果配置没有变化且不是强制刷新，则跳过
+            if (!force && configHash === lastConfigHashRef.current) {
+                console.log("MCP 配置未变化，跳过请求");
+                return;
+            }
+
+            // 如果已经有请求在进行中，等待它完成
+            if (loadingPromiseRef.current) {
+                console.log("MCP 请求已在进行中，等待完成");
+                await loadingPromiseRef.current;
+                return;
+            }
+
+            if (Object.keys(config).length === 0) {
+                setMcpTools([]);
+                setMcpToolsError(null);
+                lastConfigHashRef.current = configHash;
+                return;
+            }
+
+            console.log("开始加载 MCP 工具:", config);
+            setIsLoadingMcpTools(true);
             setMcpToolsError(null);
-            return;
-        }
 
-        setIsLoadingMcpTools(true);
-        setMcpToolsError(null);
+            const loadPromise = (async () => {
+                try {
+                    const tools = await mcpToFETools(config);
+                    setMcpTools(tools);
+                    lastConfigHashRef.current = configHash;
+                    console.log("MCP 工具加载成功:", tools);
+                } catch (error) {
+                    console.error("加载 MCP 工具失败:", error);
+                    setMcpToolsError(
+                        error instanceof Error ? error.message : "未知错误",
+                    );
+                    setMcpTools([]);
+                } finally {
+                    setIsLoadingMcpTools(false);
+                    loadingPromiseRef.current = null;
+                }
+            })();
 
-        try {
-            const tools = await mcpToFETools(config);
-            setMcpTools(tools);
-        } catch (error) {
-            console.error("加载 MCP 工具失败:", error);
-            setMcpToolsError(
-                error instanceof Error ? error.message : "未知错误",
-            );
-            setMcpTools([]);
-        } finally {
-            setIsLoadingMcpTools(false);
-        }
-    };
+            loadingPromiseRef.current = loadPromise;
+            await loadPromise;
+        },
+        [getConfigHash],
+    );
 
     // 手动刷新 MCP 工具
-    const refreshMcpTools = async () => {
-        await loadMcpTools(mcpConfig);
-    };
+    const refreshMcpTools = useCallback(async () => {
+        console.log("手动刷新 MCP 工具");
+        await loadMcpTools(mcpConfig, true);
+    }, [mcpConfig, loadMcpTools]);
 
     // 当 MCP 配置变化时，重新加载工具
     useEffect(() => {
         loadMcpTools(mcpConfig);
-    }, [mcpConfig]);
+    }, [mcpConfig, loadMcpTools]);
 
     // 当所有工具变化时，同步更新 chat 状态
     useEffect(() => {
-        console.log("allTools", allTools);
-        setTools(allTools);
+        if (setTools) {
+            console.log("更新 chat 工具:", allTools.length);
+            setTools(allTools);
+        }
     }, [allTools, setTools]);
 
     const value: ToolsContextType = {

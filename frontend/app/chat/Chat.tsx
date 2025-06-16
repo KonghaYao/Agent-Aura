@@ -164,10 +164,10 @@ const ChatInput: React.FC = () => {
         }
     };
 
-    const _setCurrentAgent = (agent: string) => {
-        localStorage.setItem("agent_name", agent);
-        setCurrentAgent(agent);
-    };
+    // const _setCurrentAgent = (agent: string) => {
+    //     localStorage.setItem("agent_name", agent);
+    //     setCurrentAgent(agent);
+    // };
 
     const sendMultiModalMessage = () => {
         if (userInput.trim() === "" && imageUrls.length === 0) {
@@ -264,6 +264,7 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select> */}
+                <MCPConfigDialog></MCPConfigDialog>
                 {client?.tokenCounter?.output_tokens! > 0 && (
                     <UsageMetadata
                         usage_metadata={client?.tokenCounter || {}}
@@ -364,7 +365,6 @@ const Chat: React.FC = () => {
                 window.dispatchEvent(event);
             }}
         >
-            {/* <MCPConfigDialog></MCPConfigDialog> */}
             <div className="flex h-full w-full justify-center overflow-hidden">
                 {showHistory && (
                     <HistoryList

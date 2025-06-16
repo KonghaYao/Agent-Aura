@@ -8,6 +8,7 @@ import React, {
     ReactNode,
 } from "react";
 import { useChat } from "./ChatContext";
+import { useLocalStorage } from "usehooks-ts";
 
 interface ExtraParamsContextType {
     extraParams: Record<string, any>;
@@ -29,31 +30,11 @@ export const ExtraParamsProvider: React.FC<ExtraParamsProviderProps> = ({
     children,
 }) => {
     const chat = useChat();
-
-    // 从localStorage初始化数据
-    const initializeExtraParams = () => {
-        try {
-            const savedParams = localStorage.getItem("extraParams");
-            if (savedParams) {
-                const parsedParams = JSON.parse(savedParams);
-                // 设置默认值，如果本地存储中没有特定字段
-                return {
-                    main_model: parsedParams.main_model || "gpt-4.1-mini",
-                    ...parsedParams,
-                };
-            }
-        } catch (error) {
-            console.error(
-                "Error reading extraParams from localStorage:",
-                error
-            );
-        }
-        // 默认值
-        return { main_model: "gpt-4.1-mini" };
-    };
-
-    const [extraParams, setExtraParamsState] = useState<Record<string, any>>(
-        initializeExtraParams
+    const [extraParams, setExtraParams] = useLocalStorage<Record<string, any>>(
+        "extraParams",
+        {
+            main_model: "gpt-4.1-mini",
+        },
     );
 
     useEffect(() => {
@@ -69,10 +50,6 @@ export const ExtraParamsProvider: React.FC<ExtraParamsProviderProps> = ({
             chat.client.extraParams = extraParams;
         }
     }, [chat.client]);
-
-    const setExtraParams = (params: Record<string, any>) => {
-        setExtraParamsState(params);
-    };
 
     return (
         <ExtraParamsContext.Provider value={{ extraParams, setExtraParams }}>
