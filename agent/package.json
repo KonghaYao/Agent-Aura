@@ -15,19 +15,21 @@
         "@langchain/langgraph": "^0.3.3",
         "@langchain/langgraph-sdk": "^0.0.84",
         "@langchain/openai": "^0.5.10",
-        "@langgraph-js/api": "^0.3.2",
+        "@langgraph-js/api": "^1.0.1",
         "@langgraph-js/pro": "^1.7.2",
+        "openai": "^5.3.0",
         "zod": "^3.25.56"
     },
     "devDependencies": {
-        "@langgraph-js/bundler": "^1.5.2",
-        "@langgraph-js/langgraph-pg": "^1.2.1",
+        "@langgraph-js/bundler": "^2.0.1",
+        "@langgraph-js/langgraph-pg": "^2.0.0",
         "@types/node": "^22.15.30",
         "tsx": "^4.19.4"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
             "@tailwindcss/oxide",
+            "better-sqlite3",
             "esbuild"
         ]
     }
