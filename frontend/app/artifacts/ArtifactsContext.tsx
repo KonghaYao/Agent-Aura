@@ -4,9 +4,10 @@ import React, {
     useState,
     ReactNode,
     useEffect,
+    useMemo,
 } from "react";
 import { useChat } from "../chat/context/ChatContext";
-import { Message } from "@langgraph-js/sdk";
+import { Message, ToolRenderData } from "@langgraph-js/sdk";
 
 export interface Artifact {
     id: string;
@@ -15,6 +16,7 @@ export interface Artifact {
     filetype: string;
     version: number;
     isTmp?: boolean;
+    isLoading?: boolean;
 }
 
 interface ArtifactsContextType {
@@ -54,12 +56,16 @@ interface ArtifactsProviderProps {
 export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     children,
 }) => {
+    const { client } = useChat();
     const [artifacts, setArtifacts] = useState<Artifact[]>([]);
     const [showArtifact, setShowArtifact] = useState(false);
     const { renderMessages } = useChat();
-    const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(
+    const [currentArtifactId, setCurrentArtifactId] = useState<string | null>(
         null,
     );
+    // const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(
+    //     null,
+    // );
     const [tmpArtifact, setTmpArtifact] = useState<Artifact | null>(null);
 
     // 获取指定文件名的所有版本
@@ -81,25 +87,34 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
 
         // 处理每个 artifact，分配版本号
         const processedArtifacts = createArtifacts.map((message) => {
-            if (!message.additional_kwargs?.done) {
-                return null;
-            }
-            const content = JSON.parse(message.tool_input as string);
+            const tool = new ToolRenderData<
+                {
+                    filename: string;
+                    code: string;
+                    filetype: string;
+                },
+                {}
+            >(message, client!);
+            const content = tool.getInputRepaired();
             const filename = content.filename;
 
-            // 获取当前文件名的最新版本号
-            const currentVersion = filenameToLatestVersion.get(filename) || 0;
-            const newVersion = currentVersion + 1;
+            let newVersion = 1;
+            if (filename) {
+                // 获取当前文件名的最新版本号
+                const currentVersion =
+                    filenameToLatestVersion.get(filename) || 0;
+                newVersion = currentVersion + 1;
 
-            // 更新最新版本号
-            filenameToLatestVersion.set(filename, newVersion);
-
+                // 更新最新版本号
+                filenameToLatestVersion.set(filename, newVersion);
+            }
             return {
                 id: message.id!,
-                code: content.code,
-                filename: filename,
+                code: content.code || "",
+                filename: filename || "",
                 version: newVersion,
-                filetype: content.filetype,
+                filetype: content.filetype || "",
+                isLoading: !message.additional_kwargs?.done,
             };
         });
 
@@ -109,11 +124,18 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     }, [renderMessages]);
 
     const setCurrentArtifactById = (id: string) => {
+        if (currentArtifactId === id) {
+            return;
+        }
         setShowArtifact(true);
-        setCurrentArtifact(
-            artifacts.find((artifact) => artifact.id === id) || null,
-        );
+        setCurrentArtifactId(id);
     };
+    const currentArtifact = useMemo(() => {
+        return (
+            artifacts.find((artifact) => artifact.id === currentArtifactId) ||
+            null
+        );
+    }, [artifacts, currentArtifactId]);
 
     // 创建临时 artifact 并立即展示
     const createTmpArtifact = (
@@ -131,7 +153,7 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         };
 
         setTmpArtifact(newTmpArtifact);
-        setCurrentArtifact(newTmpArtifact);
+        setCurrentArtifactId(newTmpArtifact.id);
         setShowArtifact(true);
     };
 
@@ -139,7 +161,7 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     const clearTmpArtifact = () => {
         setTmpArtifact(null);
         if (currentArtifact?.isTmp) {
-            setCurrentArtifact(null);
+            setCurrentArtifactId(null);
         }
     };
 

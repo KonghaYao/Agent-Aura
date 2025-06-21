@@ -1,6 +1,6 @@
 import { createToolUI, ToolRenderData } from "@langgraph-js/sdk";
 import { FileIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useArtifacts } from "../../artifacts/ArtifactsContext";
 
 interface ArtifactsInput {
@@ -24,9 +24,9 @@ export const create_artifacts = createToolUI({
         const data = tool.getInputRepaired();
         const { setCurrentArtifactById, currentArtifact } = useArtifacts();
 
-        const toggleExpand = () => {
+        useEffect(() => {
             setCurrentArtifactById(tool.message.id!);
-        };
+        }, [tool.input]);
 
         return (
             <div className="p-4 space-y-4">
@@ -34,14 +34,12 @@ export const create_artifacts = createToolUI({
                     创建文件: {data.filename}.{data.filetype}
                 </div>
                 <div className="border rounded-lg p-2 hover:bg-gray-50">
-                    <div className="flex items-center justify-between select-none cursor-pointer" onClick={toggleExpand}>
+                    <div className="flex items-center justify-between select-none cursor-pointer">
                         <div className="flex items-center gap-2">
                             <FileIcon className="w-4 h-4" />
                             <span className="font-xs">{data.filename}</span>
                         </div>
-                        <span className="text-gray-400">
-                            {data.filetype} {currentArtifact?.id === tool.message.id ? "▼" : "▶"}
-                        </span>
+                        <span className="text-gray-400">{data.filetype}</span>
                     </div>
                 </div>
             </div>

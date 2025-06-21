@@ -39,7 +39,7 @@ export const MessagesBox = ({
 
     const size = renderMessages.length;
     const slowAnimation = firstMessageIdChanged && size >= 5;
-
+    console.log(renderMessages);
     return (
         <div className="flex flex-col gap-8 w-full">
             {renderMessages.map((message, index) => (
@@ -48,7 +48,7 @@ export const MessagesBox = ({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
-                        duration: slowAnimation ? 2 : 0.5,
+                        duration: slowAnimation ? 1 : 0.5,
                         delay: slowAnimation ? 0 : index * 0.2,
                     }}
                 >

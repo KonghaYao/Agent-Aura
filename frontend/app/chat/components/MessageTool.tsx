@@ -34,10 +34,12 @@ const MessageTool: React.FC<MessageToolProps> = ({
                 <div className="flex flex-col w-full bg-white rounded-lg border border-gray-200">
                     <div
                         className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={onToggleCollapse}>
+                        onClick={onToggleCollapse}
+                    >
                         <div
                             className="text-sm font-medium text-gray-700"
-                            onClick={() => console.log(message)}>
+                            onClick={() => console.log(message)}
+                        >
                             {message.name}
                         </div>
                     </div>
@@ -89,14 +91,16 @@ const Previewer = ({ content }: { content: string }) => {
                 {isJSON && (
                     <button
                         onClick={() => setJsonMode(!jsonMode)}
-                        className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                        className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                    >
                         json
                     </button>
                 )}
                 {isMarkdown && (
                     <button
                         onClick={() => setMarkdownMode(!markdownMode)}
-                        className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors">
+                        className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                    >
                         markdown
                     </button>
                 )}

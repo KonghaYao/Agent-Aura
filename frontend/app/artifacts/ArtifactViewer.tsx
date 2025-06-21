@@ -38,7 +38,7 @@ export const ArtifactViewer: React.FC = () => {
 
     // 获取所有唯一的文件名
     const uniqueFilenames = Array.from(
-        new Set(artifacts.map((a) => a.filename))
+        new Set(artifacts.map((a) => a.filename)),
     );
 
     return (
@@ -54,10 +54,11 @@ export const ArtifactViewer: React.FC = () => {
                 refresh={refresh}
                 isLoading={isLoading}
             />
-            
+
             <div className="flex-1 overflow-hidden relative">
-                {viewMode === "preview" ? (
+                {viewMode === "preview" && !currentArtifact.isLoading ? (
                     <ArtifactPreview
+                        key={currentArtifact.code}
                         currentArtifact={currentArtifact}
                         iframeKey={iframeKey}
                         isLoading={isLoading}
@@ -67,7 +68,7 @@ export const ArtifactViewer: React.FC = () => {
                     <SourceCodeViewer />
                 )}
             </div>
-            
+
             <ArtifactFooter
                 currentArtifact={currentArtifact}
                 versions={versions}

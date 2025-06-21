@@ -62,7 +62,7 @@ export const IframePreview: React.FC<IframePreviewProps> = ({
         if (iframeRef.current) {
             runCode();
         }
-    }, [iframeKey, currentArtifact]);
+    }, [iframeKey, currentArtifact.code]);
 
     return (
         <>

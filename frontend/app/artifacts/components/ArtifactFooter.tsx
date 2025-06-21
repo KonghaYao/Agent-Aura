@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-    GitBranchPlus,
-    Copy,
-    Download,
-    CheckCircle2,
-} from "lucide-react";
+import { GitBranchPlus, Copy, Download, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -69,7 +64,8 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
                 <span className="text-sm text-muted-foreground">版本:</span>
                 <Select
                     value={currentArtifact.id}
-                    onValueChange={(value) => setCurrentArtifactById(value)}>
+                    onValueChange={(value) => setCurrentArtifactById(value)}
+                >
                     <SelectTrigger className="w-[100px] h-8">
                         <SelectValue placeholder="选择版本" />
                     </SelectTrigger>
@@ -84,7 +80,7 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
             </div>
             <div className="flex items-center gap-2">
                 <div className="text-xs text-muted-foreground mr-2">
-                    {currentArtifact.filetype.toUpperCase()}
+                    {currentArtifact.filetype?.toUpperCase()}
                 </div>
                 <TooltipProvider>
                     <Tooltip>
@@ -93,7 +89,8 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={handleCopyCode}>
+                                onClick={handleCopyCode}
+                            >
                                 {isCopied ? (
                                     <CheckCircle2 className="h-4 w-4 text-green-500" />
                                 ) : (
@@ -113,7 +110,8 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={handleDownloadCode}>
+                                onClick={handleDownloadCode}
+                            >
                                 <Download className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
@@ -125,4 +123,4 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
             </div>
         </div>
     );
-}; 
+};

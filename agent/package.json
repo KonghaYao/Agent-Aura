@@ -8,7 +8,8 @@
         "dev:node": "langgraph-dev",
         "dev:deno": "deno run -A ./scripts/deno-dev.js",
         "deploy:serverless": "sh ./scripts/deploy-serverless.sh",
-        "build": "langgraph-bundler"
+        "build": "langgraph-bundler",
+        "start": "bun run dist/start.js"
     },
     "dependencies": {
         "@langchain/community": "^0.3.47",
@@ -16,26 +17,29 @@
         "@langchain/langgraph": "^0.3.3",
         "@langchain/langgraph-sdk": "^0.0.84",
         "@langchain/openai": "^0.5.15",
-        "@langgraph-js/api": "^1.0.2",
+        "@langgraph-js/api": "^1.0.4",
         "@langgraph-js/pro": "^1.7.2",
-        "@zilliz/milvus2-sdk-node": "^2.5.10",
+        "@zilliz/milvus2-sdk-node": "file:node_modules/milvus2-sdk-esm",
         "hono": "^4.8.2",
+        "milvus2-sdk-esm": "2.6.0-rc3",
         "openai": "^5.6.0",
         "zod": "^3.25.67"
     },
     "devDependencies": {
-        "@langgraph-js/bundler": "^2.0.1",
+        "@langgraph-js/bundler": "^2.1.1",
         "@langgraph-js/langgraph-pg": "^2.0.1",
         "@types/node": "^22.15.32",
         "tsx": "^4.20.3"
     },
     "pnpm": {
+        "overrides": {
+            "@zilliz/milvus2-sdk-node": "file:./node_modules/milvus2-sdk-esm"
+        },
         "onlyBuiltDependencies": [
             "@tailwindcss/oxide",
             "better-sqlite3",
             "esbuild",
-            "protobufjs",
-            "sqlite3"
+            "protobufjs"
         ]
     }
 }

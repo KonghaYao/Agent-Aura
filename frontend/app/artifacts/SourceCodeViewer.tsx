@@ -55,7 +55,9 @@ export const SourceCodeViewer: React.FC = () => {
     }
 
     // 获取代码语言
-    const language = getLanguageFromFilename(currentArtifact.filename);
+    const language = getLanguageFromFilename(
+        currentArtifact.filename || "test.tsx",
+    );
 
     // 客户端渲染
     if (!mounted) {
@@ -77,7 +79,7 @@ export const SourceCodeViewer: React.FC = () => {
                     borderRadius: "0.5rem",
                 }}
             >
-                {currentArtifact.code}
+                {currentArtifact.code || ""}
             </ShikiHighlighter>
         </div>
     );

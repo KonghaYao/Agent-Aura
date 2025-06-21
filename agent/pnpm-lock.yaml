@@ -4,13 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@zilliz/milvus2-sdk-node': file:./node_modules/milvus2-sdk-esm
+
 importers:
 
   .:
     dependencies:
       '@langchain/community':
         specifier: ^0.3.47
-        version: 0.3.47(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@16.5.0)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.7)(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@zilliz/milvus2-sdk-node@2.5.10)(axios@1.10.0)(better-sqlite3@11.10.0)(ibm-cloud-sdk-core@5.4.0)(jsonwebtoken@9.0.2)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(pg@8.16.2)(playwright@1.53.1)(weaviate-client@3.6.1)(ws@8.18.2)
+        version: 0.3.47(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@16.5.0)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.7)(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(axios@1.10.0)(better-sqlite3@11.10.0)(ibm-cloud-sdk-core@5.4.0)(jsonwebtoken@9.0.2)(milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(pg@8.16.2)(playwright@1.53.1)(weaviate-client@3.6.1)(ws@8.18.2)
       '@langchain/core':
         specifier: ^0.3.61
         version: 0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))
@@ -24,17 +27,20 @@ importers:
         specifier: ^0.5.15
         version: 0.5.15(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(ws@8.18.2)
       '@langgraph-js/api':
-        specifier: ^1.0.2
-        version: 1.0.2(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)
+        specifier: ^1.0.4
+        version: 1.0.4(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)
       '@langgraph-js/pro':
         specifier: ^1.7.2
         version: 1.7.2(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(ws@8.18.2)(zod-to-json-schema@3.24.5(zod@3.25.67))
       '@zilliz/milvus2-sdk-node':
-        specifier: ^2.5.10
-        version: 2.5.10
+        specifier: file:node_modules/milvus2-sdk-esm
+        version: milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm
       hono:
         specifier: ^4.8.2
         version: 4.8.2
+      milvus2-sdk-esm:
+        specifier: 2.6.0-rc3
+        version: 2.6.0-rc3
       openai:
         specifier: ^5.6.0
         version: 5.6.0(ws@8.18.2)(zod@3.25.67)
@@ -43,8 +49,8 @@ importers:
         version: 3.25.67
     devDependencies:
       '@langgraph-js/bundler':
-        specifier: ^2.0.1
-        version: 2.0.1(@langgraph-js/api@1.0.2(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3))(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.44.0)(tsx@4.20.3)(yaml@2.8.0)
+        specifier: ^2.1.1
+        version: 2.1.1(@langgraph-js/api@1.0.4(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3))(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.44.0)(tsx@4.20.3)(yaml@2.8.0)
       '@langgraph-js/langgraph-pg':
         specifier: ^2.0.1
         version: 2.0.1(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))
@@ -249,6 +255,10 @@ packages:
     resolution: {integrity: sha512-GsFaMXCkMqkKIvwCQjCrwH+GHbPKBjhwo/8ZuUkWHqbI73Kky9I+pQltrlT0+MWpedCoosda53lgjYfyEPgxBg==}
     engines: {node: '>=12.10.0'}
 
+  '@grpc/grpc-js@1.7.3':
+    resolution: {integrity: sha512-H9l79u4kJ2PVSxUNA08HMYAnUBLj9v6KjYQ7SQ71hOZcEXhShE/y5iQCesP8+6/Ik/7i2O0a10bPquIcYfufog==}
+    engines: {node: ^8.13.0 || >=10.10.0}
+
   '@grpc/proto-loader@0.7.15':
     resolution: {integrity: sha512-tMXdRCfYVixjuFK+Hk0Q1s38gV9zDiDJfWL3h1rv4Qc39oILCu1TRTDt7+fGUI8K4G1Fj125Hx/ru3azECWTyQ==}
     engines: {node: '>=6'}
@@ -275,6 +285,7 @@ packages:
 
   '@langchain/community@0.3.47':
     resolution: {integrity: sha512-Vo42kAfkXpTFSevhEkeqqE55az8NyQgDktCbitXYuhipNbFYx08XVvqEDkFkB20MM/Z7u+cvLb+DxCqnKuH0CQ==}
+    version: 0.3.47
     engines: {node: '>=18'}
     peerDependencies:
       '@arcjet/redact': ^v1.0.0-alpha.23
@@ -742,8 +753,8 @@ packages:
     peerDependencies:
       '@langchain/core': '>=0.2.21 <0.4.0'
 
-  '@langgraph-js/api@1.0.2':
-    resolution: {integrity: sha512-Scg582Ua2h4q8ZvrwDLIIBP5VbtyLclh9XT8jpZ9xaBEckm8U7mMLJKG9X0Eys0rUTOwHfJx26p0iyxfkdJs5g==}
+  '@langgraph-js/api@1.0.4':
+    resolution: {integrity: sha512-Gjhz+tdsdGx7YMDyxtyN0E4TNkgNFo5NvAIYXtOTx9Qv8ufz2iBxk3/DBXSw7NuZzFLJ4da7WR0gaVf2nO54YA==}
     engines: {node: ^18.19.0 || >=20.0.0}
     peerDependencies:
       '@langchain/core': ^0.3.42
@@ -756,8 +767,8 @@ packages:
       '@langchain/langgraph-sdk':
         optional: true
 
-  '@langgraph-js/bundler@2.0.1':
-    resolution: {integrity: sha512-ThiNiZeiis8yKZjfS/jtZdYsXRa1KzHdf/3RJfQJdyz3jtzHPhDjZDEH/ebOz14Czo+7wu+oQ1c0rIybvChHEg==}
+  '@langgraph-js/bundler@2.1.1':
+    resolution: {integrity: sha512-hOMnK5MBvSSPxGOronuzKpTtvcqeJl7au8q79vYezakVdmAiAwc0bEJrj4hwFn6cYnzCTY/7G1k276pNgxIXWg==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -965,9 +976,6 @@ packages:
     resolution: {integrity: sha512-JwoxboBh7Oz1v38tPbkrZ62ZXNHAk9bJ7c9x0eI5zBfBnBYGhURdbnh7Z4smN/MV48Y5OCcZb58n972UtbazsA==}
     peerDependencies:
       typescript: '*'
-
-  '@zilliz/milvus2-sdk-node@2.5.10':
-    resolution: {integrity: sha512-0YnIIevagEsjfJRfiAo+PGkH6sCl+8jHUs/LeNnSSNSFyinZCJQl2kgyPlWvEdCjavpjL23o4LooWhKE2YeBGw==}
 
   abort-controller-x@0.4.3:
     resolution: {integrity: sha512-VtUwTNU8fpMwvWGn4xE93ywbogTYsuT+AUxAXOeelbXuQVIwNmC5YLeho9sH4vZ4ITW8414TTAOG1nW6uIVHCA==}
@@ -1601,6 +1609,12 @@ packages:
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
+
+  milvus2-sdk-esm@2.6.0-rc3:
+    resolution: {integrity: sha512-oplHQBdAlWYORhVWqsE75AwUXLAreKy504XfzQ2o5mhrLj2vxM+CxVJsnuzna3mH/amQGJaeafB8MSPB7OHJQg==}
+
+  milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm:
+    resolution: {directory: node_modules/milvus2-sdk-esm, type: directory}
 
   mime-db@1.52.0:
     resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
@@ -2254,6 +2268,11 @@ snapshots:
       '@grpc/proto-loader': 0.7.15
       '@js-sdsl/ordered-map': 4.4.2
 
+  '@grpc/grpc-js@1.7.3':
+    dependencies:
+      '@grpc/proto-loader': 0.7.15
+      '@types/node': 22.15.32
+
   '@grpc/proto-loader@0.7.15':
     dependencies:
       lodash.camelcase: 4.3.0
@@ -2280,7 +2299,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@langchain/community@0.3.47(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@16.5.0)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.7)(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@zilliz/milvus2-sdk-node@2.5.10)(axios@1.10.0)(better-sqlite3@11.10.0)(ibm-cloud-sdk-core@5.4.0)(jsonwebtoken@9.0.2)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(pg@8.16.2)(playwright@1.53.1)(weaviate-client@3.6.1)(ws@8.18.2)':
+  '@langchain/community@0.3.47(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@16.5.0)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67))(@ibm-cloud/watsonx-ai@1.6.7)(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(axios@1.10.0)(better-sqlite3@11.10.0)(ibm-cloud-sdk-core@5.4.0)(jsonwebtoken@9.0.2)(milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(pg@8.16.2)(playwright@1.53.1)(weaviate-client@3.6.1)(ws@8.18.2)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.53.1)(deepmerge@4.3.1)(dotenv@16.5.0)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(zod@3.25.67)
       '@ibm-cloud/watsonx-ai': 1.6.7
@@ -2299,7 +2318,7 @@ snapshots:
       zod: 3.25.67
     optionalDependencies:
       '@browserbasehq/sdk': 2.6.0
-      '@zilliz/milvus2-sdk-node': 2.5.10
+      '@zilliz/milvus2-sdk-node': milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm
       better-sqlite3: 11.10.0
       jsonwebtoken: 9.0.2
       pg: 8.16.2
@@ -2426,7 +2445,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@langgraph-js/api@1.0.2(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)':
+  '@langgraph-js/api@1.0.4(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)':
     dependencies:
       '@babel/code-frame': 7.27.1
       '@hono/node-server': 1.14.4(hono@4.8.2)
@@ -2462,9 +2481,9 @@ snapshots:
       - pg-native
       - supports-color
 
-  '@langgraph-js/bundler@2.0.1(@langgraph-js/api@1.0.2(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3))(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.44.0)(tsx@4.20.3)(yaml@2.8.0)':
+  '@langgraph-js/bundler@2.1.1(@langgraph-js/api@1.0.4(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3))(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(rollup@4.44.0)(tsx@4.20.3)(yaml@2.8.0)':
     dependencies:
-      '@langgraph-js/api': 1.0.2(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)
+      '@langgraph-js/api': 1.0.4(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(@langchain/langgraph-checkpoint@0.0.17(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph-sdk@0.0.84(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67))))(@langchain/langgraph@0.3.3(@langchain/core@0.3.61(openai@5.6.0(ws@8.18.2)(zod@3.25.67)))(zod-to-json-schema@3.24.5(zod@3.25.67)))(@types/pg@8.15.4)(openai@5.6.0(ws@8.18.2)(zod@3.25.67))(typescript@5.8.3)
       rollup-plugin-node-externals: 8.0.0(rollup@4.44.0)
       vite: 6.3.5(@types/node@22.15.32)(jiti@2.4.2)(lightningcss@1.30.1)(tsx@4.20.3)(yaml@2.8.0)
     transitivePeerDependencies:
@@ -2642,18 +2661,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@zilliz/milvus2-sdk-node@2.5.10':
-    dependencies:
-      '@grpc/grpc-js': 1.13.4
-      '@grpc/proto-loader': 0.7.15
-      '@opentelemetry/api': 1.9.0
-      '@petamoriken/float16': 3.9.2
-      dayjs: 1.11.13
-      generic-pool: 3.9.0
-      lru-cache: 9.1.2
-      protobufjs: 7.5.3
-      winston: 3.17.0
-
   abort-controller-x@0.4.3: {}
 
   abort-controller@3.0.0:
@@ -2681,7 +2688,7 @@ snapshots:
   axios@1.10.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
-      form-data: 4.0.0
+      form-data: 4.0.3
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -3026,7 +3033,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.10.0)
+      retry-axios: 2.6.0(axios@1.10.0(debug@4.4.1))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -3217,6 +3224,30 @@ snapshots:
   lru-cache@9.1.2: {}
 
   math-intrinsics@1.1.0: {}
+
+  milvus2-sdk-esm@2.6.0-rc3:
+    dependencies:
+      '@grpc/grpc-js': 1.7.3
+      '@grpc/proto-loader': 0.7.15
+      '@opentelemetry/api': 1.9.0
+      '@petamoriken/float16': 3.9.2
+      dayjs: 1.11.13
+      generic-pool: 3.9.0
+      lru-cache: 9.1.2
+      protobufjs: 7.5.3
+      winston: 3.17.0
+
+  milvus2-sdk-esm@file:node_modules/milvus2-sdk-esm:
+    dependencies:
+      '@grpc/grpc-js': 1.7.3
+      '@grpc/proto-loader': 0.7.15
+      '@opentelemetry/api': 1.9.0
+      '@petamoriken/float16': 3.9.2
+      dayjs: 1.11.13
+      generic-pool: 3.9.0
+      lru-cache: 9.1.2
+      protobufjs: 7.5.3
+      winston: 3.17.0
 
   mime-db@1.52.0: {}
 
@@ -3444,7 +3475,7 @@ snapshots:
 
   resolve-pkg-maps@1.0.0: {}
 
-  retry-axios@2.6.0(axios@1.10.0):
+  retry-axios@2.6.0(axios@1.10.0(debug@4.4.1)):
     dependencies:
       axios: 1.10.0(debug@4.4.1)
 
