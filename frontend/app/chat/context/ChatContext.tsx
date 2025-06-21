@@ -9,7 +9,16 @@ import React, {
 } from "react";
 import { createChatStore, UnionStore, useUnionStore } from "@langgraph-js/sdk";
 import { useStore } from "@nanostores/react";
-
+import { useLocalStorage } from "usehooks-ts";
+export const getUserToken = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        const newToken = crypto.randomUUID();
+        localStorage.setItem("token", newToken);
+        return newToken;
+    }
+    return token;
+};
 // 创建 store 工厂函数
 const createGlobalChatStore = () =>
     createChatStore(
@@ -19,10 +28,14 @@ const createGlobalChatStore = () =>
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法
-                // fetch: (url: string, options: RequestInit) => {
-                //     options.credentials = "include";
-                //     return fetch(url, options);
-                // },
+                fetch: (url: string, options: RequestInit) => {
+                    options.headers = {
+                        ...(options.headers || {}),
+                        Authorization: `Bearer ${getUserToken()}`,
+                    };
+                    // options.credentials = "include";
+                    return fetch(url, options);
+                },
             },
         },
         {

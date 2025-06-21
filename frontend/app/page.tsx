@@ -15,6 +15,12 @@ export default function Home() {
                 >
                     开始聊天
                 </a>
+                <a
+                    href="/memos"
+                    className="rounded-md bg-blue-500 text-white px-8 py-3 text-lg font-medium shadow hover:bg-blue-600 transition-colors"
+                >
+                    备忘录
+                </a>
             </div>
         </main>
     );
