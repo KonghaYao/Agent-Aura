@@ -1,22 +1,10 @@
 import { Auth, HTTPException } from "@langchain/langgraph-sdk/auth";
-
-const verifyToken = async (token: string): Promise<string> => {
-    const hashToken = await crypto.subtle.digest(
-        "SHA-256",
-        new TextEncoder().encode(token)
-    );
-    return Array.from(new Uint8Array(hashToken))
-        .map((byte) => byte.toString(16).padStart(2, "0"))
-        .join("");
-};
+import { getUserIdFromRequest } from "./utils/auth";
 
 export const auth = new Auth()
     .authenticate(async (request: Request) => {
-        const authorization = request.headers.get("authorization");
-        const token = authorization?.split(" ").at(-1);
-
         try {
-            const userId = (await verifyToken(token!)) as string;
+            const userId = await getUserIdFromRequest(request);
             return {
                 identity: userId,
                 permissions: [],
@@ -34,6 +22,7 @@ export const auth = new Auth()
         if ("metadata" in value) {
             value.metadata ??= {};
             value.metadata.owner = user.identity;
+            value.metadata.userId = user.identity;
         }
         // 用户可以查看自己的 assistant
         if (event === "assistants:search") {
