@@ -1,18 +1,31 @@
 import { Auth, HTTPException } from "@langchain/langgraph-sdk/auth";
-import { getUserIdFromRequest } from "./utils/auth";
+import { getUserFromRequest } from "./routes/auth/auth";
+import { LogtoConfig } from "./config";
 
 export const auth = new Auth()
     .authenticate(async (request: Request) => {
         try {
-            const userId = await getUserIdFromRequest(request);
+            if (new URL(request.url).pathname.startsWith("/auth")) {
+                return {
+                    identity: "1",
+                    permissions: [],
+                };
+            }
+            const userId = await getUserFromRequest(LogtoConfig)(request);
+            if (!userId?.isAuthenticated) {
+                throw new HTTPException(401, {
+                    message: "LangGraph: Invalid token",
+                    cause: userId,
+                });
+            }
             return {
-                identity: userId,
+                identity: userId.userInfo!.sub,
                 permissions: [],
                 cookies: request.headers.get("cookies"),
             };
         } catch (error) {
             throw new HTTPException(401, {
-                message: "Invalid token",
+                message: "LangGraph: Invalid token",
                 cause: error,
             });
         }

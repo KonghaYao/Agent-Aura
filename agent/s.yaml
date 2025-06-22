@@ -58,6 +58,11 @@ resources:
                 SEARCH_SERVER_URL: ${env(SEARCH_SERVER_URL)}
                 OPENAI_API_KEY: ${env(OPENAI_API_KEY)}
                 MILVUS_URL: ${env(MILVUS_URL)}
+                AUTH_ENDPOINT: ${env(AUTH_ENDPOINT)}
+                AUTH_APP_ID: ${env(AUTH_APP_ID)}
+                AUTH_APP_SECRET: ${env(AUTH_APP_SECRET)}
+                AUTH_CALLBACK_URL: "https://agent-aura.netlify.app/"
+                AUTH_COOKIE_NAME: ${env(AUTH_COOKIE_NAME)}
                 DISABLE_AGENT_INIT: "true"
                 PATH: >-
                     /var/fc/lang/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin

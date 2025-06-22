@@ -9,6 +9,13 @@
         "path": "./src/auth.ts:auth"
     },
     "http": {
-        "app": "./src/app.ts"
+        "app": "./src/app.ts",
+        "cors": {
+            "allow_origins": [
+                "http://localhost:3000",
+                "https://agent-aura.netlify.app"
+            ],
+            "allow_credentials": true
+        }
     }
 }

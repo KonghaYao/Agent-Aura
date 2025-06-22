@@ -19,6 +19,7 @@
         "@langchain/openai": "^0.5.15",
         "@langgraph-js/api": "^1.0.4",
         "@langgraph-js/pro": "^1.7.2",
+        "@logto/node": "^3.1.6",
         "@zilliz/milvus2-sdk-node": "file:node_modules/milvus2-sdk-esm",
         "hono": "^4.8.2",
         "milvus2-sdk-esm": "2.6.0-rc3",
