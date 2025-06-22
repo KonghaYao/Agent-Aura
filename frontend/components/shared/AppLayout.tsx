@@ -16,18 +16,10 @@ import {
     SidebarTrigger,
     SidebarInset,
 } from "@/components/ui/sidebar";
-import {
-    Settings,
-    MessageSquare,
-    History,
-    Home,
-    Users,
-    BookOpen,
-} from "lucide-react";
+import { Settings, MessageSquare, Home, Users, BookOpen } from "lucide-react";
 
 const iconMap = {
     MessageSquare,
-    History,
     Settings,
     Home,
     Users,
@@ -54,21 +46,11 @@ export default function AppLayout({
             icon: "BookOpen",
             url: "/memos",
         },
-        {
-            title: "历史记录",
-            icon: "History",
-            onClick: "toggleHistory",
-        },
     ];
 
     const handleItemClick = (item: (typeof menuItems)[0]) => {
         if (item.url) {
             window.location.href = item.url;
-        } else if (item.onClick) {
-            console.log("执行操作:", item.onClick);
-            if (item.onClick === "toggleHistory") {
-                window.dispatchEvent(new CustomEvent("toggleHistory"));
-            }
         }
     };
 

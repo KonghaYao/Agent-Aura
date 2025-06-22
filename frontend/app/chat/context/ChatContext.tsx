@@ -68,13 +68,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
         store
             .initClient()
             .then((res) => {
-                if (store.showHistory) {
-                    store.refreshHistoryList();
-                }
+                // 初始化时刷新历史记录列表
+                console.log("ChatContext: 初始化完成，刷新历史记录");
+                store.refreshHistoryList();
             })
             .catch((err) => {
                 console.error(err);
             });
+        // 移除store依赖，避免无限循环
     }, []);
 
     return (

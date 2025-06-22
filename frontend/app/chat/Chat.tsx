@@ -2,14 +2,13 @@
 
 import React, { useState, useRef, useEffect, memo } from "react";
 import { MessagesBox } from "./components/MessageBox";
-import HistoryList from "./components/HistoryList";
 import { ChatProvider, useChat } from "./context/ChatContext";
 import {
     ExtraParamsProvider,
     useExtraParams,
 } from "./context/ExtraParamsContext";
 import { UsageMetadata } from "./components/UsageMetadata";
-import { formatTime, Message } from "@langgraph-js/sdk";
+import { Message } from "@langgraph-js/sdk";
 import FileList from "./components/FileList";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
 import "../markdown.css";
@@ -37,6 +36,7 @@ import { defaultUploader } from "./services/uploaders";
 import ImageUploader from "./components/ImageUploader";
 import { ToolsProvider } from "./context/ToolsContext";
 import { MCPConfigDialog } from "./components/MCPConfigDialog";
+import HistoryButton from "./components/HistoryButton";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -271,6 +271,7 @@ const ChatInput: React.FC = () => {
                     />
                 )}
                 <div className="flex-1"></div>
+                <HistoryButton />
                 {imageUrls.length === 0 && (
                     <ImageUploader
                         imageUrls={imageUrls}
@@ -325,24 +326,12 @@ const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
 ChatContainer.displayName = "ChatContainer";
 
 const Chat: React.FC = () => {
-    const { showHistory, toggleHistoryVisible, renderMessages } = useChat();
+    const { renderMessages } = useChat();
     const { showArtifact } = useArtifacts();
     const [panelSizes, setPanelSizes] = useState({
         chat: 50,
         artifact: 50,
     });
-
-    // 监听来自 sidebar 的事件
-    React.useEffect(() => {
-        const handleToggleHistory = () => {
-            toggleHistoryVisible();
-        };
-
-        window.addEventListener("toggleHistory", handleToggleHistory);
-        return () => {
-            window.removeEventListener("toggleHistory", handleToggleHistory);
-        };
-    }, [toggleHistoryVisible]);
 
     const hasMessages = renderMessages.length > 0;
 
@@ -366,12 +355,6 @@ const Chat: React.FC = () => {
             }}
         >
             <div className="flex h-full w-full justify-center overflow-hidden">
-                {showHistory && (
-                    <HistoryList
-                        onClose={() => toggleHistoryVisible()}
-                        formatTime={formatTime}
-                    />
-                )}
                 <ResizablePanelGroup
                     direction="horizontal"
                     className="w-full h-full"

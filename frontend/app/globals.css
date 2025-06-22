@@ -182,3 +182,23 @@
 .hide-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
 }
+
+/* 自定义历史记录列表滚动条样式 */
+.scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+    width: 4px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+    opacity: 1;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
