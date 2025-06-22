@@ -31,9 +31,8 @@ const createGlobalChatStore = () =>
                 fetch: (url: string, options: RequestInit) => {
                     options.headers = {
                         ...(options.headers || {}),
-                        Authorization: `Bearer ${getUserToken()}`,
                     };
-                    // options.credentials = "include";
+                    options.credentials = "include";
                     return fetch(url, options);
                 },
             },
