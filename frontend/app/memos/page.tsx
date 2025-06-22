@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-import MemoForm from "./components/MemoForm";
-import MemoList from "./components/MemoList";
-import SearchBar from "./components/SearchBar";
+import MemoSidebar from "./components/MemoSidebar";
+import MemoDetailPanel from "./components/MemoDetailPanel";
 import { Memo } from "./types";
 import {
     searchMemos,
@@ -18,6 +16,7 @@ import {
 
 export default function MemosPage() {
     const [memos, setMemos] = useState<Memo[]>([]);
+    const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -30,6 +29,14 @@ export default function MemosPage() {
                 setError(null);
                 const results = await searchMemos(searchQuery);
                 setMemos(results);
+
+                // 如果当前选中的备忘录不在新结果中，清空选择
+                if (
+                    selectedMemo &&
+                    !results.find((memo) => memo.key === selectedMemo.key)
+                ) {
+                    setSelectedMemo(null);
+                }
             } catch (err) {
                 setError("加载备忘录失败");
                 console.error(err);
@@ -51,6 +58,12 @@ export default function MemosPage() {
             // 重新获取列表以确保数据同步
             const results = await searchMemos(searchQuery);
             setMemos(results);
+
+            // 自动选中新创建的备忘录
+            const newMemo = results.find((memo) => memo.key === key);
+            if (newMemo) {
+                setSelectedMemo(newMemo);
+            }
         } catch (err) {
             setError("创建备忘录失败");
             console.error(err);
@@ -64,11 +77,15 @@ export default function MemosPage() {
             await updateMemo(key, value);
 
             // 更新本地状态
-            setMemos(
-                memos.map((memo) =>
-                    memo.key === key ? { ...memo, text: value } : memo,
-                ),
+            const updatedMemos = memos.map((memo) =>
+                memo.key === key ? { ...memo, text: value } : memo,
             );
+            setMemos(updatedMemos);
+
+            // 更新选中的备忘录
+            if (selectedMemo && selectedMemo.key === key) {
+                setSelectedMemo({ ...selectedMemo, text: value });
+            }
         } catch (err) {
             setError("更新备忘录失败");
             console.error(err);
@@ -82,7 +99,13 @@ export default function MemosPage() {
             await deleteMemo(key);
 
             // 更新本地状态
-            setMemos(memos.filter((memo) => memo.key !== key));
+            const updatedMemos = memos.filter((memo) => memo.key !== key);
+            setMemos(updatedMemos);
+
+            // 如果删除的是当前选中的备忘录，清空选择
+            if (selectedMemo && selectedMemo.key === key) {
+                setSelectedMemo(null);
+            }
         } catch (err) {
             setError("删除备忘录失败");
             console.error(err);
@@ -94,32 +117,34 @@ export default function MemosPage() {
         setSearchQuery(query);
     };
 
+    // 选择备忘录
+    const handleMemoSelect = (memo: Memo) => {
+        setSelectedMemo(memo);
+    };
+
     return (
-        <div className="h-full overflow-auto p-6">
-            <div className="max-w-4xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold mb-2">我的备忘录</h1>
-                    <p className="text-muted-foreground">记录你的想法和灵感</p>
-                </div>
+        <div className="h-full flex flex-col">
+            {error && (
+                <Alert variant="destructive" className="m-4 mb-0">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
 
-                <Separator className="my-6" />
-
-                {error && (
-                    <Alert variant="destructive" className="mb-6">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-
-                <MemoForm onSubmit={handleCreateMemo} />
-
-                <SearchBar onSearch={handleSearch} />
-
-                <MemoList
+            <div className="flex-1 flex overflow-hidden">
+                <MemoSidebar
                     memos={memos}
-                    onDelete={handleDeleteMemo}
-                    onUpdate={handleUpdateMemo}
+                    selectedMemoKey={selectedMemo?.key || null}
+                    onMemoSelect={handleMemoSelect}
+                    onCreateMemo={handleCreateMemo}
+                    onSearch={handleSearch}
                     isLoading={isLoading}
+                />
+
+                <MemoDetailPanel
+                    memo={selectedMemo}
+                    onUpdate={handleUpdateMemo}
+                    onDelete={handleDeleteMemo}
                 />
             </div>
         </div>

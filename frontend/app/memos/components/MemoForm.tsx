@@ -1,14 +1,7 @@
 import React, { useState } from "react";
-import {
-    Card,
-    CardContent,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
 interface MemoFormProps {
     onSubmit: (value: string) => void;
@@ -17,6 +10,7 @@ interface MemoFormProps {
 const MemoForm: React.FC<MemoFormProps> = ({ onSubmit }) => {
     const [value, setValue] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,35 +20,57 @@ const MemoForm: React.FC<MemoFormProps> = ({ onSubmit }) => {
         onSubmit(value);
         setValue("");
         setIsSubmitting(false);
+        setIsExpanded(false);
     };
 
+    const handleCancel = () => {
+        setValue("");
+        setIsExpanded(false);
+    };
+
+    if (!isExpanded) {
+        return (
+            <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setIsExpanded(true)}
+            >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                新建备忘录
+            </Button>
+        );
+    }
+
     return (
-        <Card className="mb-8 border border-gray-200 dark:border-gray-800 shadow-sm">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-xl font-medium">
-                    记录新想法
-                </CardTitle>
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-                <CardContent>
-                    <Textarea
-                        className="min-h-[120px] resize-none"
-                        placeholder="写下你的想法..."
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        required
-                    />
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                    <Button
-                        type="submit"
-                        disabled={isSubmitting || !value.trim()}
-                    >
-                        <SendIcon className="h-4 w-4 mr-2" /> 保存想法
-                    </Button>
-                </CardFooter>
-            </form>
-        </Card>
+        <form onSubmit={handleSubmit} className="space-y-3">
+            <Textarea
+                className="min-h-[80px] resize-none text-sm"
+                placeholder="写下你的想法..."
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                autoFocus
+                required
+            />
+            <div className="flex gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancel}
+                    className="flex-1"
+                >
+                    取消
+                </Button>
+                <Button
+                    type="submit"
+                    size="sm"
+                    disabled={isSubmitting || !value.trim()}
+                    className="flex-1"
+                >
+                    保存
+                </Button>
+            </div>
+        </form>
     );
 };
 
