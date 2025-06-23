@@ -79,8 +79,7 @@ const LoginPopover = ({ trigger }: LoginPopoverProps) => {
                                 className="w-full"
                                 onClick={() =>
                                     (window.location.href =
-                                        process.env
-                                            .NEXT_PUBLIC_LANGGRAPH_API_URL +
+                                        process.env.NEXT_PUBLIC_AUTH_URL +
                                         "/auth/sign-in")
                                 }
                             >
@@ -91,8 +90,7 @@ const LoginPopover = ({ trigger }: LoginPopoverProps) => {
                                 className="w-full"
                                 onClick={() =>
                                     (window.location.href =
-                                        process.env
-                                            .NEXT_PUBLIC_LANGGRAPH_API_URL +
+                                        process.env.NEXT_PUBLIC_AUTH_URL +
                                         "/auth/sign-up")
                                 }
                             >

@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setIsLoading(true);
         try {
             const res = await fetch(
-                process.env.NEXT_PUBLIC_LANGGRAPH_API_URL + "/auth/is-sign-in",
+                process.env.NEXT_PUBLIC_AUTH_URL + "/auth/is-sign-in",
                 {
                     credentials: "include",
                 },
@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const signOut = () => {
         window.location.href =
-            process.env.NEXT_PUBLIC_LANGGRAPH_API_URL + "/auth/sign-out";
+            process.env.NEXT_PUBLIC_AUTH_URL + "/auth/sign-out";
     };
 
     useEffect(() => {
