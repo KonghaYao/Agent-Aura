@@ -5,7 +5,7 @@ import NodeClient, {
     type SignInOptions,
 } from "@logto/node";
 import { Hono } from "hono";
-import type { Context, MiddlewareHandler, Next } from "hono";
+import type { Context, Next } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 
 export type LogtoHonoConfig = LogtoConfig & {

@@ -78,9 +78,7 @@ const LoginPopover = ({ trigger }: LoginPopoverProps) => {
                             <Button
                                 className="w-full"
                                 onClick={() =>
-                                    (window.location.href =
-                                        process.env.NEXT_PUBLIC_AUTH_URL +
-                                        "/auth/sign-in")
+                                    (window.location.href = "/api/auth/sign-in")
                                 }
                             >
                                 登录
@@ -89,9 +87,7 @@ const LoginPopover = ({ trigger }: LoginPopoverProps) => {
                                 variant="outline"
                                 className="w-full"
                                 onClick={() =>
-                                    (window.location.href =
-                                        process.env.NEXT_PUBLIC_AUTH_URL +
-                                        "/auth/sign-up")
+                                    (window.location.href = "/api/auth/sign-up")
                                 }
                             >
                                 注册新账号

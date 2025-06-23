@@ -46,12 +46,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkIsSignIn = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(
-                process.env.NEXT_PUBLIC_AUTH_URL + "/auth/is-sign-in",
-                {
-                    credentials: "include",
-                },
-            );
+            const res = await fetch("/api/auth/is-sign-in", {
+                credentials: "include",
+            });
             const data = await res.json();
             setIsSignIn(data.isSignIn?.isAuthenticated || false);
             setUserInfo(data.isSignIn || null);
@@ -65,8 +62,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     const signOut = () => {
-        window.location.href =
-            process.env.NEXT_PUBLIC_AUTH_URL + "/auth/sign-out";
+        window.location.href = "/api/auth/sign-out";
     };
 
     useEffect(() => {
