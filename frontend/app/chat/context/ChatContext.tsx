@@ -11,12 +11,9 @@ import { createChatStore, UnionStore, useUnionStore } from "@langgraph-js/sdk";
 import { useStore } from "@nanostores/react";
 import { useLocalStorage } from "usehooks-ts";
 export const getUserToken = () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-        const newToken = crypto.randomUUID();
-        localStorage.setItem("token", newToken);
-        return newToken;
-    }
+    const token = JSON.parse(
+        globalThis.localStorage?.getItem("userInfo") || "{}",
+    )?.id;
     return token;
 };
 // 创建 store 工厂函数
@@ -25,7 +22,9 @@ const createGlobalChatStore = () =>
         process.env.NEXT_PUBLIC_AGENT_NAME || "",
         {
             apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_URL,
-            defaultHeaders: {},
+            defaultHeaders: {
+                Authorization: `Bearer ${getUserToken()}`,
+            },
             callerOptions: {
                 // 携带 cookie 的写法
                 fetch: (url: string, options: RequestInit) => {

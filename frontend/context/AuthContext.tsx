@@ -7,8 +7,10 @@ import React, {
     useEffect,
     ReactNode,
 } from "react";
+import { useLocalStorage } from "usehooks-ts";
 
 export interface UserInfo {
+    id: string;
     name?: string;
     email?: string;
     picture?: string;
@@ -20,7 +22,7 @@ interface AuthContextType {
     isSignIn: boolean;
     userInfo: UserInfo | null;
     isLoading: boolean;
-    checkIsSignIn: () => Promise<void>;
+    checkIsSignIn: () => Promise<boolean>;
     signOut: () => void;
 }
 
@@ -39,26 +41,32 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-    const [isSignIn, setIsSignIn] = useState(false);
-    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isSignIn, setIsSignIn] = useState(true);
+    const [userInfo, setUserInfo] = useLocalStorage<UserInfo | null>(
+        "userInfo",
+        {
+            id: crypto.randomUUID(),
+        },
+    );
+    const [isLoading, setIsLoading] = useState(false);
 
     const checkIsSignIn = async () => {
-        setIsLoading(true);
-        try {
-            const res = await fetch("/api/auth/is-sign-in", {
-                credentials: "include",
-            });
-            const data = await res.json();
-            setIsSignIn(data.isSignIn?.isAuthenticated || false);
-            setUserInfo(data.isSignIn || null);
-        } catch (error) {
-            console.error("检查登录状态失败:", error);
-            setIsSignIn(false);
-            setUserInfo(null);
-        } finally {
-            setIsLoading(false);
-        }
+        return !!userInfo?.id;
+        // setIsLoading(true);
+        // try {
+        //     const res = await fetch("/api/auth/is-sign-in", {
+        //         credentials: "include",
+        //     });
+        //     const data = await res.json();
+        //     setIsSignIn(data.isSignIn?.isAuthenticated || false);
+        //     setUserInfo(data.isSignIn || null);
+        // } catch (error) {
+        //     console.error("检查登录状态失败:", error);
+        //     setIsSignIn(false);
+        //     setUserInfo(null);
+        // } finally {
+        //     setIsLoading(false);
+        // }
     };
 
     const signOut = () => {
