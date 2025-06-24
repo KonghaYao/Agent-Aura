@@ -42,12 +42,9 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [isSignIn, setIsSignIn] = useState(true);
-    const [userInfo, setUserInfo] = useLocalStorage<UserInfo | null>(
-        "userInfo",
-        {
-            id: crypto.randomUUID(),
-        },
-    );
+    const [token, setToken] = useLocalStorage<string | null>("token", null);
+    const userInfo = { id: token || crypto.randomUUID() };
+
     const [isLoading, setIsLoading] = useState(false);
 
     const checkIsSignIn = async () => {
