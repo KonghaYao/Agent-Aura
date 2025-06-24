@@ -5,35 +5,29 @@ const getUserFromRequest = async (
 ): Promise<{
     isAuthenticated: boolean;
     userInfo: {
-        sub: string;
+        id?: string;
     };
 }> => {
-    /** @ts-ignore */
-    return fetch(process.env.AUTH_URL + "/auth/is-sign-in", {
-        headers: {
-            cookie: request.headers.get("cookie") || "",
+    return {
+        isAuthenticated: true,
+        userInfo: {
+            id: request.headers.get("Authorization")?.split(" ")[1],
         },
-    }).then((res) => res.json());
+    };
 };
 
 export const auth = new Auth()
     .authenticate(async (request: Request) => {
         try {
-            if (new URL(request.url).pathname.startsWith("/auth")) {
-                return {
-                    identity: "1",
-                    permissions: [],
-                };
-            }
             const userId = await getUserFromRequest(request);
-            if (!userId?.isAuthenticated) {
+            if (!userId?.isAuthenticated || !userId.userInfo.id) {
                 throw new HTTPException(401, {
                     message: "LangGraph: Invalid token",
                     cause: userId,
                 });
             }
             return {
-                identity: userId.userInfo!.sub,
+                identity: userId.userInfo!.id!,
                 permissions: [],
                 cookies: request.headers.get("cookies"),
             };
