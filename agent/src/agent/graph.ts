@@ -12,7 +12,7 @@ import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { crawler_tool, web_search_tool } from "@langgraph-js/pro";
 import { create_artifacts } from "../tools/create_artifacts.js";
 import { getPrompt } from "./getPrompt.ts";
-import { add_memories, search_memory } from "../memory/tools.ts";
+// import { add_memories, search_memory } from "../memory/tools.ts";
 // import { image_generation } from "../tools/image_generation.ts";
 const ask_user_for_approve = tool(
     async (input, _config: ToolRunnableConfig) => {
@@ -46,8 +46,8 @@ const AuraMainAgent = entrypoint(
             SequentialThinkingTool,
             create_artifacts,
             // image_generation,
-            search_memory,
-            add_memories,
+            // search_memory,
+            // add_memories,
             ...feTools,
         ];
         const llm = await createLLM(state, "main_model");

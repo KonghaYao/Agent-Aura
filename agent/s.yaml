@@ -48,7 +48,8 @@ resources:
                 logstore: default-logs
             functionName: agent-aura-api
             runtime: custom.debian10
-            cpu: 0.35
+            cpu: 0.5
+            instanceConcurrency: 10
             memorySize: 512
             environmentVariables:
                 DATABASE_NAME: ${env(DATABASE_NAME)}
