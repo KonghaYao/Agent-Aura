@@ -42,7 +42,14 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
     const [isSignIn, setIsSignIn] = useState(true);
-    const [token, setToken] = useLocalStorage<string | null>("token", null);
+    const [token, setToken] = useLocalStorage<string | null>("token", null, {
+        serializer: (value) => {
+            return value || "";
+        },
+        deserializer: (value) => {
+            return value || null;
+        },
+    });
     const userInfo = { id: token || crypto.randomUUID() };
 
     const [isLoading, setIsLoading] = useState(false);

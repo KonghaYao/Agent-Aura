@@ -9,7 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@langgraph-js/sdk": "^1.9.2",
+        "@langgraph-js/sdk": "^1.10.1",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-dialog": "^1.1.14",
         "@radix-ui/react-popover": "^1.1.14",
@@ -23,10 +23,12 @@
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
         "comlink": "^4.4.2",
+        "flexsearch": "^0.8.205",
         "github-markdown-css": "^5.8.1",
         "lucide-react": "^0.513.0",
         "mcp-client": "^1.12.3",
         "motion": "^12.17.0",
+        "nanostores": "^1.0.1",
         "next": "15.3.3",
         "next-themes": "^0.4.6",
         "react": "^19.1.0",
@@ -41,7 +43,6 @@
         "sonner": "^2.0.5",
         "tailwind-merge": "^3.3.1",
         "usehooks-ts": "^3.1.1",
-        "zod": "^3.25.64",
         "zod-to-json-schema": "^3.24.5"
     },
     "devDependencies": {
@@ -54,11 +55,14 @@
         "eslint-config-next": "15.3.3",
         "tailwindcss": "^4.1.10",
         "tw-animate-css": "^1.3.4",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.4",
+        "zod": "^3.25.64"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
             "@tailwindcss/oxide",
+            "esbuild",
             "unrs-resolver"
         ]
     }
