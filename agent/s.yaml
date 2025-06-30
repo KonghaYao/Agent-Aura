@@ -59,6 +59,7 @@ resources:
                 SEARCH_SERVER_URL: ${env(SEARCH_SERVER_URL)}
                 OPENAI_API_KEY: ${env(OPENAI_API_KEY)}
                 MILVUS_URL: ${env(MILVUS_URL)}
+                LANGGRAPH_REDIS_URL: ${env(LANGGRAPH_REDIS_URL)}
                 DISABLE_AGENT_INIT: "true"
                 PATH: >-
                     /var/fc/lang/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin

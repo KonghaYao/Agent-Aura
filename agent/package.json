@@ -17,12 +17,11 @@
         "@langchain/langgraph": "^0.3.3",
         "@langchain/langgraph-sdk": "^0.0.84",
         "@langchain/openai": "^0.5.15",
-        "@langgraph-js/api": "^1.0.4",
+        "@langgraph-js/api": "^1.1.5",
         "@langgraph-js/pro": "^1.7.2",
         "@logto/node": "^3.1.6",
-        "@zilliz/milvus2-sdk-node": "file:node_modules/milvus2-sdk-esm",
         "hono": "^4.8.2",
-        "milvus2-sdk-esm": "2.6.0-rc3",
+        "ioredis": "^5.6.1",
         "openai": "^5.6.0",
         "zod": "^3.25.67"
     },
@@ -33,9 +32,6 @@
         "tsx": "^4.20.3"
     },
     "pnpm": {
-        "overrides": {
-            "@zilliz/milvus2-sdk-node": "file:./node_modules/milvus2-sdk-esm"
-        },
         "onlyBuiltDependencies": [
             "@tailwindcss/oxide",
             "better-sqlite3",
