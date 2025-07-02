@@ -17,11 +17,11 @@ import {
     update_plan,
     web_search_tool,
     read_web_page_tool,
+    image_generation,
 } from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
 import { mcpToFETools } from "@/app/fe_mcp";
 import { MCPServerConfig } from "@/app/api/mcp/route";
-import { useLocalStorage } from "usehooks-ts";
 
 // 内置工具列表
 const BUILTIN_TOOLS = [
@@ -30,6 +30,7 @@ const BUILTIN_TOOLS = [
     ask_user_for_approve,
     update_plan,
     read_web_page_tool,
+    image_generation,
 ];
 
 interface ToolsContextType {
