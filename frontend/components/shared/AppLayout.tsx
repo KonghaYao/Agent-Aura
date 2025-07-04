@@ -16,7 +16,14 @@ import {
     SidebarTrigger,
     SidebarInset,
 } from "@/components/ui/sidebar";
-import { Settings, MessageSquare, Home, Users, BookOpen } from "lucide-react";
+import {
+    Settings,
+    MessageSquare,
+    Home,
+    Users,
+    BookOpen,
+    Globe,
+} from "lucide-react";
 
 const iconMap = {
     MessageSquare,
@@ -24,6 +31,7 @@ const iconMap = {
     Home,
     Users,
     BookOpen,
+    Globe,
 };
 
 interface AppLayoutProps {
@@ -45,6 +53,11 @@ export default function AppLayout({
             title: "备忘录",
             icon: "BookOpen",
             url: "/memos",
+        },
+        {
+            title: "网页搜索",
+            icon: "Globe",
+            url: "/web-search",
         },
     ];
 

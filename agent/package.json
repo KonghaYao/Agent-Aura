@@ -4,11 +4,11 @@
     "type": "module",
     "scripts": {
         "postinstall": "node ./scripts/patch_deps.mjs",
-        "dev": "bunx --bun langgraph-dev",
-        "dev:node": "langgraph-dev",
+        "dev": "bunx --bun langgraph-js dev",
+        "dev:node": "langgraph-js dev",
         "dev:deno": "deno run -A ./scripts/deno-dev.js",
         "deploy:serverless": "sh ./scripts/deploy-serverless.sh",
-        "build": "langgraph-bundler",
+        "build": "langgraph-js build",
         "start": "bun run dist/start.js"
     },
     "dependencies": {
@@ -26,7 +26,7 @@
         "zod": "^3.25.67"
     },
     "devDependencies": {
-        "@langgraph-js/bundler": "^2.1.1",
+        "@langgraph-js/bundler": "^3.0.0",
         "@langgraph-js/langgraph-pg": "^2.0.1",
         "@types/node": "^22.15.32",
         "tsx": "^4.20.3"

@@ -1,4 +1,5 @@
 {
+    "$schema": "https://cdn.jsdelivr.net/gh/KonghaYao/langgraphjs-api@6496a75efbe3f7927af0eb7b1352d339012f1b18/libs/langgraph-api/langgraph-server-config.schema.json",
     "node_version": "20",
     "dependencies": ["."],
     "graphs": {

@@ -3,7 +3,6 @@ import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "../../components/shared/MarkdownRenderer";
 import { Artifact } from "../ArtifactsContext";
-
 interface UrlMarkdownPreviewProps {
     currentArtifact: Artifact;
 }
