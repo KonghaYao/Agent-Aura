@@ -367,20 +367,19 @@ const Chat: React.FC = () => {
                         <ChatContainer hasMessages={hasMessages} />
                     </ResizablePanel>
 
-                    {/* 始终渲染Handle和第二个面板，但在不显示时隐藏它们 */}
-                    <div className={showArtifact ? "block" : "hidden"}>
-                        <ResizableHandle withHandle />
-                    </div>
-
-                    <ResizablePanel
-                        defaultSize={showArtifact ? panelSizes.artifact : 0}
-                        minSize={30}
-                        className={cn(showArtifact ? "block" : "hidden")}
-                    >
-                        <div className="h-full overflow-hidden px-4 py-12">
-                            {showArtifact && <ArtifactViewer />}
-                        </div>
-                    </ResizablePanel>
+                    {showArtifact && (
+                        <>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel
+                                defaultSize={panelSizes.artifact}
+                                minSize={30}
+                            >
+                                <div className="h-full overflow-hidden px-4 py-12">
+                                    <ArtifactViewer />
+                                </div>
+                            </ResizablePanel>
+                        </>
+                    )}
                 </ResizablePanelGroup>
                 {!hasMessages && <AnimatedBackground />}
             </div>

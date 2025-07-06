@@ -3,7 +3,9 @@
 import { useArtifacts } from "@/app/artifacts/ArtifactsContext";
 import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
 import { LinkIcon } from "lucide-react";
+import { FaviconDisplay } from "@/components/shared/FaviconDisplay";
 import { z } from "zod";
+import { PreviewType } from "../../artifacts/config/previewConfig";
 
 interface SearchResult {
     title: string;
@@ -42,7 +44,6 @@ export const web_search_tool = createUITool({
 
         const openLink = (url: string) => {
             createTmpArtifact(url, "search_result.url", "text/url");
-            // window.open(url, "_blank", "noopener,noreferrer");
         };
         return (
             <div className="p-4 space-y-4">
@@ -58,7 +59,12 @@ export const web_search_tool = createUITool({
                     {feedback.map((result, index) => (
                         <div key={index} className="p-2">
                             <div className="flex items-center justify-between select-none cursor-pointer">
+                                {/* 加一个 favicon 在前面 */}
                                 <span className="font-xs flex-1">
+                                    <FaviconDisplay
+                                        url={result.url}
+                                        className="mr-2"
+                                    />
                                     {result.title}
                                 </span>
                                 {/* <div
@@ -93,7 +99,7 @@ export const web_search_tool = createUITool({
                             </div>
 
                             <div className="mt-3 space-y-2">
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-500">
                                     {result.description}
                                 </p>
                             </div>

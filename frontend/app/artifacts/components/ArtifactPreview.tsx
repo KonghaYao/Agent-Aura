@@ -29,7 +29,7 @@ export const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({
 
     // 获取预览配置
     const previewConfig = getPreviewConfig(currentArtifact.filetype);
-
+    console.log(previewConfig);
     // 根据预览类型选择不同的渲染方式
     switch (previewConfig.type) {
         case PreviewType.IFRAME:

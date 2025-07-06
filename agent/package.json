@@ -17,7 +17,7 @@
         "@langchain/langgraph": "^0.3.3",
         "@langchain/langgraph-sdk": "^0.0.84",
         "@langchain/openai": "^0.5.15",
-        "@langgraph-js/api": "^1.1.5",
+        "@langgraph-js/api": "^1.2.0",
         "@langgraph-js/pro": "^1.7.2",
         "@logto/node": "^3.1.6",
         "hono": "^4.8.2",
@@ -26,7 +26,7 @@
         "zod": "^3.25.67"
     },
     "devDependencies": {
-        "@langgraph-js/bundler": "^3.0.0",
+        "@langgraph-js/cli": "^3.0.0",
         "@langgraph-js/langgraph-pg": "^2.0.1",
         "@types/node": "^22.15.32",
         "tsx": "^4.20.3"

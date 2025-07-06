@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import {
 import { UrlMarkdownPreview } from "../artifacts/components/UrlMarkdownPreview";
 import { Artifact } from "../artifacts/ArtifactsContext";
 import "../markdown.css";
+import { useSearchParams } from "next/navigation";
+import { FaviconDisplay } from "@/components/shared/FaviconDisplay";
+
 interface SearchResult {
     title: string;
     url: string;
@@ -29,6 +32,7 @@ export default function WebSearchWrapper() {
     const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedEngine, setSelectedEngine] = useState<string>("bing");
+    const searchParams = useSearchParams();
 
     const availableEngines = [
         { value: "bing", label: "Bing" },
@@ -38,6 +42,13 @@ export default function WebSearchWrapper() {
         { value: "anthropic", label: "Anthropic" },
         { value: "github", label: "GitHub" },
     ];
+
+    useEffect(() => {
+        const urlParam = searchParams.get("url");
+        if (urlParam) {
+            setSelectedUrl(decodeURIComponent(urlParam));
+        }
+    }, [searchParams]);
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -136,15 +147,6 @@ export default function WebSearchWrapper() {
 
                         <div className="space-y-3">
                             {searchResults.map((result, index) => {
-                                let faviconUrl = "";
-                                try {
-                                    faviconUrl = `https://favicone.com/${
-                                        new URL(result.url).hostname
-                                    }?s=16`;
-                                } catch (error) {
-                                    faviconUrl = "";
-                                }
-
                                 return (
                                     <Card
                                         key={`${result.url}-${index}`}
@@ -161,10 +163,9 @@ export default function WebSearchWrapper() {
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center mb-1">
-                                                        <img
-                                                            src={faviconUrl}
-                                                            alt="favicon"
-                                                            className="w-4 h-4 mr-2 rounded-sm"
+                                                        <FaviconDisplay
+                                                            url={result.url}
+                                                            className="mr-2"
                                                         />
                                                         <h3 className="font-medium text-sm leading-tight truncate">
                                                             {result.title}

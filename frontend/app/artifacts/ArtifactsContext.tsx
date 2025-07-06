@@ -63,9 +63,6 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     const [currentArtifactId, setCurrentArtifactId] = useState<string | null>(
         null,
     );
-    // const [currentArtifact, setCurrentArtifact] = useState<Artifact | null>(
-    //     null,
-    // );
     const [tmpArtifact, setTmpArtifact] = useState<Artifact | null>(null);
 
     // 获取指定文件名的所有版本
@@ -131,11 +128,14 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         setCurrentArtifactId(id);
     };
     const currentArtifact = useMemo(() => {
+        if (tmpArtifact?.id === currentArtifactId) {
+            return tmpArtifact;
+        }
         return (
             artifacts.find((artifact) => artifact.id === currentArtifactId) ||
             null
         );
-    }, [artifacts, currentArtifactId]);
+    }, [artifacts, currentArtifactId, tmpArtifact]);
 
     // 创建临时 artifact 并立即展示
     const createTmpArtifact = (
