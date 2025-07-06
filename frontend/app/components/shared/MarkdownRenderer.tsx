@@ -10,6 +10,7 @@ import "react-shiki/css";
 interface MarkdownRendererProps {
     content: string;
     className?: string;
+    baseUrl?: string;
 }
 
 // 代码块渲染组件
@@ -50,6 +51,7 @@ const CodeBlock = ({ className, children, node, ...props }: any) => {
 };
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+    baseUrl,
     content,
     className = "markdown-body max-w-none",
 }) => {
@@ -59,6 +61,25 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
                 remarkPlugins={[remarkGfm, remarkFrontmatter]}
                 components={{
                     code: CodeBlock,
+                    img: (props) => {
+                        if (!props.src) {
+                            return null;
+                        }
+                        if (props.src instanceof Blob) {
+                            return null;
+                        }
+                        let src = props.src;
+                        if (!src.startsWith("http")) {
+                            src = new URL(src, baseUrl).toString();
+                        }
+                        return (
+                            <img
+                                {...props}
+                                src={"/api/image-cdn?url=" + props.src}
+                                className="rounded-md"
+                            />
+                        );
+                    },
                 }}
             >
                 {content}

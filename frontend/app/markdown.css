@@ -232,6 +232,8 @@
     border-style: none;
     max-width: 100%;
     box-sizing: content-box;
+    max-height: 50vh;
+    margin: auto;
 }
 
 .markdown-body code,
@@ -442,6 +444,7 @@
 .markdown-body p {
     margin-top: 0;
     margin-bottom: 10px;
+    color: #727272;
 }
 
 .markdown-body blockquote {

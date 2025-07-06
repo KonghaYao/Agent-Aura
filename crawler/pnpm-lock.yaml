@@ -9,16 +9,16 @@ importers:
   .:
     dependencies:
       '@langgraph-js/crawler':
-        specifier: ^1.6.3
-        version: 1.6.3
+        specifier: ^1.7.0
+        version: 1.7.0
       hono:
         specifier: ^4.7.11
         version: 4.7.11
 
 packages:
 
-  '@langgraph-js/crawler@1.6.3':
-    resolution: {integrity: sha512-UmfGXUs+IXHhtqHDl2PabjX9MwrqdiDkekCMDhGj2keaVEyJfxjWkAV1ndWCsA6b2TAdxY5CQxM6KUUyZMT3gA==}
+  '@langgraph-js/crawler@1.7.0':
+    resolution: {integrity: sha512-flPo9RwjpP6wEFW0rQMQdjv10BQMIBcLz4ojeR6Atubd5JkWnZM/+gZ31xutE8Y1kMRcQnai+mGugD0FPPsDtA==}
     engines: {node: '>=18.0.0'}
 
   '@modelcontextprotocol/sdk@1.12.1':
@@ -370,7 +370,7 @@ packages:
 
 snapshots:
 
-  '@langgraph-js/crawler@1.6.3':
+  '@langgraph-js/crawler@1.7.0':
     dependencies:
       '@modelcontextprotocol/sdk': 1.12.1
     transitivePeerDependencies:

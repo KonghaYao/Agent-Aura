@@ -127,7 +127,10 @@ export const UrlMarkdownPreview: React.FC<UrlMarkdownPreviewProps> = ({
 
     return (
         <div className="h-full w-full overflow-auto p-6">
-            <MarkdownRenderer content={content} />
+            <MarkdownRenderer
+                content={content}
+                baseUrl={currentArtifact.code}
+            />
         </div>
     );
 };
