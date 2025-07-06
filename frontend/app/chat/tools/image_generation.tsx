@@ -157,23 +157,6 @@ export const image_generation = createUITool({
                                 Download
                             </button>
                         </div>
-
-                        {/* URL and Expiry Notice */}
-                        <div className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-2">
-                            <div className="font-medium text-yellow-700 mb-1">
-                                Important Notice:
-                            </div>
-                            <div>
-                                This image URL is valid for 24 hours. Please
-                                download or save the image if you need to keep
-                                it.
-                            </div>
-                            {artifactData?.task_id && (
-                                <div className="mt-1 font-mono text-xs">
-                                    Task ID: {artifactData.task_id}
-                                </div>
-                            )}
-                        </div>
                     </div>
                 )}
 

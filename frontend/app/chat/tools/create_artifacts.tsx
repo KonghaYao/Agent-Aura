@@ -22,10 +22,12 @@ export const create_artifacts = createToolUI({
     onlyRender: true,
     render(tool: ToolRenderData<ArtifactsInput, ArtifactsResponse>) {
         const data = tool.getInputRepaired();
-        const { setCurrentArtifactById, currentArtifact } = useArtifacts();
+        const { setCurrentArtifactById } = useArtifacts();
 
         useEffect(() => {
-            setCurrentArtifactById(tool.message.id!);
+            setTimeout(() => {
+                setCurrentArtifactById(tool.message.id!);
+            }, 100);
         }, [tool.input]);
 
         return (
@@ -33,7 +35,12 @@ export const create_artifacts = createToolUI({
                 <div className="text-sm text-gray-500">
                     创建文件: {data.filename}.{data.filetype}
                 </div>
-                <div className="border rounded-lg p-2 hover:bg-gray-50">
+                <div
+                    className="border rounded-lg p-2 hover:bg-gray-50"
+                    onClick={() => {
+                        setCurrentArtifactById(tool.message.id!);
+                    }}
+                >
                     <div className="flex items-center justify-between select-none cursor-pointer">
                         <div className="flex items-center gap-2">
                             <FileIcon className="w-4 h-4" />

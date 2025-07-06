@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useChat } from "../chat/context/ChatContext";
 import { Message, ToolRenderData } from "@langgraph-js/sdk";
+import { useDebounceCallback } from "usehooks-ts";
 
 export interface Artifact {
     id: string;
@@ -120,13 +121,13 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         );
     }, [renderMessages]);
 
-    const setCurrentArtifactById = (id: string) => {
+    const setCurrentArtifactById = useDebounceCallback((id: string) => {
         if (currentArtifactId === id) {
             return;
         }
         setShowArtifact(true);
         setCurrentArtifactId(id);
-    };
+    }, 100);
     const currentArtifact = useMemo(() => {
         if (tmpArtifact?.id === currentArtifactId) {
             return tmpArtifact;
