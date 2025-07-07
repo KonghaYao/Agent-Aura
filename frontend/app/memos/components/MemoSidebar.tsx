@@ -4,6 +4,14 @@ import MemoListItem from "./MemoListItem";
 import MemoForm from "./MemoForm";
 import SearchBar from "./SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { BackupRestore } from "./BackupRestore";
 
 interface MemoSidebarProps {
     memos: Memo[];
@@ -26,9 +34,25 @@ const MemoSidebar: React.FC<MemoSidebarProps> = ({
         <div className="w-80 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full">
             {/* 头部 */}
             <div className="flex-shrink-0 p-4 space-y-3">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                    我的备忘录
-                </h1>
+                <div className="flex items-center justify-between">
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        我的备忘录
+                    </h1>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                                <Settings className="h-5 w-5" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[400px] p-0">
+                            <BackupRestore />
+                        </PopoverContent>
+                    </Popover>
+                </div>
                 <SearchBar onSearch={onSearch} />
             </div>
 

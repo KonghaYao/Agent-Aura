@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/AuthContext";
+import { GlobalSelectionProvider } from "@/components/providers/GlobalSelectionProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +19,11 @@ export default function RootLayout({
     return (
         <html lang="zh-CN">
             <body className={inter.className}>
-                <AuthProvider>{children}</AuthProvider>
+                <AuthProvider>
+                    <GlobalSelectionProvider>
+                        {children}
+                    </GlobalSelectionProvider>
+                </AuthProvider>
             </body>
         </html>
     );
