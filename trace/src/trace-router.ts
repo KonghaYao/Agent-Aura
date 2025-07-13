@@ -1,0 +1,222 @@
+import { Hono } from "hono";
+import type { TraceDatabase } from "./database.js";
+
+export interface TraceInfo {
+    trace_id: string;
+    total_runs: number;
+    total_feedback: number;
+    total_attachments: number;
+    first_run_time: string;
+    last_run_time: string;
+    runs: any[];
+}
+
+export function createTraceRouter(db: TraceDatabase) {
+    const traceRouter = new Hono();
+
+    // 获取所有 traces 列表
+    traceRouter.get("/", (c) => {
+        try {
+            const traces = db.getAllTraces();
+            return c.json({
+                success: true,
+                total: traces.length,
+                traces: traces,
+            });
+        } catch (error) {
+            console.error("Error fetching all traces:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 获取 trace 的完整信息
+    traceRouter.get("/:traceId", (c) => {
+        try {
+            const traceId = c.req.param("traceId");
+            const runs = db.getRunsByTraceId(traceId);
+
+            if (runs.length === 0) {
+                return c.json({ error: "Trace not found" }, 404);
+            }
+
+            // 收集所有相关数据
+            let totalFeedback = 0;
+            let totalAttachments = 0;
+            const enrichedRuns = runs.map((run) => {
+                const feedback = db.getFeedbackByRunId(run.id);
+                const attachments = db.getAttachmentsByRunId(run.id);
+
+                totalFeedback += feedback.length;
+                totalAttachments += attachments.length;
+
+                return {
+                    ...run,
+                    feedback_count: feedback.length,
+                    attachments_count: attachments.length,
+                    feedback: feedback,
+                    attachments: attachments,
+                };
+            });
+
+            const traceInfo: TraceInfo = {
+                trace_id: traceId,
+                total_runs: runs.length,
+                total_feedback: totalFeedback,
+                total_attachments: totalAttachments,
+                first_run_time: runs[0].created_at,
+                last_run_time: runs[runs.length - 1].created_at,
+                runs: enrichedRuns,
+            };
+
+            return c.json(traceInfo);
+        } catch (error) {
+            console.error("Error fetching trace info:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 获取 trace 的概要信息（不包含详细数据）
+    traceRouter.get("/:traceId/summary", (c) => {
+        try {
+            const traceId = c.req.param("traceId");
+            const runs = db.getRunsByTraceId(traceId);
+
+            if (runs.length === 0) {
+                return c.json({ error: "Trace not found" }, 404);
+            }
+
+            let totalFeedback = 0;
+            let totalAttachments = 0;
+            const runSummaries = runs.map((run) => {
+                const feedback = db.getFeedbackByRunId(run.id);
+                const attachments = db.getAttachmentsByRunId(run.id);
+
+                totalFeedback += feedback.length;
+                totalAttachments += attachments.length;
+
+                return {
+                    id: run.id,
+                    name: run.name,
+                    run_type: run.run_type,
+                    start_time: run.start_time,
+                    end_time: run.end_time,
+                    created_at: run.created_at,
+                    feedback_count: feedback.length,
+                    attachments_count: attachments.length,
+                };
+            });
+
+            const summary = {
+                trace_id: traceId,
+                total_runs: runs.length,
+                total_feedback: totalFeedback,
+                total_attachments: totalAttachments,
+                first_run_time: runs[0].created_at,
+                last_run_time: runs[runs.length - 1].created_at,
+                runs_summary: runSummaries,
+            };
+
+            return c.json(summary);
+        } catch (error) {
+            console.error("Error fetching trace summary:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 获取 trace 的统计信息
+    traceRouter.get("/:traceId/stats", (c) => {
+        try {
+            const traceId = c.req.param("traceId");
+            const runs = db.getRunsByTraceId(traceId);
+
+            if (runs.length === 0) {
+                return c.json({ error: "Trace not found" }, 404);
+            }
+
+            // 计算统计信息
+            const runTypes = runs.reduce((acc, run) => {
+                acc[run.run_type || "unknown"] =
+                    (acc[run.run_type || "unknown"] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+
+            let totalFeedback = 0;
+            let totalAttachments = 0;
+            let avgFeedbackScore = 0;
+            let feedbackCount = 0;
+
+            runs.forEach((run) => {
+                const feedback = db.getFeedbackByRunId(run.id);
+                const attachments = db.getAttachmentsByRunId(run.id);
+
+                totalFeedback += feedback.length;
+                totalAttachments += attachments.length;
+
+                feedback.forEach((f) => {
+                    if (f.score !== null && f.score !== undefined) {
+                        avgFeedbackScore += f.score;
+                        feedbackCount++;
+                    }
+                });
+            });
+
+            const stats = {
+                trace_id: traceId,
+                total_runs: runs.length,
+                total_feedback: totalFeedback,
+                total_attachments: totalAttachments,
+                average_feedback_score:
+                    feedbackCount > 0 ? avgFeedbackScore / feedbackCount : null,
+                run_types: runTypes,
+                duration: {
+                    first_run: runs[0].created_at,
+                    last_run: runs[runs.length - 1].created_at,
+                    span_hours:
+                        Math.round(
+                            ((new Date(
+                                runs[runs.length - 1].created_at,
+                            ).getTime() -
+                                new Date(runs[0].created_at).getTime()) /
+                                (1000 * 60 * 60)) *
+                                100,
+                        ) / 100,
+                },
+            };
+
+            return c.json(stats);
+        } catch (error) {
+            console.error("Error fetching trace stats:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    return traceRouter;
+}
