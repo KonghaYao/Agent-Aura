@@ -1,6 +1,6 @@
 import { createMemo, createSignal, createResource } from "solid-js";
 import html from "solid-js/html";
-
+import { load } from "https://esm.run/@langchain/core/dist/load/index.js";
 export const GraphStatePanel = (props) => {
     const state = createMemo(() => {
         const data = { ...props.state };
@@ -10,7 +10,6 @@ export const GraphStatePanel = (props) => {
     return html`<json-viewer data=${state()}></json-viewer>`;
 };
 
-import { load } from "https://esm.run/@langchain/core/dist/load/index.js";
 export const GraphStateMessage = (props) => {
     const [message] = createResource(async () => {
         try {
@@ -28,43 +27,121 @@ export const GraphStateMessage = (props) => {
             return [];
         }
     });
-    return html`<div>
+    return html`<div class="space-y-4 p-4">
         ${() =>
             message.loading
-                ? "loading..."
+                ? html`<div
+                      class="flex items-center justify-center p-8 text-gray-500"
+                  >
+                      <div
+                          class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-2"
+                      ></div>
+                      加载中...
+                  </div>`
                 : message().map((i) => {
                       if (!i._getType) {
                           console.warn("Unknown message type", i);
-                          return html`<div>${JSON.stringify(i)}</div>`;
+                          return html`<div
+                              class="bg-red-50 border border-red-200 rounded-lg p-4"
+                          >
+                              <div class="text-red-600 font-medium mb-2">
+                                  未知消息类型
+                              </div>
+                              <pre
+                                  class="text-sm text-red-700 whitespace-pre-wrap"
+                              >
+${JSON.stringify(i, null, 2)}</pre
+                              >
+                          </div>`;
                       }
                       if (i["_getType"]() === "ai") {
-                          return html`<div>
-                              AI:
-                              ${i.content &&
-                              ContentViewer({ content: i.content })}
-                              ${i.tool_calls &&
-                              i.tool_calls.map((toolCall) => {
-                                  return html`<div>
-                                      Tool Call: ${toolCall.name}
-                                      <json-viewer
-                                          data=${toolCall.args}
-                                      ></json-viewer>
-                                  </div>`;
-                              })}
+                          return html`<div
+                              class="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden"
+                          >
+                              <div
+                                  class="bg-blue-100 px-4 py-2 border-b border-blue-200"
+                              >
+                                  <span
+                                      class="text-blue-700 font-medium text-sm"
+                                      >🤖 AI 助手</span
+                                  >
+                              </div>
+                              <div class="p-4 space-y-3">
+                                  ${i.content &&
+                                  html`<div class="text-gray-800">
+                                      ${ContentViewer({ content: i.content })}
+                                  </div>`}
+                                  ${i.tool_calls &&
+                                  i.tool_calls.map((toolCall) => {
+                                      return html`<div
+                                          class="bg-white border border-gray-200 rounded-md p-3"
+                                      >
+                                          <div
+                                              class="text-sm font-medium text-gray-600 mb-2"
+                                          >
+                                              🔧 工具调用: ${toolCall.name}
+                                          </div>
+                                          <json-viewer
+                                              class="text-xs"
+                                              data=${toolCall.args}
+                                          ></json-viewer>
+                                      </div>`;
+                                  })}
+                              </div>
                           </div>`;
                       } else if (
                           i["_getType"]() === "human" ||
                           i["_getType"]() === "system"
                       ) {
-                          return html`<div>
-                              Human: ${ContentViewer({ content: i.content })}
+                          const isSystem = i["_getType"]() === "system";
+                          const isSystemPanelClass = isSystem
+                              ? "bg-yellow-50 border-yellow-200"
+                              : "bg-green-50 border-green-200";
+                          const isSystemSubPanelClass = isSystem
+                              ? "bg-yellow-100 border-yellow-200 px-4 py-2 border-b"
+                              : "bg-green-100 border-green-200 px-4 py-2 border-b";
+                          const isSystemTextClass = isSystem
+                              ? "text-yellow-700 font-medium text-sm"
+                              : "text-green-700 font-medium text-sm";
+                          return html`<div class="${isSystemPanelClass}">
+                              <div class="${isSystemSubPanelClass}">
+                                  <span class="${isSystemTextClass}">
+                                      ${isSystem ? "⚙️ 系统" : "👤 用户"}
+                                  </span>
+                              </div>
+                              <div class="p-4 text-gray-800">
+                                  ${ContentViewer({ content: i.content })}
+                              </div>
                           </div>`;
                       } else if (i["_getType"]() === "tool") {
-                          return html`<div>
-                              Tool:${ContentViewer({ content: i.content })}
+                          return html`<div
+                              class="bg-purple-50 border border-purple-200 rounded-lg overflow-hidden"
+                          >
+                              <div
+                                  class="bg-purple-100 px-4 py-2 border-b border-purple-200"
+                              >
+                                  <span
+                                      class="text-purple-700 font-medium text-sm"
+                                      >🔧 工具结果</span
+                                  >
+                              </div>
+                              <div class="p-4 text-gray-800">
+                                  ${ContentViewer({ content: i.content })}
+                              </div>
                           </div>`;
                       } else {
-                          return html`<div>${JSON.stringify(i)}</div>`;
+                          return html`<div
+                              class="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                          >
+                              <div class="text-gray-600 font-medium mb-2">
+                                  其他消息类型
+                              </div>
+                              <pre
+                                  class="text-sm text-gray-700 whitespace-pre-wrap"
+                              >
+${JSON.stringify(i, null, 2)}</pre
+                              >
+                          </div>`;
                       }
                   })}
     </div>`;
@@ -73,20 +150,44 @@ export const GraphStateMessage = (props) => {
 const ContentViewer = (props) => {
     // console.log(props.content);
     if (typeof props.content === "string") {
-        return html`<div>${props.content}</div>`;
+        return html`<div class="whitespace-pre-wrap break-words">
+            ${props.content}
+        </div>`;
     } else if (Array.isArray(props.content)) {
-        return html`<div>
+        return html`<div class="space-y-2">
             ${props.content.map((i) => ContentViewer({ content: i }))}
         </div>`;
     } else if (typeof props.content === "object") {
         if (props.content.type === "text") {
-            return html`<div>${props.content.text}</div>`;
+            return html`<div class="whitespace-pre-wrap break-words">
+                ${props.content.text}
+            </div>`;
         } else if (props.content.type === "image_url") {
-            return html`<div>${props.content.image_url.url}</div>`;
+            return html`<div
+                class="bg-gray-100 border border-gray-300 rounded-md p-3"
+            >
+                <div class="text-sm text-gray-600 mb-2">📷 图片链接:</div>
+                <a
+                    href="${props.content.image_url.url}"
+                    target="_blank"
+                    class="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+                >
+                    ${props.content.image_url.url}
+                </a>
+            </div>`;
         } else {
-            return html`<div>${JSON.stringify(props.content)}</div>`;
+            return html`<div
+                class="bg-gray-100 border border-gray-300 rounded-md p-3"
+            >
+                <div class="text-sm text-gray-600 mb-2">📄 对象数据:</div>
+                <pre
+                    class="text-xs text-gray-700 whitespace-pre-wrap overflow-x-auto"
+                >
+${JSON.stringify(props.content, null, 2)}</pre
+                >
+            </div>`;
         }
     } else {
-        return html`<div>${props.content}</div>`;
+        return html`<div class="text-gray-700">${props.content}</div>`;
     }
 };
