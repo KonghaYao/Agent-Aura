@@ -14,14 +14,119 @@ export interface TraceInfo {
 export function createTraceRouter(db: TraceDatabase) {
     const traceRouter = new Hono();
 
+    // 获取所有系统列表
+    traceRouter.get("/systems", (c) => {
+        try {
+            const systems = db.getAllSystems();
+            return c.json({
+                success: true,
+                systems: systems,
+            });
+        } catch (error) {
+            console.error("Error fetching systems:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 获取所有线程ID列表
+    traceRouter.get("/threads", (c) => {
+        try {
+            const threadIds = db.getAllThreadIds();
+            return c.json({
+                success: true,
+                thread_ids: threadIds,
+            });
+        } catch (error) {
+            console.error("Error fetching thread IDs:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 根据系统过滤获取 traces
+    traceRouter.get("/system/:system", (c) => {
+        try {
+            const system = c.req.param("system");
+            const traces = db.getTracesBySystem(system);
+            return c.json({
+                success: true,
+                system: system,
+                total: traces.length,
+                traces: traces,
+            });
+        } catch (error) {
+            console.error(
+                `Error fetching traces for system ${c.req.param("system")}:`,
+                error,
+            );
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 根据线程ID获取 runs
+    traceRouter.get("/thread/:threadId/runs", (c) => {
+        try {
+            const threadId = c.req.param("threadId");
+            const runs = db.getRunsByThreadId(threadId);
+            return c.json({
+                success: true,
+                thread_id: threadId,
+                total: runs.length,
+                runs: runs,
+            });
+        } catch (error) {
+            console.error(
+                `Error fetching runs for thread ${c.req.param("threadId")}:`,
+                error,
+            );
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
     // 获取所有 traces 列表
     traceRouter.get("/", (c) => {
         try {
-            const traces = db.getAllTraces();
+            const system = c.req.query("system");
+
+            let traces;
+            if (system) {
+                traces = db.getTracesBySystem(system);
+            } else {
+                traces = db.getAllTraces();
+            }
+
             return c.json({
                 success: true,
                 total: traces.length,
                 traces: traces,
+                system: system || null,
             });
         } catch (error) {
             console.error("Error fetching all traces:", error);

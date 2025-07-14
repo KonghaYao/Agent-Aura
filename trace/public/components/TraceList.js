@@ -1,4 +1,4 @@
-import { createSignal, createMemo } from "solid-js";
+import { createSignal, createMemo, createResource } from "solid-js";
 import html from "solid-js/html";
 import { formatDateTime } from "../utils.js";
 import { TraceItem } from "./TraceItem.js";
@@ -6,12 +6,42 @@ import { For } from "solid-js/web";
 // TraceList 组件 (左侧面板)
 export const TraceList = (props) => {
     const [searchQuery, setSearchQuery] = createSignal("");
+    const [selectedSystem, setSelectedSystem] = createSignal("");
+
+    // 获取系统列表
+    const [systems] = createResource(async () => {
+        try {
+            const response = await fetch("/trace/systems");
+            if (!response.ok) throw new Error("Failed to load systems");
+            const data = await response.json();
+            return data.systems || [];
+        } catch (error) {
+            console.error("Error loading systems:", error);
+            return [];
+        }
+    });
 
     const filteredTraces = createMemo(() => {
-        if (!searchQuery()) return props.traces() || [];
-        return (props.traces() || []).filter((trace) =>
-            trace.trace_id.toLowerCase().includes(searchQuery().toLowerCase()),
-        );
+        let traces = props.traces() || [];
+
+        // 系统过滤
+        if (selectedSystem()) {
+            traces = traces.filter(
+                (trace) =>
+                    trace.systems && trace.systems.includes(selectedSystem()),
+            );
+        }
+
+        // 搜索过滤
+        if (searchQuery()) {
+            traces = traces.filter((trace) =>
+                trace.trace_id
+                    .toLowerCase()
+                    .includes(searchQuery().toLowerCase()),
+            );
+        }
+
+        return traces;
     });
 
     const handleTraceClick = (traceId) => {
@@ -27,6 +57,30 @@ export const TraceList = (props) => {
                 <h1 class="text-lg font-semibold text-gray-900 mb-4">
                     Trace 管理后台
                 </h1>
+
+                <!-- 系统过滤器 -->
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        按系统过滤
+                    </label>
+                    <select
+                        value=${selectedSystem}
+                        onchange=${(e) => setSelectedSystem(e?.target?.value)}
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                        <option value="">全部系统</option>
+                        ${() =>
+                            systems.loading
+                                ? html`<option disabled>加载中...</option>`
+                                : (systems() || []).map(
+                                      (system) =>
+                                          html`<option value=${system}>
+                                              ${system}
+                                          </option>`,
+                                  )}
+                    </select>
+                </div>
+
                 <!-- 搜索框 -->
                 <div class="relative">
                     <svg
@@ -112,7 +166,16 @@ export const TraceList = (props) => {
             <!-- 底部统计 -->
             <div class="p-4 border-t border-gray-200 bg-gray-50">
                 <div class="text-sm text-gray-600">
-                    ${() => filteredTraces().length} 个 Trace
+                    ${() => {
+                        const filtered = filteredTraces().length;
+                        const total = (props.traces() || []).length;
+                        const systemInfo = selectedSystem()
+                            ? ` (${selectedSystem()})`
+                            : "";
+                        return filtered === total
+                            ? `${total} 个 Trace${systemInfo}`
+                            : `${filtered}/${total} 个 Trace${systemInfo}`;
+                    }}
                 </div>
             </div>
         </div>

@@ -2,7 +2,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import type { MultipartConfig, RunPayload, FeedbackPayload } from './multipart-types.js';
 import { MultipartParser } from './multipart-types.js';
-import { TraceDatabase } from './database.js';
+import { TraceDatabase, createTraceDatabase } from './database.js';
 import multipartConfig from './multipart-config.json' with { type: 'json' };
 
 export interface ProcessingResult {
@@ -24,14 +24,14 @@ export class MultipartProcessor {
   private config: MultipartConfig;
   private attachmentDir: string;
 
-  constructor(dbPath?: string, attachmentDir: string = './attachments') {
-    this.db = new TraceDatabase(dbPath);
+  constructor(dbPath: string, attachmentDir: string = './attachments') {
+    this.db = createTraceDatabase(dbPath);
     this.config = multipartConfig as MultipartConfig;
     this.parser = new MultipartParser(this.config);
     this.attachmentDir = attachmentDir;
   }
 
-  async processMultipartData(formData: FormData): Promise<ProcessingResult> {
+  async processMultipartData(formData: FormData, system?: string): Promise<ProcessingResult> {
     const result: ProcessingResult = {
       success: true,
       message: 'Processing completed',
@@ -61,10 +61,10 @@ export class MultipartProcessor {
 
           switch (parsed.event) {
             case 'post':
-              await this.handleRunCreate(parsed, result);
+              await this.handleRunCreate(parsed, result, system);
               break;
             case 'patch':
-              await this.handleRunUpdate(parsed, result);
+              await this.handleRunUpdate(parsed, result, system);
               break;
             case 'feedback':
               await this.handleFeedback(parsed, result);
@@ -92,7 +92,7 @@ export class MultipartProcessor {
     return result;
   }
 
-  private async handleRunCreate(parsed: any, result: ProcessingResult): Promise<void> {
+  private async handleRunCreate(parsed: any, result: ProcessingResult, system?: string): Promise<void> {
     if (parsed.field) {
       // 这是一个 out-of-band 字段
       await this.handleRunFieldUpdate(parsed, result);
@@ -102,7 +102,7 @@ export class MultipartProcessor {
     if (typeof parsed.data === 'string') {
       const runData: RunPayload = JSON.parse(parsed.data);
       runData.id = parsed.runId; // 确保 ID 匹配
-      
+      runData.system = system; // 设置系统标识
       this.db.createRun(runData);
       result.data!.runs_created++;
     } else {
@@ -110,7 +110,7 @@ export class MultipartProcessor {
     }
   }
 
-  private async handleRunUpdate(parsed: any, result: ProcessingResult): Promise<void> {
+  private async handleRunUpdate(parsed: any, result: ProcessingResult, system?: string): Promise<void> {
     if (parsed.field) {
       // 这是一个 out-of-band 字段
       await this.handleRunFieldUpdate(parsed, result);
@@ -119,6 +119,7 @@ export class MultipartProcessor {
 
     if (typeof parsed.data === 'string') {
       const runData: RunPayload = JSON.parse(parsed.data);
+      runData.system = system; // 设置系统标识
       
       const updated = this.db.updateRun(parsed.runId, runData);
       if (updated) {

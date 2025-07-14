@@ -9,7 +9,7 @@ import { createTraceRouter } from "./trace-router.js";
 const app = new Hono();
 
 // 创建全局的 multipart 处理器实例
-const multipartProcessor = new MultipartProcessor();
+const multipartProcessor = new MultipartProcessor("./.langgraph_api/trace.db");
 
 // 创建 trace 路由器
 const traceRouter = createTraceRouter(multipartProcessor["db"]);
@@ -96,6 +96,14 @@ app.get("/info", (c) => {
         endpoints: {
             dashboard: "GET / - Web Dashboard",
             multipart: "POST /runs/multipart - Submit multipart data",
+            trace_list:
+                "GET /trace - Get all traces (supports ?system=xxx filter)",
+            trace_systems: "GET /trace/systems - Get all available systems",
+            trace_threads: "GET /trace/threads - Get all available thread IDs",
+            trace_by_system:
+                "GET /trace/system/{system} - Get traces by system",
+            thread_runs:
+                "GET /trace/thread/{threadId}/runs - Get runs by thread ID",
             trace_info: "GET /trace/{traceId} - Get complete trace info",
             trace_summary: "GET /trace/{traceId}/summary - Get trace summary",
             trace_stats: "GET /trace/{traceId}/stats - Get trace statistics",
@@ -110,7 +118,12 @@ app.get("/info", (c) => {
 app.post("/runs/multipart", async (c) => {
     try {
         const formData = await c.req.formData();
-        const result = await multipartProcessor.processMultipartData(formData);
+        const system = c.req.raw.headers.get("x-api-key") || undefined;
+
+        const result = await multipartProcessor.processMultipartData(
+            formData,
+            system,
+        );
 
         if (result.success) {
             return c.json({

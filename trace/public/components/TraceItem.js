@@ -35,12 +35,27 @@ export const TraceItem = (props) => {
                     </div>
                 </div>
             </div>
-            <div class="mt-2 flex space-x-4 text-xs text-gray-500">
-                <span>反馈: ${props.trace.total_feedback}</span>
-                <span>附件: ${props.trace.total_attachments}</span>
-                ${props.trace.run_types?.map(
-                    (type) => html`<span>${type}</span>`,
-                )}
+            <div class="mt-2 space-y-1">
+                <div class="flex space-x-4 text-xs text-gray-500">
+                    <span>反馈: ${props.trace.total_feedback}</span>
+                    <span>附件: ${props.trace.total_attachments}</span>
+                </div>
+                <div class="flex flex-wrap gap-1 text-xs">
+                    ${props.trace.run_types?.map(
+                        (type) =>
+                            html`<span
+                                class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded"
+                                >${type}</span
+                            >`,
+                    )}
+                    ${props.trace.systems?.map(
+                        (system) =>
+                            html`<span
+                                class="px-2 py-0.5 bg-green-100 text-green-700 rounded"
+                                >🔧 ${system}</span
+                            >`,
+                    )}
+                </div>
             </div>
         </div>
     `;

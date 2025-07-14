@@ -20,6 +20,8 @@ export interface RunPayload {
     trace_id?: string;
     name?: string;
     run_type?: string;
+    system?: string; // 系统标识，来自 x-api-key
+    thread_id?: string; // 线程ID，来自 extra.metadata.thread_id
     start_time?: string;
     end_time?: string;
     inputs?: any;

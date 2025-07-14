@@ -7,6 +7,8 @@ export interface RunRecord {
     trace_id?: string;
     name?: string;
     run_type?: string;
+    system?: string; // 系统标识，来自 x-api-key
+    thread_id?: string; // 线程ID，来自 extra.metadata.thread_id
     start_time?: string;
     end_time?: string;
     inputs?: string; // JSON string
@@ -48,27 +50,75 @@ export interface TraceOverview {
     first_run_time: string;
     last_run_time: string;
     run_types: string[];
+    systems: string[]; // 涉及的系统列表
+}
+
+// 数据库适配器接口
+export interface DatabaseAdapter {
+    exec(sql: string): void;
+    prepare(sql: string): PreparedStatement;
+    transaction<T extends any[], R>(fn: (...args: T) => R): (...args: T) => R;
+    close(): void;
+}
+
+// 预处理语句接口
+export interface PreparedStatement {
+    run(params?: any[]): { changes: number };
+    get(params?: any): any;
+    all(params?: any): any[];
+}
+
+// SQLite 适配器实现
+export class SQLiteAdapter implements DatabaseAdapter {
+    private db: Database;
+
+    constructor(dbPath: string = "./.langgraph_api/trace.db") {
+        this.db = new Database(dbPath);
+    }
+
+    exec(sql: string): void {
+        this.db.exec(sql);
+    }
+
+    prepare(sql: string): PreparedStatement {
+        const stmt = this.db.prepare(sql);
+        return {
+            run: (params?: any[]) => stmt.run(params),
+            get: (params?: any) => stmt.get(params),
+            all: (params?: any) => stmt.all(params),
+        };
+    }
+
+    transaction<T extends any[], R>(fn: (...args: T) => R): (...args: T) => R {
+        return this.db.transaction(fn);
+    }
+
+    close(): void {
+        this.db.close();
+    }
 }
 
 export class TraceDatabase {
-    private db: Database;
+    private adapter: DatabaseAdapter;
 
-    constructor(dbPath: string = "trace.db") {
-        this.db = new Database(dbPath);
+    constructor(adapter: DatabaseAdapter) {
+        this.adapter = adapter;
         this.initTables();
     }
 
     private initTables(): void {
         // 开启 WAL 模式以提高性能
-        this.db.exec("PRAGMA journal_mode = WAL;");
+        this.adapter.exec("PRAGMA journal_mode = WAL;");
 
         // 创建 runs 表
-        this.db.exec(`
+        this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS runs (
                 id TEXT PRIMARY KEY,
                 trace_id TEXT,
                 name TEXT,
                 run_type TEXT,
+                system TEXT,
+                thread_id TEXT,
                 start_time TEXT,
                 end_time TEXT,
                 inputs TEXT,
@@ -82,8 +132,31 @@ export class TraceDatabase {
             )
         `);
 
+        // 数据库迁移：添加新字段
+        try {
+            // 检查并添加 system 字段
+            const tableInfo = this.adapter.prepare("PRAGMA table_info(runs)");
+            const columns = tableInfo.all() as any[];
+            const columnNames = columns.map((col: any) => col.name);
+
+            if (!columnNames.includes("system")) {
+                this.adapter.exec("ALTER TABLE runs ADD COLUMN system TEXT");
+                console.log("已添加 system 字段到 runs 表");
+            }
+
+            if (!columnNames.includes("thread_id")) {
+                this.adapter.exec("ALTER TABLE runs ADD COLUMN thread_id TEXT");
+                console.log("已添加 thread_id 字段到 runs 表");
+
+                // 从现有数据中提取 thread_id
+                this.migrateThreadIds();
+            }
+        } catch (error) {
+            console.warn("数据库迁移时出错:", error);
+        }
+
         // 创建 feedback 表
-        this.db.exec(`
+        this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS feedback (
                 id TEXT PRIMARY KEY,
                 trace_id TEXT NOT NULL,
@@ -98,7 +171,7 @@ export class TraceDatabase {
         `);
 
         // 创建 attachments 表
-        this.db.exec(`
+        this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS attachments (
                 id TEXT PRIMARY KEY,
                 run_id TEXT NOT NULL,
@@ -112,23 +185,70 @@ export class TraceDatabase {
         `);
 
         // 创建索引
-        this.db.exec(`
+        this.adapter.exec(`
             CREATE INDEX IF NOT EXISTS idx_runs_trace_id ON runs (trace_id);
+            CREATE INDEX IF NOT EXISTS idx_runs_thread_id ON runs (thread_id);
             CREATE INDEX IF NOT EXISTS idx_feedback_trace_id ON feedback (trace_id);
             CREATE INDEX IF NOT EXISTS idx_feedback_run_id ON feedback (run_id);
             CREATE INDEX IF NOT EXISTS idx_attachments_run_id ON attachments (run_id);
         `);
     }
 
+    // 从 extra 字段中提取 thread_id 的辅助方法
+    private extractThreadIdFromExtra(extra: any): string | undefined {
+        if (!extra) return undefined;
+
+        try {
+            const extraData =
+                typeof extra === "string" ? JSON.parse(extra) : extra;
+            return extraData?.metadata?.thread_id;
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    // 迁移现有数据的 thread_id
+    private migrateThreadIds(): void {
+        try {
+            console.log("开始迁移 thread_id 数据...");
+
+            // 获取所有有 extra 数据但没有 thread_id 的记录
+            const stmt = this.adapter.prepare(`
+                SELECT id, extra FROM runs 
+                WHERE extra IS NOT NULL AND extra != '' 
+                AND (thread_id IS NULL OR thread_id = '')
+            `);
+            const runs = stmt.all() as any[];
+
+            let migratedCount = 0;
+            const updateStmt = this.adapter.prepare(`
+                UPDATE runs SET thread_id = ? WHERE id = ?
+            `);
+
+            for (const run of runs) {
+                const threadId = this.extractThreadIdFromExtra(run.extra);
+                if (threadId) {
+                    updateStmt.run([threadId, run.id]);
+                    migratedCount++;
+                }
+            }
+
+            console.log(`thread_id 迁移完成，更新了 ${migratedCount} 条记录`);
+        } catch (error) {
+            console.warn("迁移 thread_id 时出错:", error);
+        }
+    }
+
     // 获取所有 traceId 及其概要信息
     getAllTraces(): TraceOverview[] {
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
-                GROUP_CONCAT(DISTINCT run_type) as run_types
+                GROUP_CONCAT(DISTINCT run_type) as run_types,
+                GROUP_CONCAT(DISTINCT system) as systems
             FROM runs 
             WHERE trace_id IS NOT NULL 
             GROUP BY trace_id 
@@ -139,10 +259,10 @@ export class TraceDatabase {
 
         return traces.map((trace) => {
             // 获取该 trace 的 feedback 和 attachments 统计
-            const feedbackStmt = this.db.prepare(`
+            const feedbackStmt = this.adapter.prepare(`
                 SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
             `);
-            const attachmentStmt = this.db.prepare(`
+            const attachmentStmt = this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
@@ -162,6 +282,9 @@ export class TraceDatabase {
                 run_types: trace.run_types
                     ? trace.run_types.split(",").filter(Boolean)
                     : [],
+                systems: trace.systems
+                    ? trace.systems.split(",").filter(Boolean)
+                    : [],
             };
         });
     }
@@ -171,11 +294,17 @@ export class TraceDatabase {
         const id = runData.id || uuidv4();
         const now = new Date().toISOString();
 
+        // 从 extra 中提取 thread_id（如果未直接提供）
+        const threadId =
+            runData.thread_id || this.extractThreadIdFromExtra(runData.extra);
+
         const record: RunRecord = {
             id,
             trace_id: runData.trace_id,
             name: runData.name,
             run_type: runData.run_type,
+            system: runData.system,
+            thread_id: threadId,
             start_time: runData.start_time,
             end_time: runData.end_time,
             inputs: runData.inputs ? JSON.stringify(runData.inputs) : undefined,
@@ -192,12 +321,12 @@ export class TraceDatabase {
             updated_at: now,
         };
 
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             INSERT INTO runs (
-                id, trace_id, name, run_type, start_time, end_time,
+                id, trace_id, name, run_type, system, thread_id, start_time, end_time,
                 inputs, outputs, events, error, extra, serialized,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run([
@@ -205,6 +334,8 @@ export class TraceDatabase {
             record.trace_id,
             record.name,
             record.run_type,
+            record.system,
+            record.thread_id,
             record.start_time,
             record.end_time,
             record.inputs,
@@ -238,6 +369,10 @@ export class TraceDatabase {
             updateFields.push("run_type = ?");
             updateValues.push(runData.run_type);
         }
+        if (runData.system !== undefined) {
+            updateFields.push("system = ?");
+            updateValues.push(runData.system);
+        }
         if (runData.start_time !== undefined) {
             updateFields.push("start_time = ?");
             updateValues.push(runData.start_time);
@@ -265,6 +400,19 @@ export class TraceDatabase {
         if (runData.extra !== undefined) {
             updateFields.push("extra = ?");
             updateValues.push(JSON.stringify(runData.extra));
+
+            // 如果更新了 extra 且没有直接提供 thread_id，尝试从 extra 中提取
+            if (runData.thread_id === undefined) {
+                const threadId = this.extractThreadIdFromExtra(runData.extra);
+                if (threadId) {
+                    updateFields.push("thread_id = ?");
+                    updateValues.push(threadId);
+                }
+            }
+        }
+        if (runData.thread_id !== undefined) {
+            updateFields.push("thread_id = ?");
+            updateValues.push(runData.thread_id);
         }
         if (runData.serialized !== undefined) {
             updateFields.push("serialized = ?");
@@ -279,7 +427,7 @@ export class TraceDatabase {
         updateValues.push(now);
         updateValues.push(runId);
 
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             UPDATE runs SET ${updateFields.join(", ")} WHERE id = ?
         `);
 
@@ -296,7 +444,7 @@ export class TraceDatabase {
         const now = new Date().toISOString();
         const jsonValue = JSON.stringify(value);
 
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             UPDATE runs SET ${field} = ?, updated_at = ? WHERE id = ?
         `);
 
@@ -310,7 +458,7 @@ export class TraceDatabase {
     }
 
     getRun(runId: string): RunRecord | null {
-        const stmt = this.db.prepare("SELECT * FROM runs WHERE id = ?");
+        const stmt = this.adapter.prepare("SELECT * FROM runs WHERE id = ?");
         const result = stmt.get(runId);
         return (result as RunRecord) || null;
     }
@@ -336,7 +484,7 @@ export class TraceDatabase {
             created_at: now,
         };
 
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             INSERT INTO feedback (
                 id, trace_id, run_id, feedback_id, score, comment, metadata, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -377,7 +525,7 @@ export class TraceDatabase {
             created_at: now,
         };
 
-        const stmt = this.db.prepare(`
+        const stmt = this.adapter.prepare(`
             INSERT INTO attachments (
                 id, run_id, filename, content_type, file_size, storage_path, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -398,21 +546,111 @@ export class TraceDatabase {
 
     // 查询操作
     getRunsByTraceId(traceId: string): RunRecord[] {
-        const stmt = this.db.prepare(
+        const stmt = this.adapter.prepare(
             "SELECT * FROM runs WHERE trace_id = ? ORDER BY created_at",
         );
         return stmt.all(traceId) as RunRecord[];
     }
 
+    // 根据系统过滤获取 traces
+    getTracesBySystem(system: string): TraceOverview[] {
+        const stmt = this.adapter.prepare(`
+            SELECT 
+                trace_id,
+                COUNT(*) as total_runs,
+                MIN(created_at) as first_run_time,
+                MAX(created_at) as last_run_time,
+                GROUP_CONCAT(DISTINCT run_type) as run_types,
+                GROUP_CONCAT(DISTINCT system) as systems
+            FROM runs 
+            WHERE trace_id IS NOT NULL AND system = ?
+            GROUP BY trace_id 
+            ORDER BY MAX(created_at) DESC
+        `);
+
+        const traces = stmt.all(system) as any[];
+
+        return traces.map((trace) => {
+            // 获取该 trace 的 feedback 和 attachments 统计
+            const feedbackStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
+            `);
+            const attachmentStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM attachments a
+                JOIN runs r ON a.run_id = r.id 
+                WHERE r.trace_id = ?
+            `);
+
+            const feedbackCount = feedbackStmt.get(trace.trace_id) as any;
+            const attachmentCount = attachmentStmt.get(trace.trace_id) as any;
+
+            return {
+                trace_id: trace.trace_id,
+                total_runs: trace.total_runs,
+                total_feedback: feedbackCount.count,
+                total_attachments: attachmentCount.count,
+                first_run_time: trace.first_run_time,
+                last_run_time: trace.last_run_time,
+                run_types: trace.run_types
+                    ? trace.run_types.split(",").filter(Boolean)
+                    : [],
+                systems: trace.systems
+                    ? trace.systems.split(",").filter(Boolean)
+                    : [],
+            };
+        });
+    }
+
+    // 根据系统获取 runs
+    getRunsBySystem(system: string): RunRecord[] {
+        const stmt = this.adapter.prepare(
+            "SELECT * FROM runs WHERE system = ? ORDER BY created_at DESC",
+        );
+        return stmt.all(system) as RunRecord[];
+    }
+
+    // 根据线程ID获取 runs
+    getRunsByThreadId(threadId: string): RunRecord[] {
+        const stmt = this.adapter.prepare(
+            "SELECT * FROM runs WHERE thread_id = ? ORDER BY created_at DESC",
+        );
+        return stmt.all(threadId) as RunRecord[];
+    }
+
+    // 获取所有系统列表
+    getAllSystems(): string[] {
+        const stmt = this.adapter.prepare(`
+            SELECT DISTINCT system 
+            FROM runs 
+            WHERE system IS NOT NULL AND system != ''
+            ORDER BY system
+        `);
+        const results = stmt.all() as { system: string }[];
+        return results.map((r) => r.system);
+    }
+
+    // 获取所有线程ID列表
+    getAllThreadIds(): string[] {
+        const stmt = this.adapter.prepare(`
+            SELECT DISTINCT thread_id 
+            FROM runs 
+            WHERE thread_id IS NOT NULL AND thread_id != ''
+            ORDER BY thread_id
+        `);
+        const results = stmt.all() as { thread_id: string }[];
+        return results.map((r) => r.thread_id);
+    }
+
     getFeedbackByRunId(runId: string): FeedbackRecord[] {
-        const stmt = this.db.prepare(
+        const stmt = this.adapter.prepare(
             "SELECT * FROM feedback WHERE run_id = ? ORDER BY created_at",
         );
         return stmt.all(runId) as FeedbackRecord[];
     }
 
     getAttachmentsByRunId(runId: string): AttachmentRecord[] {
-        const stmt = this.db.prepare(
+        const stmt = this.adapter.prepare(
             "SELECT * FROM attachments WHERE run_id = ? ORDER BY created_at",
         );
         return stmt.all(runId) as AttachmentRecord[];
@@ -422,10 +660,16 @@ export class TraceDatabase {
     createTransaction<T extends any[], R>(
         fn: (...args: T) => R,
     ): (...args: T) => R {
-        return this.db.transaction(fn);
+        return this.adapter.transaction(fn);
     }
 
     close(): void {
-        this.db.close();
+        this.adapter.close();
     }
+}
+
+// 便捷的工厂函数
+export function createTraceDatabase(dbPath: string): TraceDatabase {
+    const adapter = new SQLiteAdapter(dbPath);
+    return new TraceDatabase(adapter);
 }
