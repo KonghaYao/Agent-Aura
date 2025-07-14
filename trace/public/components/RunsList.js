@@ -11,7 +11,7 @@ export const RunsList = (props) => {
     });
     const [showNoneTime, setShowNoneTime] = createSignal(false);
     const hasSpentTime = (run) => {
-        if (showNoneTime()) {
+        if (showNoneTime() || run.run_type === "tool") {
             return true;
         }
         return run.end_time - run.start_time > 10;

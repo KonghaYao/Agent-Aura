@@ -80,9 +80,25 @@ export const TracesSimpleList = (props) => {
                                                   >
                                                       ${trace.trace_id}
                                                   </span>
-                                                  <span class="text-gray-500">
-                                                      ${trace.total_runs || 0}
-                                                      runs
+                                                  <span
+                                                      class="whitespace-nowrap inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full mr-1 font-mono"
+                                                  >
+                                                      ${"🪙 " +
+                                                      (trace.total_tokens_sum ||
+                                                          0)}
+                                                  </span>
+                                                  <span
+                                                      class="whitespace-nowrap inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-mono"
+                                                  >
+                                                      ${"⏱️ " +
+                                                      formatDuration(
+                                                          new Date(
+                                                              trace.last_run_time,
+                                                          ).getTime() -
+                                                              new Date(
+                                                                  trace.first_run_time,
+                                                              ).getTime(),
+                                                      )}
                                                   </span>
                                               </div>
                                               <div class="mt-0.5">
@@ -100,4 +116,16 @@ export const TracesSimpleList = (props) => {
                     : ""}
         </div>
     `;
+};
+
+export const formatDuration = (duration) => {
+    if (duration < 1000) return "0.0s";
+    const hours = Math.floor(duration / 3600000);
+    const minutes = Math.floor((duration % 3600000) / 60000);
+    const seconds = (duration % 60000) / 1000;
+    let result = [];
+    if (hours > 0) result.push(`${hours}h`);
+    if (minutes > 0 || hours > 0) result.push(`${minutes}m`);
+    result.push(`${seconds.toFixed(1)}s`);
+    return result.join(" ");
 };

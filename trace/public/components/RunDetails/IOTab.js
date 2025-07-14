@@ -52,6 +52,13 @@ export const IOTab = ({ run, attachments }) => {
                                   无输出数据
                               </div>
                           `}
+                    ${() =>
+                        run.run_type === "tool"
+                            ? html`<pre class="text-gray-500 text-sm">
+                                  ${outputs().output.kwargs.content}
+                              </pre
+                              >`
+                            : ""}
                     ${outputs()
                         ? GraphStateMessage({
                               state: {

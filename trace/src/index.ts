@@ -119,11 +119,11 @@ app.get("/info", (c) => {
     });
 });
 
+/** 接受 langSmith 参数的控件 */
 app.post("/runs/multipart", async (c) => {
     try {
         const formData = await c.req.formData();
         const system = c.req.raw.headers.get("x-api-key") || undefined;
-
         const result = await multipartProcessor.processMultipartData(
             formData,
             system,
@@ -152,66 +152,6 @@ app.post("/runs/multipart", async (c) => {
                 success: false,
                 message: "Internal server error",
                 error: error instanceof Error ? error.message : String(error),
-            },
-            500,
-        );
-    }
-});
-
-// 保留原有的单独查询接口（向后兼容）
-app.get("/runs/:runId", (c) => {
-    try {
-        const runId = c.req.param("runId");
-        const run = multipartProcessor["db"].getRun(runId);
-
-        if (!run) {
-            return c.json({ error: "Run not found" }, 404);
-        }
-
-        return c.json(run);
-    } catch (error) {
-        console.error("Error fetching run:", error);
-        return c.json(
-            {
-                error: "Internal server error",
-                message: error instanceof Error ? error.message : String(error),
-            },
-            500,
-        );
-    }
-});
-
-app.get("/runs/:runId/feedback", (c) => {
-    try {
-        const runId = c.req.param("runId");
-        const feedback = multipartProcessor["db"].getFeedbackByRunId(runId);
-
-        return c.json(feedback);
-    } catch (error) {
-        console.error("Error fetching feedback:", error);
-        return c.json(
-            {
-                error: "Internal server error",
-                message: error instanceof Error ? error.message : String(error),
-            },
-            500,
-        );
-    }
-});
-
-app.get("/runs/:runId/attachments", (c) => {
-    try {
-        const runId = c.req.param("runId");
-        const attachments =
-            multipartProcessor["db"].getAttachmentsByRunId(runId);
-
-        return c.json(attachments);
-    } catch (error) {
-        console.error("Error fetching attachments:", error);
-        return c.json(
-            {
-                error: "Internal server error",
-                message: error instanceof Error ? error.message : String(error),
             },
             500,
         );
@@ -251,7 +191,9 @@ serve(
     (info) => {
         console.log(`🚀 Server is running on http://localhost:${info.port}`);
         console.log(`📊 Using Bun native SQLite for high performance`);
-        console.log(`🎯 Web Dashboard: http://localhost:${info.port}/`);
+        console.log(
+            `🎯 Web Dashboard: http://localhost:${info.port}/ui/index.html`,
+        );
         console.log(
             `📋 Multipart API: POST http://localhost:${info.port}/runs/multipart`,
         );

@@ -17,6 +17,7 @@ export interface RunRecord {
     error?: string; // JSON string
     extra?: string; // JSON string
     serialized?: string; // JSON string
+    total_tokens?: number; // 新增字段：总 token 数
     created_at: string;
     updated_at: string;
 }
@@ -51,6 +52,7 @@ export interface TraceOverview {
     last_run_time: string;
     run_types: string[];
     systems: string[]; // 涉及的系统列表
+    total_tokens_sum?: number; // 新增：总 token 消耗量
 }
 
 // 数据库适配器接口
@@ -106,6 +108,25 @@ export class TraceDatabase {
         this.initTables();
     }
 
+    // 从 outputs 字段中提取 total_tokens 的辅助方法
+    private extractTotalTokensFromOutputs(outputs?: string | object): number {
+        if (!outputs) return 0;
+        try {
+            const outputData =
+                typeof outputs === "string" ? JSON.parse(outputs) : outputs;
+            if (
+                outputData &&
+                outputData.llmOutput &&
+                outputData.llmOutput.tokenUsage
+            ) {
+                return outputData.llmOutput.tokenUsage.totalTokens || 0;
+            }
+        } catch (error) {
+            console.warn("解析 outputs 提取 total_tokens 时出错:", error);
+        }
+        return 0;
+    }
+
     private initTables(): void {
         // 开启 WAL 模式以提高性能
         this.adapter.exec("PRAGMA journal_mode = WAL;");
@@ -127,33 +148,11 @@ export class TraceDatabase {
                 error TEXT,
                 extra TEXT,
                 serialized TEXT,
+                total_tokens INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
         `);
-
-        // 数据库迁移：添加新字段
-        try {
-            // 检查并添加 system 字段
-            const tableInfo = this.adapter.prepare("PRAGMA table_info(runs)");
-            const columns = tableInfo.all() as any[];
-            const columnNames = columns.map((col: any) => col.name);
-
-            if (!columnNames.includes("system")) {
-                this.adapter.exec("ALTER TABLE runs ADD COLUMN system TEXT");
-                console.log("已添加 system 字段到 runs 表");
-            }
-
-            if (!columnNames.includes("thread_id")) {
-                this.adapter.exec("ALTER TABLE runs ADD COLUMN thread_id TEXT");
-                console.log("已添加 thread_id 字段到 runs 表");
-
-                // 从现有数据中提取 thread_id
-                this.migrateThreadIds();
-            }
-        } catch (error) {
-            console.warn("数据库迁移时出错:", error);
-        }
 
         // 创建 feedback 表
         this.adapter.exec(`
@@ -207,38 +206,6 @@ export class TraceDatabase {
         }
     }
 
-    // 迁移现有数据的 thread_id
-    private migrateThreadIds(): void {
-        try {
-            console.log("开始迁移 thread_id 数据...");
-
-            // 获取所有有 extra 数据但没有 thread_id 的记录
-            const stmt = this.adapter.prepare(`
-                SELECT id, extra FROM runs 
-                WHERE extra IS NOT NULL AND extra != '' 
-                AND (thread_id IS NULL OR thread_id = '')
-            `);
-            const runs = stmt.all() as any[];
-
-            let migratedCount = 0;
-            const updateStmt = this.adapter.prepare(`
-                UPDATE runs SET thread_id = ? WHERE id = ?
-            `);
-
-            for (const run of runs) {
-                const threadId = this.extractThreadIdFromExtra(run.extra);
-                if (threadId) {
-                    updateStmt.run([threadId, run.id]);
-                    migratedCount++;
-                }
-            }
-
-            console.log(`thread_id 迁移完成，更新了 ${migratedCount} 条记录`);
-        } catch (error) {
-            console.warn("迁移 thread_id 时出错:", error);
-        }
-    }
-
     // 获取所有 traceId 及其概要信息
     getAllTraces(): TraceOverview[] {
         const stmt = this.adapter.prepare(`
@@ -248,7 +215,8 @@ export class TraceDatabase {
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
                 GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems
+                GROUP_CONCAT(DISTINCT system) as systems,
+                SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL 
             GROUP BY trace_id 
@@ -285,6 +253,7 @@ export class TraceDatabase {
                 systems: trace.systems
                     ? trace.systems.split(",").filter(Boolean)
                     : [],
+                total_tokens_sum: trace.total_tokens_sum || 0,
             };
         });
     }
@@ -319,14 +288,17 @@ export class TraceDatabase {
                 : undefined,
             created_at: now,
             updated_at: now,
+            total_tokens: runData.outputs
+                ? this.extractTotalTokensFromOutputs(runData.outputs)
+                : 0,
         };
 
         const stmt = this.adapter.prepare(`
             INSERT INTO runs (
                 id, trace_id, name, run_type, system, thread_id, start_time, end_time,
-                inputs, outputs, events, error, extra, serialized,
+                inputs, outputs, events, error, extra, serialized, total_tokens,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         stmt.run([
@@ -344,6 +316,7 @@ export class TraceDatabase {
             record.error,
             record.extra,
             record.serialized,
+            record.total_tokens,
             record.created_at,
             record.updated_at,
         ]);
@@ -388,6 +361,14 @@ export class TraceDatabase {
         if (runData.outputs !== undefined) {
             updateFields.push("outputs = ?");
             updateValues.push(JSON.stringify(runData.outputs));
+            // 如果 outputs 被更新，重新计算并更新 total_tokens
+            updateFields.push("total_tokens = ?");
+            updateValues.push(
+                this.extractTotalTokensFromOutputs(runData.outputs),
+            );
+        } else if (runData.total_tokens !== undefined) {
+            updateFields.push("total_tokens = ?");
+            updateValues.push(runData.total_tokens);
         }
         if (runData.events !== undefined) {
             updateFields.push("events = ?");
@@ -417,6 +398,10 @@ export class TraceDatabase {
         if (runData.serialized !== undefined) {
             updateFields.push("serialized = ?");
             updateValues.push(JSON.stringify(runData.serialized));
+        }
+        if (runData.total_tokens !== undefined) {
+            updateFields.push("total_tokens = ?");
+            updateValues.push(runData.total_tokens);
         }
 
         if (updateFields.length === 0) {
@@ -449,6 +434,11 @@ export class TraceDatabase {
         `);
 
         const result = stmt.run([jsonValue, now, runId]);
+
+        if (field === "outputs") {
+            const total_tokens = this.extractTotalTokensFromOutputs(value);
+            this.updateRunField(runId, "total_tokens", total_tokens);
+        }
 
         if (result.changes === 0) {
             return null;
@@ -561,7 +551,8 @@ export class TraceDatabase {
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
                 GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems
+                GROUP_CONCAT(DISTINCT system) as systems,
+                SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL AND system = ?
             GROUP BY trace_id 
@@ -598,6 +589,7 @@ export class TraceDatabase {
                 systems: trace.systems
                     ? trace.systems.split(",").filter(Boolean)
                     : [],
+                total_tokens_sum: trace.total_tokens_sum || 0,
             };
         });
     }
@@ -627,7 +619,8 @@ export class TraceDatabase {
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
                 GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems
+                GROUP_CONCAT(DISTINCT system) as systems,
+                SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL AND thread_id = ?
             GROUP BY trace_id 
@@ -664,6 +657,7 @@ export class TraceDatabase {
                 systems: trace.systems
                     ? trace.systems.split(",").filter(Boolean)
                     : [],
+                total_tokens_sum: trace.total_tokens_sum || 0,
             };
         });
     }

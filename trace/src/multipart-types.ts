@@ -24,12 +24,13 @@ export interface RunPayload {
     thread_id?: string; // 线程ID，来自 extra.metadata.thread_id
     start_time?: string;
     end_time?: string;
-    inputs?: any;
-    outputs?: any;
-    events?: any[];
-    error?: any;
-    extra?: any;
-    serialized?: any;
+    inputs?: any; // 可以是任何类型，例如对象
+    outputs?: any; // 可以是任何类型，例如对象
+    events?: any; // 可以是任何类型
+    error?: any; // 可以是任何类型
+    extra?: any; // 可以是任何类型
+    serialized?: any; // 可以是任何类型
+    total_tokens?: number; // 新增字段：总 token 数
 }
 
 export interface FeedbackPayload {
