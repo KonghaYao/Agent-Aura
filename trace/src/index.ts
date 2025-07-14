@@ -100,8 +100,12 @@ app.get("/info", (c) => {
                 "GET /trace - Get all traces (supports ?system=xxx filter)",
             trace_systems: "GET /trace/systems - Get all available systems",
             trace_threads: "GET /trace/threads - Get all available thread IDs",
+            thread_overviews:
+                "GET /trace/threads/overview - Get thread overview information",
             trace_by_system:
                 "GET /trace/system/{system} - Get traces by system",
+            traces_by_thread:
+                "GET /trace/thread/{threadId}/traces - Get traces by thread ID",
             thread_runs:
                 "GET /trace/thread/{threadId}/runs - Get runs by thread ID",
             trace_info: "GET /trace/{traceId} - Get complete trace info",

@@ -618,6 +618,121 @@ export class TraceDatabase {
         return stmt.all(threadId) as RunRecord[];
     }
 
+    // 根据线程ID获取相关的 traces
+    getTracesByThreadId(threadId: string): TraceOverview[] {
+        const stmt = this.adapter.prepare(`
+            SELECT 
+                trace_id,
+                COUNT(*) as total_runs,
+                MIN(created_at) as first_run_time,
+                MAX(created_at) as last_run_time,
+                GROUP_CONCAT(DISTINCT run_type) as run_types,
+                GROUP_CONCAT(DISTINCT system) as systems
+            FROM runs 
+            WHERE trace_id IS NOT NULL AND thread_id = ?
+            GROUP BY trace_id 
+            ORDER BY MAX(created_at) DESC
+        `);
+
+        const traces = stmt.all(threadId) as any[];
+
+        return traces.map((trace) => {
+            // 获取该 trace 的 feedback 和 attachments 统计
+            const feedbackStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
+            `);
+            const attachmentStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM attachments a
+                JOIN runs r ON a.run_id = r.id 
+                WHERE r.trace_id = ?
+            `);
+
+            const feedbackCount = feedbackStmt.get(trace.trace_id) as any;
+            const attachmentCount = attachmentStmt.get(trace.trace_id) as any;
+
+            return {
+                trace_id: trace.trace_id,
+                total_runs: trace.total_runs,
+                total_feedback: feedbackCount.count,
+                total_attachments: attachmentCount.count,
+                first_run_time: trace.first_run_time,
+                last_run_time: trace.last_run_time,
+                run_types: trace.run_types
+                    ? trace.run_types.split(",").filter(Boolean)
+                    : [],
+                systems: trace.systems
+                    ? trace.systems.split(",").filter(Boolean)
+                    : [],
+            };
+        });
+    }
+
+    // 获取线程ID概览信息
+    getThreadOverviews(): Array<{
+        thread_id: string;
+        total_runs: number;
+        total_traces: number;
+        total_feedback: number;
+        total_attachments: number;
+        first_run_time: string;
+        last_run_time: string;
+        run_types: string[];
+        systems: string[];
+    }> {
+        const stmt = this.adapter.prepare(`
+            SELECT 
+                thread_id,
+                COUNT(*) as total_runs,
+                COUNT(DISTINCT trace_id) as total_traces,
+                MIN(created_at) as first_run_time,
+                MAX(created_at) as last_run_time,
+                GROUP_CONCAT(DISTINCT run_type) as run_types,
+                GROUP_CONCAT(DISTINCT system) as systems
+            FROM runs 
+            WHERE thread_id IS NOT NULL AND thread_id != ''
+            GROUP BY thread_id 
+            ORDER BY MAX(created_at) DESC
+        `);
+
+        const threads = stmt.all() as any[];
+
+        return threads.map((thread) => {
+            // 获取该 thread 的 feedback 和 attachments 统计
+            const feedbackStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM feedback f
+                JOIN runs r ON f.run_id = r.id 
+                WHERE r.thread_id = ?
+            `);
+            const attachmentStmt = this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM attachments a
+                JOIN runs r ON a.run_id = r.id 
+                WHERE r.thread_id = ?
+            `);
+
+            const feedbackCount = feedbackStmt.get(thread.thread_id) as any;
+            const attachmentCount = attachmentStmt.get(thread.thread_id) as any;
+
+            return {
+                thread_id: thread.thread_id,
+                total_runs: thread.total_runs,
+                total_traces: thread.total_traces,
+                total_feedback: feedbackCount.count,
+                total_attachments: attachmentCount.count,
+                first_run_time: thread.first_run_time,
+                last_run_time: thread.last_run_time,
+                run_types: thread.run_types
+                    ? thread.run_types.split(",").filter(Boolean)
+                    : [],
+                systems: thread.systems
+                    ? thread.systems.split(",").filter(Boolean)
+                    : [],
+            };
+        });
+    }
+
     // 获取所有系统列表
     getAllSystems(): string[] {
         const stmt = this.adapter.prepare(`

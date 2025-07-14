@@ -35,6 +35,28 @@ export function createTraceRouter(db: TraceDatabase) {
         }
     });
 
+    // 获取线程概览信息 (必须在 /threads 之前定义)
+    traceRouter.get("/threads/overview", (c) => {
+        try {
+            const threadOverviews = db.getThreadOverviews();
+            return c.json({
+                success: true,
+                total: threadOverviews.length,
+                threads: threadOverviews,
+            });
+        } catch (error) {
+            console.error("Error fetching thread overviews:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
     // 获取所有线程ID列表
     traceRouter.get("/threads", (c) => {
         try {
@@ -45,6 +67,33 @@ export function createTraceRouter(db: TraceDatabase) {
             });
         } catch (error) {
             console.error("Error fetching thread IDs:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 根据线程ID获取相关的 traces
+    traceRouter.get("/thread/:threadId/traces", (c) => {
+        try {
+            const threadId = c.req.param("threadId");
+            const traces = db.getTracesByThreadId(threadId);
+            return c.json({
+                success: true,
+                thread_id: threadId,
+                total: traces.length,
+                traces: traces,
+            });
+        } catch (error) {
+            console.error(
+                `Error fetching traces for thread ${c.req.param("threadId")}:`,
+                error,
+            );
             return c.json(
                 {
                     error: "Internal server error",

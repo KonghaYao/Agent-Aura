@@ -1,5 +1,6 @@
 import html from "solid-js/html";
 import { parseJSON, formatTimestamp } from "./utils.js";
+import { formatDateTime } from "../../utils.js";
 
 // 事件时间线组件
 export const EventTimeline = ({ events }) => {
@@ -24,7 +25,7 @@ export const EventTimeline = ({ events }) => {
                                     >${event.name}</span
                                 >
                                 <span class="text-xs text-gray-500"
-                                    >${formatTimestamp(event.time)}</span
+                                    >${formatDateTime(event.time)}</span
                                 >
                             </div>
                         </div>

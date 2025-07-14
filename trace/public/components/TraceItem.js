@@ -1,5 +1,5 @@
 import html from "solid-js/html";
-import { formatDateTime } from "../utils.js";
+import { TimeAgo } from "./TimeAgo.js";
 
 // 单个 Trace 项组件
 export const TraceItem = (props) => {
@@ -7,6 +7,7 @@ export const TraceItem = (props) => {
         return `trace-item card-hover p-3 mb-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 ${() =>
             props.isSelected() ? "ring-2 ring-blue-500 border-blue-500" : ""}`;
     };
+
     return html`
         <div
             class=${panelCard()}
@@ -17,21 +18,24 @@ export const TraceItem = (props) => {
             <div class="flex items-center justify-between">
                 <div class="flex-1 min-w-0">
                     <div class="font-medium text-gray-900 truncate">
-                        ${props.trace.trace_id}
+                        📋 ${props.trace.trace_id}
                     </div>
                     <div class="text-sm text-gray-500 mt-1">
                         <span
-                            class="status-${props.trace.total_runs > 0
+                            class="status-${props.trace.run_count > 0
                                 ? "success"
                                 : "pending"}"
                         >
-                            ${props.trace.total_runs}
+                            ${props.trace.run_count} runs
                         </span>
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="text-xs text-gray-400">
-                        ${formatDateTime(props.trace.created_at)}
+                        ${TimeAgo({
+                            datetime: props.trace.created_at,
+                            class: "text-gray-400 text-xs",
+                        })}
                     </div>
                 </div>
             </div>

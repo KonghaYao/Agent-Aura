@@ -9,10 +9,21 @@ export const IOTab = ({ run, attachments }) => {
         return JSON.parse(run.inputs);
     });
     const outputs = createMemo(() => {
+        console.log(JSON.parse(run.outputs));
         return JSON.parse(run.outputs);
     });
+    const tokenUsage = createMemo(() => {
+        return getTokenUsage(outputs());
+    });
+
     return html`
         <div class="p-4 space-y-6">
+            ${tokenUsage() > 0
+                ? html`<span
+                      class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full ml-2 align-middle"
+                      >${tokenUsage()} tokens</span
+                  >`
+                : ""}
             <!-- 输入 -->
             <div>
                 <h4 class="font-semibold text-gray-900 mb-3">输入 (Inputs)</h4>
@@ -41,6 +52,16 @@ export const IOTab = ({ run, attachments }) => {
                                   无输出数据
                               </div>
                           `}
+                    ${outputs()
+                        ? GraphStateMessage({
+                              state: {
+                                  messages:
+                                      outputs().generations?.[0]?.map(
+                                          (i) => i.message,
+                                      ) || [],
+                              },
+                          })
+                        : ""}
                 </div>
             </div>
 
@@ -61,4 +82,18 @@ export const IOTab = ({ run, attachments }) => {
                 : ""}
         </div>
     `;
+};
+export const getTokenUsage = (outputs, onlyOutput = false) => {
+    const outputData = outputs;
+    if (outputData && outputData.llmOutput && outputData.llmOutput.tokenUsage) {
+        return onlyOutput
+            ? outputData.llmOutput.tokenUsage.completionTokens
+            : outputData.llmOutput.tokenUsage.totalTokens;
+    }
+    return 0; // 如果没有找到 token 信息，则返回 0
+};
+
+export const getModelName = (outputs) => {
+    const outputData = outputs;
+    return outputData?.generations?.[0]?.[0]?.generationInfo?.model_name;
 };
