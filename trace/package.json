@@ -8,7 +8,9 @@
     },
     "dependencies": {
         "@hono/node-server": "^1.15.0",
+        "@types/pg": "^8.15.4",
         "hono": "^4.8.4",
+        "pg": "^8.16.3",
         "uuid": "^9.0.1"
     },
     "devDependencies": {

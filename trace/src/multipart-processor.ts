@@ -2,7 +2,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import type { MultipartConfig, RunPayload, FeedbackPayload } from './multipart-types.js';
 import { MultipartParser } from './multipart-types.js';
-import { TraceDatabase, createTraceDatabase } from './database.js';
+import { TraceDatabase } from './database.js';
 import multipartConfig from './multipart-config.json' with { type: 'json' };
 
 export interface ProcessingResult {
@@ -24,8 +24,8 @@ export class MultipartProcessor {
   private config: MultipartConfig;
   private attachmentDir: string;
 
-  constructor(dbPath: string, attachmentDir: string = './attachments') {
-    this.db = createTraceDatabase(dbPath);
+  constructor(db: TraceDatabase, attachmentDir: string = './attachments') {
+    this.db = db;
     this.config = multipartConfig as MultipartConfig;
     this.parser = new MultipartParser(this.config);
     this.attachmentDir = attachmentDir;

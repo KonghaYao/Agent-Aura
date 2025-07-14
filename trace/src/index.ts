@@ -5,11 +5,24 @@ import { HTTPException } from "hono/http-exception";
 import { serveStatic } from "hono/bun";
 import { MultipartProcessor } from "./multipart-processor.js";
 import { createTraceRouter } from "./trace-router.js";
-
+import { TraceDatabase } from "./database.js";
+import { type SQLiteAdapter } from "./adapters/sqlite-adapter.js";
+import { type PgAdapter } from "./adapters/pg-adapter.js";
 const app = new Hono();
 
+let adapter: SQLiteAdapter | PgAdapter;
+if (process.env.TRACE_DATABASE_URL) {
+    const { PgAdapter } = await import("./adapters/pg-adapter.js");
+    adapter = new PgAdapter({
+        connectionString: process.env.TRACE_DATABASE_URL,
+    });
+} else {
+    const { SQLiteAdapter } = await import("./adapters/sqlite-adapter.js");
+    adapter = new SQLiteAdapter("./.langgraph_api/trace.db");
+}
+
 // 创建全局的 multipart 处理器实例
-const multipartProcessor = new MultipartProcessor("./.langgraph_api/trace.db");
+const multipartProcessor = new MultipartProcessor(new TraceDatabase(adapter!));
 
 // 创建 trace 路由器
 const traceRouter = createTraceRouter(multipartProcessor["db"]);

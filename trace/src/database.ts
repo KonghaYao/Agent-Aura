@@ -1,6 +1,6 @@
-import { Database } from "bun:sqlite";
 import { v4 as uuidv4 } from "uuid";
 import type { RunPayload, FeedbackPayload } from "./multipart-types.js";
+import { SQLiteAdapter } from "./adapters/sqlite-adapter.js";
 
 export interface RunRecord {
     id: string;
@@ -61,6 +61,11 @@ export interface DatabaseAdapter {
     prepare(sql: string): PreparedStatement;
     transaction<T extends any[], R>(fn: (...args: T) => R): (...args: T) => R;
     close(): void;
+    getStringAggregateFunction(
+        column: string,
+        distinct: boolean,
+        delimiter: string,
+    ): string;
 }
 
 // 预处理语句接口
@@ -68,36 +73,6 @@ export interface PreparedStatement {
     run(params?: any[]): { changes: number };
     get(params?: any): any;
     all(params?: any): any[];
-}
-
-// SQLite 适配器实现
-export class SQLiteAdapter implements DatabaseAdapter {
-    private db: Database;
-
-    constructor(dbPath: string = "./.langgraph_api/trace.db") {
-        this.db = new Database(dbPath);
-    }
-
-    exec(sql: string): void {
-        this.db.exec(sql);
-    }
-
-    prepare(sql: string): PreparedStatement {
-        const stmt = this.db.prepare(sql);
-        return {
-            run: (params?: any[]) => stmt.run(params),
-            get: (params?: any) => stmt.get(params),
-            all: (params?: any) => stmt.all(params),
-        };
-    }
-
-    transaction<T extends any[], R>(fn: (...args: T) => R): (...args: T) => R {
-        return this.db.transaction(fn);
-    }
-
-    close(): void {
-        this.db.close();
-    }
 }
 
 export class TraceDatabase {
@@ -214,8 +189,16 @@ export class TraceDatabase {
                 COUNT(*) as total_runs,
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
-                GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems,
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
                 SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL 
@@ -550,8 +533,16 @@ export class TraceDatabase {
                 COUNT(*) as total_runs,
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
-                GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems,
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
                 SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL AND system = ?
@@ -618,8 +609,16 @@ export class TraceDatabase {
                 COUNT(*) as total_runs,
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
-                GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems,
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
                 SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE trace_id IS NOT NULL AND thread_id = ?
@@ -673,6 +672,7 @@ export class TraceDatabase {
         last_run_time: string;
         run_types: string[];
         systems: string[];
+        total_tokens_sum: number; // 新增：总 token 消耗量
     }> {
         const stmt = this.adapter.prepare(`
             SELECT 
@@ -681,8 +681,17 @@ export class TraceDatabase {
                 COUNT(DISTINCT trace_id) as total_traces,
                 MIN(created_at) as first_run_time,
                 MAX(created_at) as last_run_time,
-                GROUP_CONCAT(DISTINCT run_type) as run_types,
-                GROUP_CONCAT(DISTINCT system) as systems
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
+                SUM(total_tokens) as total_tokens_sum
             FROM runs 
             WHERE thread_id IS NOT NULL AND thread_id != ''
             GROUP BY thread_id 
@@ -723,6 +732,7 @@ export class TraceDatabase {
                 systems: thread.systems
                     ? thread.systems.split(",").filter(Boolean)
                     : [],
+                total_tokens_sum: thread.total_tokens_sum || 0,
             };
         });
     }
@@ -777,8 +787,31 @@ export class TraceDatabase {
     }
 }
 
-// 便捷的工厂函数
-export function createTraceDatabase(dbPath: string): TraceDatabase {
-    const adapter = new SQLiteAdapter(dbPath);
-    return new TraceDatabase(adapter);
+// PostgreSQL 工厂函数（需要安装 pg 模块）
+export function createPgTraceDatabase(config: {
+    host?: string;
+    port?: number;
+    database?: string;
+    user?: string;
+    password?: string;
+    connectionString?: string;
+    max?: number;
+    idleTimeoutMillis?: number;
+    connectionTimeoutMillis?: number;
+    ssl?: boolean | object;
+}): TraceDatabase {
+    try {
+        const { PgAdapter } = require("./adapters/pg-adapter.js");
+        const adapter = new PgAdapter(config);
+        return new TraceDatabase(adapter);
+    } catch (error) {
+        const errorMessage =
+            error instanceof Error ? error.message : String(error);
+        throw new Error(
+            "无法创建 PostgreSQL 数据库连接。请确保已安装依赖：\n" +
+                "npm install pg @types/pg deasync @types/deasync\n" +
+                "错误详情: " +
+                errorMessage,
+        );
+    }
 }
