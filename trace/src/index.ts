@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
+import { serveStatic } from "hono/serve-static";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
@@ -7,6 +7,11 @@ import { HTTPException } from "hono/http-exception";
 import { MultipartProcessor } from "./multipart-processor.js";
 import { createTraceRouter } from "./trace-router.js";
 import { TraceDatabase, type DatabaseAdapter } from "./database.js";
+import path from "path";
+import fs from "fs";
+
+// 实现 __dirname
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const app = new Hono();
 
@@ -42,12 +47,14 @@ const traceRouter = createTraceRouter(multipartProcessor["db"]);
 
 app.use(logger());
 
-// 静态文件服务 - 首页
+const uiPath = path.join(__dirname, "../public/");
 app.use(
     "/ui/*",
     serveStatic({
-        root: "./public/",
-        rewriteRequestPath: (path) => path.replace(/^\/ui/, "/"),
+        root: "./",
+        getContent: async (path) => {
+            return fs.readFileSync(uiPath + path.replace("ui/", ""), "utf-8");
+        },
     }),
 );
 

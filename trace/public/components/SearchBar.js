@@ -14,7 +14,6 @@ export const SearchBar = (props) => {
             return [];
         }
     });
-
     return html`
         <div class="p-4 border-b border-gray-200">
             <h1 class="text-lg font-semibold text-gray-900 mb-4">
@@ -32,15 +31,17 @@ export const SearchBar = (props) => {
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
                     <option value="">全部系统</option>
-                    ${() =>
-                        systems.loading
+                    ${() => {
+                        console.log("systems:", systems());
+                        return systems.loading
                             ? html`<option disabled>加载中...</option>`
                             : (systems() || []).map(
                                   (system) =>
                                       html`<option value=${system}>
                                           ${system}
                                       </option>`,
-                              )}
+                              );
+                    }}
                 </select>
             </div>
 

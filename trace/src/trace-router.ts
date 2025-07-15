@@ -15,9 +15,9 @@ export function createTraceRouter(db: TraceDatabase) {
     const traceRouter = new Hono();
 
     // 获取所有系统列表
-    traceRouter.get("/systems", (c) => {
+    traceRouter.get("/systems", async (c) => {
         try {
-            const systems = db.getAllSystems();
+            const systems = await db.getAllSystems();
             return c.json({
                 success: true,
                 systems: systems,
