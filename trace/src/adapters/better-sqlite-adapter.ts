@@ -30,11 +30,18 @@ export class BetterSqliteAdapter implements DatabaseAdapter {
         const stmt = this.db.prepare(sql);
         return {
             run: async (params?: any[]): Promise<{ changes: number }> => {
-                const result = stmt.run(params);
+                const result =
+                    params === undefined ? stmt.run() : stmt.run(params);
                 return { changes: result.changes };
             },
-            get: async (params?: any): Promise<any> => stmt.get(params),
-            all: async (params?: any): Promise<any[]> => stmt.all(params),
+            get: async (params?: any): Promise<any> =>
+                params === undefined ? stmt.get() : stmt.get(params),
+            all: async (params?: any[]): Promise<any[]> => {
+                if (params === undefined) {
+                    return stmt.all();
+                }
+                return stmt.all(params);
+            },
         };
     }
 
