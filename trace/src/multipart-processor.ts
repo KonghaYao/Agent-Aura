@@ -103,7 +103,7 @@ export class MultipartProcessor {
       const runData: RunPayload = JSON.parse(parsed.data);
       runData.id = parsed.runId; // 确保 ID 匹配
       runData.system = system; // 设置系统标识
-      this.db.createRun(runData);
+      await this.db.createRun(runData);
       result.data!.runs_created++;
     } else {
       throw new Error('Run data must be a string');
@@ -121,7 +121,7 @@ export class MultipartProcessor {
       const runData: RunPayload = JSON.parse(parsed.data);
       runData.system = system; // 设置系统标识
       
-      const updated = this.db.updateRun(parsed.runId, runData);
+      const updated = await this.db.updateRun(parsed.runId, runData);
       if (updated) {
         result.data!.runs_updated++;
       } else {
@@ -144,7 +144,7 @@ export class MultipartProcessor {
     if (typeof parsed.data === 'string') {
       const fieldData = JSON.parse(parsed.data);
       
-      const updated = this.db.updateRunField(parsed.runId, parsed.field, fieldData);
+      const updated = await this.db.updateRunField(parsed.runId, parsed.field, fieldData);
       if (updated) {
         result.data!.fields_updated++;
       } else {
@@ -164,7 +164,7 @@ export class MultipartProcessor {
         throw new Error('Feedback must include trace_id');
       }
       
-      this.db.createFeedback(parsed.runId, feedbackData);
+      await this.db.createFeedback(parsed.runId, feedbackData);
       result.data!.feedback_created++;
     } else {
       throw new Error('Feedback data must be a string');
@@ -185,7 +185,7 @@ export class MultipartProcessor {
       await writeFile(storagePath, Buffer.from(buffer));
       
       // 在数据库中记录附件信息
-      this.db.createAttachment(
+      await this.db.createAttachment(
         parsed.runId,
         parsed.filename,
         file.type || 'application/octet-stream',
@@ -199,7 +199,7 @@ export class MultipartProcessor {
     }
   }
 
-  close(): void {
-    this.db.close();
+  async close(): Promise<void> {
+    await this.db.close();
   }
 }

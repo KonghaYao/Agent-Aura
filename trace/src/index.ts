@@ -5,24 +5,35 @@ import { HTTPException } from "hono/http-exception";
 import { serveStatic } from "hono/bun";
 import { MultipartProcessor } from "./multipart-processor.js";
 import { createTraceRouter } from "./trace-router.js";
-import { TraceDatabase } from "./database.js";
-import { type SQLiteAdapter } from "./adapters/sqlite-adapter.js";
-import { type PgAdapter } from "./adapters/pg-adapter.js";
+import { TraceDatabase, type DatabaseAdapter } from "./database.js";
+
 const app = new Hono();
 
-let adapter: SQLiteAdapter | PgAdapter;
+let adapter: DatabaseAdapter;
 if (process.env.TRACE_DATABASE_URL) {
     const { PgAdapter } = await import("./adapters/pg-adapter.js");
     adapter = new PgAdapter({
         connectionString: process.env.TRACE_DATABASE_URL,
     });
+} else if (
+    /** @ts-ignore */
+    typeof globalThis.Bun !== "undefined"
+) {
+    const { BunSQLiteAdapter } = await import(
+        "./adapters/bun-sqlite-adapter.js"
+    );
+    adapter = new BunSQLiteAdapter();
 } else {
-    const { SQLiteAdapter } = await import("./adapters/sqlite-adapter.js");
-    adapter = new SQLiteAdapter("./.langgraph_api/trace.db");
+    const { BetterSqliteAdapter } = await import(
+        "./adapters/better-sqlite-adapter.js"
+    );
+    adapter = new BetterSqliteAdapter();
 }
 
+const db = new TraceDatabase(adapter!);
+await db.init();
 // 创建全局的 multipart 处理器实例
-const multipartProcessor = new MultipartProcessor(new TraceDatabase(adapter!));
+const multipartProcessor = new MultipartProcessor(db);
 
 // 创建 trace 路由器
 const traceRouter = createTraceRouter(multipartProcessor["db"]);

@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
 import type { RunPayload, FeedbackPayload } from "./multipart-types.js";
-import { SQLiteAdapter } from "./adapters/sqlite-adapter.js";
 
 export interface RunRecord {
     id: string;
@@ -57,10 +56,12 @@ export interface TraceOverview {
 
 // 数据库适配器接口
 export interface DatabaseAdapter {
-    exec(sql: string): void;
-    prepare(sql: string): PreparedStatement;
-    transaction<T extends any[], R>(fn: (...args: T) => R): (...args: T) => R;
-    close(): void;
+    exec(sql: string): Promise<void>;
+    prepare(sql: string): Promise<PreparedStatement>;
+    transaction<T extends any[], R>(
+        fn: (...args: T) => Promise<R>,
+    ): Promise<(...args: T) => Promise<R>>;
+    close(): Promise<void>;
     getStringAggregateFunction(
         column: string,
         distinct: boolean,
@@ -70,9 +71,9 @@ export interface DatabaseAdapter {
 
 // 预处理语句接口
 export interface PreparedStatement {
-    run(params?: any[]): { changes: number };
-    get(params?: any): any;
-    all(params?: any): any[];
+    run(params?: any[]): Promise<{ changes: number }>;
+    get(params?: any): Promise<any>;
+    all(params?: any): Promise<any[]>;
 }
 
 export class TraceDatabase {
@@ -80,7 +81,13 @@ export class TraceDatabase {
 
     constructor(adapter: DatabaseAdapter) {
         this.adapter = adapter;
-        this.initTables();
+        // 注意：构造函数中不能直接调用异步方法
+        // 需要在使用前调用 init() 方法
+    }
+
+    // 初始化方法，需要在使用数据库前调用
+    async init(): Promise<void> {
+        await this.initTables();
     }
 
     // 从 outputs 字段中提取 total_tokens 的辅助方法
@@ -102,12 +109,12 @@ export class TraceDatabase {
         return 0;
     }
 
-    private initTables(): void {
+    private async initTables(): Promise<void> {
         // 开启 WAL 模式以提高性能
-        this.adapter.exec("PRAGMA journal_mode = WAL;");
+        await this.adapter.exec("PRAGMA journal_mode = WAL;");
 
         // 创建 runs 表
-        this.adapter.exec(`
+        await this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS runs (
                 id TEXT PRIMARY KEY,
                 trace_id TEXT,
@@ -130,7 +137,7 @@ export class TraceDatabase {
         `);
 
         // 创建 feedback 表
-        this.adapter.exec(`
+        await this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS feedback (
                 id TEXT PRIMARY KEY,
                 trace_id TEXT NOT NULL,
@@ -145,7 +152,7 @@ export class TraceDatabase {
         `);
 
         // 创建 attachments 表
-        this.adapter.exec(`
+        await this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS attachments (
                 id TEXT PRIMARY KEY,
                 run_id TEXT NOT NULL,
@@ -159,7 +166,7 @@ export class TraceDatabase {
         `);
 
         // 创建索引
-        this.adapter.exec(`
+        await this.adapter.exec(`
             CREATE INDEX IF NOT EXISTS idx_runs_trace_id ON runs (trace_id);
             CREATE INDEX IF NOT EXISTS idx_runs_thread_id ON runs (thread_id);
             CREATE INDEX IF NOT EXISTS idx_feedback_trace_id ON feedback (trace_id);
@@ -182,8 +189,8 @@ export class TraceDatabase {
     }
 
     // 获取所有 traceId 及其概要信息
-    getAllTraces(): TraceOverview[] {
-        const stmt = this.adapter.prepare(`
+    async getAllTraces(): Promise<TraceOverview[]> {
+        const stmt = await this.adapter.prepare(`
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
@@ -206,43 +213,49 @@ export class TraceDatabase {
             ORDER BY MAX(created_at) DESC
         `);
 
-        const traces = stmt.all() as any[];
+        const traces = (await stmt.all()) as any[];
 
-        return traces.map((trace) => {
-            // 获取该 trace 的 feedback 和 attachments 统计
-            const feedbackStmt = this.adapter.prepare(`
+        return Promise.all(
+            traces.map(async (trace: any) => {
+                // 获取该 trace 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
             `);
-            const attachmentStmt = this.adapter.prepare(`
+                const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
                 WHERE r.trace_id = ?
             `);
 
-            const feedbackCount = feedbackStmt.get(trace.trace_id) as any;
-            const attachmentCount = attachmentStmt.get(trace.trace_id) as any;
+                const feedbackCount = (await feedbackStmt.get(
+                    trace.trace_id,
+                )) as any;
+                const attachmentCount = (await attachmentStmt.get(
+                    trace.trace_id,
+                )) as any;
 
-            return {
-                trace_id: trace.trace_id,
-                total_runs: trace.total_runs,
-                total_feedback: feedbackCount.count,
-                total_attachments: attachmentCount.count,
-                first_run_time: trace.first_run_time,
-                last_run_time: trace.last_run_time,
-                run_types: trace.run_types
-                    ? trace.run_types.split(",").filter(Boolean)
-                    : [],
-                systems: trace.systems
-                    ? trace.systems.split(",").filter(Boolean)
-                    : [],
-                total_tokens_sum: trace.total_tokens_sum || 0,
-            };
-        });
+                return {
+                    trace_id: trace.trace_id,
+                    total_runs: trace.total_runs,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: trace.first_run_time,
+                    last_run_time: trace.last_run_time,
+                    run_types: trace.run_types
+                        ? trace.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: trace.systems
+                        ? trace.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: trace.total_tokens_sum || 0,
+                };
+            }),
+        );
     }
 
     // Run 操作
-    createRun(runData: RunPayload): RunRecord {
+    async createRun(runData: RunPayload): Promise<RunRecord> {
         const id = runData.id || uuidv4();
         const now = new Date().toISOString();
 
@@ -276,7 +289,7 @@ export class TraceDatabase {
                 : 0,
         };
 
-        const stmt = this.adapter.prepare(`
+        const stmt = await this.adapter.prepare(`
             INSERT INTO runs (
                 id, trace_id, name, run_type, system, thread_id, start_time, end_time,
                 inputs, outputs, events, error, extra, serialized, total_tokens,
@@ -284,7 +297,7 @@ export class TraceDatabase {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
-        stmt.run([
+        await stmt.run([
             record.id,
             record.trace_id,
             record.name,
@@ -307,7 +320,10 @@ export class TraceDatabase {
         return record;
     }
 
-    updateRun(runId: string, runData: RunPayload): RunRecord | null {
+    async updateRun(
+        runId: string,
+        runData: RunPayload,
+    ): Promise<RunRecord | null> {
         const now = new Date().toISOString();
 
         const updateFields: string[] = [];
@@ -395,11 +411,11 @@ export class TraceDatabase {
         updateValues.push(now);
         updateValues.push(runId);
 
-        const stmt = this.adapter.prepare(`
+        const stmt = await this.adapter.prepare(`
             UPDATE runs SET ${updateFields.join(", ")} WHERE id = ?
         `);
 
-        const result = stmt.run(updateValues);
+        const result = await stmt.run(updateValues);
 
         if (result.changes === 0) {
             return null;
@@ -408,19 +424,23 @@ export class TraceDatabase {
         return this.getRun(runId);
     }
 
-    updateRunField(runId: string, field: string, value: any): RunRecord | null {
+    async updateRunField(
+        runId: string,
+        field: string,
+        value: any,
+    ): Promise<RunRecord | null> {
         const now = new Date().toISOString();
         const jsonValue = JSON.stringify(value);
 
-        const stmt = this.adapter.prepare(`
+        const stmt = await this.adapter.prepare(`
             UPDATE runs SET ${field} = ?, updated_at = ? WHERE id = ?
         `);
 
-        const result = stmt.run([jsonValue, now, runId]);
+        const result = await stmt.run([jsonValue, now, runId]);
 
         if (field === "outputs") {
             const total_tokens = this.extractTotalTokensFromOutputs(value);
-            this.updateRunField(runId, "total_tokens", total_tokens);
+            await this.updateRunField(runId, "total_tokens", total_tokens);
         }
 
         if (result.changes === 0) {
@@ -430,17 +450,19 @@ export class TraceDatabase {
         return this.getRun(runId);
     }
 
-    getRun(runId: string): RunRecord | null {
-        const stmt = this.adapter.prepare("SELECT * FROM runs WHERE id = ?");
-        const result = stmt.get(runId);
-        return (result as RunRecord) || null;
+    async getRun(runId: string): Promise<RunRecord | null> {
+        const stmt = await this.adapter.prepare(
+            "SELECT * FROM runs WHERE id = ?",
+        );
+        const result = (await stmt.get(runId)) as RunRecord;
+        return result || null;
     }
 
     // Feedback 操作
-    createFeedback(
+    async createFeedback(
         runId: string,
         feedbackData: FeedbackPayload,
-    ): FeedbackRecord {
+    ): Promise<FeedbackRecord> {
         const id = uuidv4();
         const now = new Date().toISOString();
 
@@ -457,13 +479,13 @@ export class TraceDatabase {
             created_at: now,
         };
 
-        const stmt = this.adapter.prepare(`
+        const stmt = await this.adapter.prepare(`
             INSERT INTO feedback (
                 id, trace_id, run_id, feedback_id, score, comment, metadata, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
-        stmt.run([
+        await stmt.run([
             record.id,
             record.trace_id,
             record.run_id,
@@ -478,13 +500,13 @@ export class TraceDatabase {
     }
 
     // Attachment 操作
-    createAttachment(
+    async createAttachment(
         runId: string,
         filename: string,
         contentType: string,
         fileSize: number,
         storagePath: string,
-    ): AttachmentRecord {
+    ): Promise<AttachmentRecord> {
         const id = uuidv4();
         const now = new Date().toISOString();
 
@@ -498,13 +520,13 @@ export class TraceDatabase {
             created_at: now,
         };
 
-        const stmt = this.adapter.prepare(`
+        const stmt = await this.adapter.prepare(`
             INSERT INTO attachments (
                 id, run_id, filename, content_type, file_size, storage_path, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
         `);
 
-        stmt.run([
+        await stmt.run([
             record.id,
             record.run_id,
             record.filename,
@@ -518,16 +540,16 @@ export class TraceDatabase {
     }
 
     // 查询操作
-    getRunsByTraceId(traceId: string): RunRecord[] {
-        const stmt = this.adapter.prepare(
+    async getRunsByTraceId(traceId: string): Promise<RunRecord[]> {
+        const stmt = await this.adapter.prepare(
             "SELECT * FROM runs WHERE trace_id = ? ORDER BY created_at",
         );
-        return stmt.all(traceId) as RunRecord[];
+        return (await stmt.all(traceId)) as RunRecord[];
     }
 
     // 根据系统过滤获取 traces
-    getTracesBySystem(system: string): TraceOverview[] {
-        const stmt = this.adapter.prepare(`
+    async getTracesBySystem(system: string): Promise<TraceOverview[]> {
+        const stmt = await this.adapter.prepare(`
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
@@ -550,60 +572,66 @@ export class TraceDatabase {
             ORDER BY MAX(created_at) DESC
         `);
 
-        const traces = stmt.all(system) as any[];
+        const traces = (await stmt.all(system)) as any[];
 
-        return traces.map((trace) => {
-            // 获取该 trace 的 feedback 和 attachments 统计
-            const feedbackStmt = this.adapter.prepare(`
+        return Promise.all(
+            traces.map(async (trace: any) => {
+                // 获取该 trace 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
             `);
-            const attachmentStmt = this.adapter.prepare(`
+                const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
                 WHERE r.trace_id = ?
             `);
 
-            const feedbackCount = feedbackStmt.get(trace.trace_id) as any;
-            const attachmentCount = attachmentStmt.get(trace.trace_id) as any;
+                const feedbackCount = (await feedbackStmt.get(
+                    trace.trace_id,
+                )) as any;
+                const attachmentCount = (await attachmentStmt.get(
+                    trace.trace_id,
+                )) as any;
 
-            return {
-                trace_id: trace.trace_id,
-                total_runs: trace.total_runs,
-                total_feedback: feedbackCount.count,
-                total_attachments: attachmentCount.count,
-                first_run_time: trace.first_run_time,
-                last_run_time: trace.last_run_time,
-                run_types: trace.run_types
-                    ? trace.run_types.split(",").filter(Boolean)
-                    : [],
-                systems: trace.systems
-                    ? trace.systems.split(",").filter(Boolean)
-                    : [],
-                total_tokens_sum: trace.total_tokens_sum || 0,
-            };
-        });
+                return {
+                    trace_id: trace.trace_id,
+                    total_runs: trace.total_runs,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: trace.first_run_time,
+                    last_run_time: trace.last_run_time,
+                    run_types: trace.run_types
+                        ? trace.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: trace.systems
+                        ? trace.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: trace.total_tokens_sum || 0,
+                };
+            }),
+        );
     }
 
     // 根据系统获取 runs
-    getRunsBySystem(system: string): RunRecord[] {
-        const stmt = this.adapter.prepare(
+    async getRunsBySystem(system: string): Promise<RunRecord[]> {
+        const stmt = await this.adapter.prepare(
             "SELECT * FROM runs WHERE system = ? ORDER BY created_at DESC",
         );
-        return stmt.all(system) as RunRecord[];
+        return (await stmt.all(system)) as RunRecord[];
     }
 
     // 根据线程ID获取 runs
-    getRunsByThreadId(threadId: string): RunRecord[] {
-        const stmt = this.adapter.prepare(
+    async getRunsByThreadId(threadId: string): Promise<RunRecord[]> {
+        const stmt = await this.adapter.prepare(
             "SELECT * FROM runs WHERE thread_id = ? ORDER BY created_at DESC",
         );
-        return stmt.all(threadId) as RunRecord[];
+        return (await stmt.all(threadId)) as RunRecord[];
     }
 
     // 根据线程ID获取相关的 traces
-    getTracesByThreadId(threadId: string): TraceOverview[] {
-        const stmt = this.adapter.prepare(`
+    async getTracesByThreadId(threadId: string): Promise<TraceOverview[]> {
+        const stmt = await this.adapter.prepare(`
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
@@ -626,55 +654,63 @@ export class TraceDatabase {
             ORDER BY MAX(created_at) DESC
         `);
 
-        const traces = stmt.all(threadId) as any[];
+        const traces = (await stmt.all(threadId)) as any[];
 
-        return traces.map((trace) => {
-            // 获取该 trace 的 feedback 和 attachments 统计
-            const feedbackStmt = this.adapter.prepare(`
+        return Promise.all(
+            traces.map(async (trace: any) => {
+                // 获取该 trace 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
             `);
-            const attachmentStmt = this.adapter.prepare(`
+                const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
                 WHERE r.trace_id = ?
             `);
 
-            const feedbackCount = feedbackStmt.get(trace.trace_id) as any;
-            const attachmentCount = attachmentStmt.get(trace.trace_id) as any;
+                const feedbackCount = (await feedbackStmt.get(
+                    trace.trace_id,
+                )) as any;
+                const attachmentCount = (await attachmentStmt.get(
+                    trace.trace_id,
+                )) as any;
 
-            return {
-                trace_id: trace.trace_id,
-                total_runs: trace.total_runs,
-                total_feedback: feedbackCount.count,
-                total_attachments: attachmentCount.count,
-                first_run_time: trace.first_run_time,
-                last_run_time: trace.last_run_time,
-                run_types: trace.run_types
-                    ? trace.run_types.split(",").filter(Boolean)
-                    : [],
-                systems: trace.systems
-                    ? trace.systems.split(",").filter(Boolean)
-                    : [],
-                total_tokens_sum: trace.total_tokens_sum || 0,
-            };
-        });
+                return {
+                    trace_id: trace.trace_id,
+                    total_runs: trace.total_runs,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: trace.first_run_time,
+                    last_run_time: trace.last_run_time,
+                    run_types: trace.run_types
+                        ? trace.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: trace.systems
+                        ? trace.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: trace.total_tokens_sum || 0,
+                };
+            }),
+        );
     }
 
     // 获取线程ID概览信息
-    getThreadOverviews(): Array<{
-        thread_id: string;
-        total_runs: number;
-        total_traces: number;
-        total_feedback: number;
-        total_attachments: number;
-        first_run_time: string;
-        last_run_time: string;
-        run_types: string[];
-        systems: string[];
-        total_tokens_sum: number; // 新增：总 token 消耗量
-    }> {
-        const stmt = this.adapter.prepare(`
+    async getThreadOverviews(): Promise<
+        Array<{
+            thread_id: string;
+            total_runs: number;
+            total_traces: number;
+            total_feedback: number;
+            total_attachments: number;
+            first_run_time: string;
+            last_run_time: string;
+            run_types: string[];
+            systems: string[];
+            total_tokens_sum: number; // 新增：总 token 消耗量
+        }>
+    > {
+        const stmt = await this.adapter.prepare(`
             SELECT 
                 thread_id,
                 COUNT(*) as total_runs,
@@ -698,120 +734,97 @@ export class TraceDatabase {
             ORDER BY MAX(created_at) DESC
         `);
 
-        const threads = stmt.all() as any[];
+        const threads = (await stmt.all()) as any[];
 
-        return threads.map((thread) => {
-            // 获取该 thread 的 feedback 和 attachments 统计
-            const feedbackStmt = this.adapter.prepare(`
+        return Promise.all(
+            threads.map(async (thread: any) => {
+                // 获取该 thread 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM feedback f
                 JOIN runs r ON f.run_id = r.id 
                 WHERE r.thread_id = ?
             `);
-            const attachmentStmt = this.adapter.prepare(`
+                const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
                 WHERE r.thread_id = ?
             `);
 
-            const feedbackCount = feedbackStmt.get(thread.thread_id) as any;
-            const attachmentCount = attachmentStmt.get(thread.thread_id) as any;
+                const feedbackCount = (await feedbackStmt.get(
+                    thread.thread_id,
+                )) as any;
+                const attachmentCount = (await attachmentStmt.get(
+                    thread.thread_id,
+                )) as any;
 
-            return {
-                thread_id: thread.thread_id,
-                total_runs: thread.total_runs,
-                total_traces: thread.total_traces,
-                total_feedback: feedbackCount.count,
-                total_attachments: attachmentCount.count,
-                first_run_time: thread.first_run_time,
-                last_run_time: thread.last_run_time,
-                run_types: thread.run_types
-                    ? thread.run_types.split(",").filter(Boolean)
-                    : [],
-                systems: thread.systems
-                    ? thread.systems.split(",").filter(Boolean)
-                    : [],
-                total_tokens_sum: thread.total_tokens_sum || 0,
-            };
-        });
+                return {
+                    thread_id: thread.thread_id,
+                    total_runs: thread.total_runs,
+                    total_traces: thread.total_traces,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: thread.first_run_time,
+                    last_run_time: thread.last_run_time,
+                    run_types: thread.run_types
+                        ? thread.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: thread.systems
+                        ? thread.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: thread.total_tokens_sum || 0,
+                };
+            }),
+        );
     }
 
     // 获取所有系统列表
-    getAllSystems(): string[] {
-        const stmt = this.adapter.prepare(`
+    async getAllSystems(): Promise<string[]> {
+        const stmt = await this.adapter.prepare(`
             SELECT DISTINCT system 
             FROM runs 
             WHERE system IS NOT NULL AND system != ''
             ORDER BY system
         `);
-        const results = stmt.all() as { system: string }[];
+        const results = (await stmt.all()) as { system: string }[];
         return results.map((r) => r.system);
     }
 
     // 获取所有线程ID列表
-    getAllThreadIds(): string[] {
-        const stmt = this.adapter.prepare(`
+    async getAllThreadIds(): Promise<string[]> {
+        const stmt = await this.adapter.prepare(`
             SELECT DISTINCT thread_id 
             FROM runs 
             WHERE thread_id IS NOT NULL AND thread_id != ''
             ORDER BY thread_id
         `);
-        const results = stmt.all() as { thread_id: string }[];
+        const results = (await stmt.all()) as { thread_id: string }[];
         return results.map((r) => r.thread_id);
     }
 
-    getFeedbackByRunId(runId: string): FeedbackRecord[] {
-        const stmt = this.adapter.prepare(
+    async getFeedbackByRunId(runId: string): Promise<FeedbackRecord[]> {
+        const stmt = await this.adapter.prepare(
             "SELECT * FROM feedback WHERE run_id = ? ORDER BY created_at",
         );
-        return stmt.all(runId) as FeedbackRecord[];
+        return (await stmt.all(runId)) as FeedbackRecord[];
     }
 
-    getAttachmentsByRunId(runId: string): AttachmentRecord[] {
-        const stmt = this.adapter.prepare(
+    async getAttachmentsByRunId(runId: string): Promise<AttachmentRecord[]> {
+        const stmt = await this.adapter.prepare(
             "SELECT * FROM attachments WHERE run_id = ? ORDER BY created_at",
         );
-        return stmt.all(runId) as AttachmentRecord[];
+        return (await stmt.all(runId)) as AttachmentRecord[];
     }
 
     // 事务操作
-    createTransaction<T extends any[], R>(
-        fn: (...args: T) => R,
-    ): (...args: T) => R {
-        return this.adapter.transaction(fn);
+    async createTransaction<T extends any[], R>(
+        fn: (...args: T) => Promise<R>,
+    ): Promise<(...args: T) => Promise<R>> {
+        return await this.adapter.transaction(fn);
     }
 
-    close(): void {
-        this.adapter.close();
-    }
-}
-
-// PostgreSQL 工厂函数（需要安装 pg 模块）
-export function createPgTraceDatabase(config: {
-    host?: string;
-    port?: number;
-    database?: string;
-    user?: string;
-    password?: string;
-    connectionString?: string;
-    max?: number;
-    idleTimeoutMillis?: number;
-    connectionTimeoutMillis?: number;
-    ssl?: boolean | object;
-}): TraceDatabase {
-    try {
-        const { PgAdapter } = require("./adapters/pg-adapter.js");
-        const adapter = new PgAdapter(config);
-        return new TraceDatabase(adapter);
-    } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : String(error);
-        throw new Error(
-            "无法创建 PostgreSQL 数据库连接。请确保已安装依赖：\n" +
-                "npm install pg @types/pg deasync @types/deasync\n" +
-                "错误详情: " +
-                errorMessage,
-        );
+    async close(): Promise<void> {
+        return await this.adapter.close();
     }
 }

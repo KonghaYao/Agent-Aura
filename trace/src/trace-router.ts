@@ -36,9 +36,9 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取线程概览信息 (必须在 /threads 之前定义)
-    traceRouter.get("/threads/overview", (c) => {
+    traceRouter.get("/threads/overview", async (c) => {
         try {
-            const threadOverviews = db.getThreadOverviews();
+            const threadOverviews = await db.getThreadOverviews();
             return c.json({
                 success: true,
                 total: threadOverviews.length,
@@ -79,10 +79,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 根据线程ID获取相关的 traces
-    traceRouter.get("/thread/:threadId/traces", (c) => {
+    traceRouter.get("/thread/:threadId/traces", async (c) => {
         try {
             const threadId = c.req.param("threadId");
-            const traces = db.getTracesByThreadId(threadId);
+            const traces = await db.getTracesByThreadId(threadId);
             return c.json({
                 success: true,
                 thread_id: threadId,
@@ -106,10 +106,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 根据系统过滤获取 traces
-    traceRouter.get("/system/:system", (c) => {
+    traceRouter.get("/system/:system", async (c) => {
         try {
             const system = c.req.param("system");
-            const traces = db.getTracesBySystem(system);
+            const traces = await db.getTracesBySystem(system);
             return c.json({
                 success: true,
                 system: system,
@@ -133,10 +133,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 根据线程ID获取 runs
-    traceRouter.get("/thread/:threadId/runs", (c) => {
+    traceRouter.get("/thread/:threadId/runs", async (c) => {
         try {
             const threadId = c.req.param("threadId");
-            const runs = db.getRunsByThreadId(threadId);
+            const runs = await db.getRunsByThreadId(threadId);
             return c.json({
                 success: true,
                 thread_id: threadId,
@@ -160,15 +160,15 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取所有 traces 列表
-    traceRouter.get("/", (c) => {
+    traceRouter.get("/", async (c) => {
         try {
             const system = c.req.query("system");
 
             let traces;
             if (system) {
-                traces = db.getTracesBySystem(system);
+                traces = await db.getTracesBySystem(system);
             } else {
-                traces = db.getAllTraces();
+                traces = await db.getAllTraces();
             }
 
             return c.json({
@@ -191,10 +191,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取 trace 的完整信息
-    traceRouter.get("/:traceId", (c) => {
+    traceRouter.get("/:traceId", async (c) => {
         try {
             const traceId = c.req.param("traceId");
-            const runs = db.getRunsByTraceId(traceId);
+            const runs = await db.getRunsByTraceId(traceId);
 
             if (runs.length === 0) {
                 return c.json({ error: "Trace not found" }, 404);
@@ -203,21 +203,23 @@ export function createTraceRouter(db: TraceDatabase) {
             // 收集所有相关数据
             let totalFeedback = 0;
             let totalAttachments = 0;
-            const enrichedRuns = runs.map((run) => {
-                const feedback = db.getFeedbackByRunId(run.id);
-                const attachments = db.getAttachmentsByRunId(run.id);
+            const enrichedRuns = await Promise.all(
+                runs.map(async (run) => {
+                    const feedback = await db.getFeedbackByRunId(run.id);
+                    const attachments = await db.getAttachmentsByRunId(run.id);
 
-                totalFeedback += feedback.length;
-                totalAttachments += attachments.length;
+                    totalFeedback += feedback.length;
+                    totalAttachments += attachments.length;
 
-                return {
-                    ...run,
-                    feedback_count: feedback.length,
-                    attachments_count: attachments.length,
-                    feedback: feedback,
-                    attachments: attachments,
-                };
-            });
+                    return {
+                        ...run,
+                        feedback_count: feedback.length,
+                        attachments_count: attachments.length,
+                        feedback: feedback,
+                        attachments: attachments,
+                    };
+                }),
+            );
 
             const traceInfo: TraceInfo = {
                 trace_id: traceId,
@@ -244,10 +246,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取 trace 的概要信息（不包含详细数据）
-    traceRouter.get("/:traceId/summary", (c) => {
+    traceRouter.get("/:traceId/summary", async (c) => {
         try {
             const traceId = c.req.param("traceId");
-            const runs = db.getRunsByTraceId(traceId);
+            const runs = await db.getRunsByTraceId(traceId);
 
             if (runs.length === 0) {
                 return c.json({ error: "Trace not found" }, 404);
@@ -255,24 +257,26 @@ export function createTraceRouter(db: TraceDatabase) {
 
             let totalFeedback = 0;
             let totalAttachments = 0;
-            const runSummaries = runs.map((run) => {
-                const feedback = db.getFeedbackByRunId(run.id);
-                const attachments = db.getAttachmentsByRunId(run.id);
+            const runSummaries = await Promise.all(
+                runs.map(async (run) => {
+                    const feedback = await db.getFeedbackByRunId(run.id);
+                    const attachments = await db.getAttachmentsByRunId(run.id);
 
-                totalFeedback += feedback.length;
-                totalAttachments += attachments.length;
+                    totalFeedback += feedback.length;
+                    totalAttachments += attachments.length;
 
-                return {
-                    id: run.id,
-                    name: run.name,
-                    run_type: run.run_type,
-                    start_time: run.start_time,
-                    end_time: run.end_time,
-                    created_at: run.created_at,
-                    feedback_count: feedback.length,
-                    attachments_count: attachments.length,
-                };
-            });
+                    return {
+                        id: run.id,
+                        name: run.name,
+                        run_type: run.run_type,
+                        start_time: run.start_time,
+                        end_time: run.end_time,
+                        created_at: run.created_at,
+                        feedback_count: feedback.length,
+                        attachments_count: attachments.length,
+                    };
+                }),
+            );
 
             const summary = {
                 trace_id: traceId,
@@ -299,10 +303,10 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取 trace 的统计信息
-    traceRouter.get("/:traceId/stats", (c) => {
+    traceRouter.get("/:traceId/stats", async (c) => {
         try {
             const traceId = c.req.param("traceId");
-            const runs = db.getRunsByTraceId(traceId);
+            const runs = await db.getRunsByTraceId(traceId);
 
             if (runs.length === 0) {
                 return c.json({ error: "Trace not found" }, 404);
@@ -320,20 +324,20 @@ export function createTraceRouter(db: TraceDatabase) {
             let avgFeedbackScore = 0;
             let feedbackCount = 0;
 
-            runs.forEach((run) => {
-                const feedback = db.getFeedbackByRunId(run.id);
-                const attachments = db.getAttachmentsByRunId(run.id);
+            for (const run of runs) {
+                const feedback = await db.getFeedbackByRunId(run.id);
+                const attachments = await db.getAttachmentsByRunId(run.id);
 
                 totalFeedback += feedback.length;
                 totalAttachments += attachments.length;
 
-                feedback.forEach((f) => {
+                for (const f of feedback) {
                     if (f.score !== null && f.score !== undefined) {
                         avgFeedbackScore += f.score;
                         feedbackCount++;
                     }
-                });
-            });
+                }
+            }
 
             const stats = {
                 trace_id: traceId,
