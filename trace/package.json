@@ -1,10 +1,23 @@
 {
-    "name": "my-app",
+    "name": "@langgraph-js/smith-server",
     "type": "module",
+    "version": "0.0.3",
+    "description": "Open Smith Server",
+    "author": "KonghaYao",
+    "license": "Apache-2.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/",
+        "access": "public"
+    },
     "scripts": {
         "dev": "bun src/index.ts",
-        "build": "tsc",
-        "start": "node dist/index.js"
+        "build": "rm -r dist && tsc",
+        "prepublishOnly": "pnpm build"
+    },
+    "bin": {
+        "open-smith": "dist/index.js"
     },
     "dependencies": {
         "@hono/node-server": "^1.15.0",
@@ -12,12 +25,12 @@
         "better-sqlite3": "^12.2.0",
         "hono": "^4.8.4",
         "pg": "^8.16.3",
-        "uuid": "^9.0.1"
+        "uuid": "^11.0.0"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.13",
         "@types/node": "^20.11.17",
-        "@types/uuid": "^9.0.7",
+        "@types/uuid": "^10.0.0",
         "typescript": "^5.8.3"
     },
     "pnpm": {

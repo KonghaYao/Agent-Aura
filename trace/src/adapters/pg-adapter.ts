@@ -50,6 +50,7 @@ export class PgAdapter implements DatabaseAdapter {
     private pool: Pool;
 
     constructor(config: PoolConfig) {
+        console.log(`📊 Using pg for high performance`);
         this.pool = new pg.Pool(config);
     }
 
@@ -94,7 +95,13 @@ export class PgAdapter implements DatabaseAdapter {
         distinct: boolean,
         delimiter: string,
     ): string {
-        return `string_agg(${column}, '${delimiter}')`;
+        return `string_agg(${
+            distinct ? "DISTINCT " : ""
+        }${column}, '${delimiter}')`;
+    }
+
+    getPlaceholder(index: number): string {
+        return `$${index}`;
     }
 }
 

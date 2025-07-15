@@ -3,12 +3,20 @@
 
 import type { DatabaseAdapter, PreparedStatement } from "../database.js";
 import Database from "better-sqlite3";
+import path from "path";
+import fs from "fs";
 
 // better-sqlite3 适配器实现
 export class BetterSqliteAdapter implements DatabaseAdapter {
     private db: Database.Database;
 
     constructor(dbPath: string = "./.langgraph_api/trace.db") {
+        console.log(`📊 Using better-sqlite3 for high performance`);
+        // 确保文件夹存在
+        const dir = path.dirname(dbPath);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
         this.db = new Database(dbPath);
         // SQLite 特有：开启 WAL 模式以提高性能
         this.db.exec("PRAGMA journal_mode = WAL;");
@@ -51,5 +59,9 @@ export class BetterSqliteAdapter implements DatabaseAdapter {
         delimiter: string,
     ): string {
         return `GROUP_CONCAT(${column}, '${delimiter}')`;
+    }
+
+    getPlaceholder(index: number): string {
+        return "?";
     }
 }

@@ -67,6 +67,7 @@ export interface DatabaseAdapter {
         distinct: boolean,
         delimiter: string,
     ): string;
+    getPlaceholder(index: number): string;
 }
 
 // 预处理语句接口
@@ -110,9 +111,6 @@ export class TraceDatabase {
     }
 
     private async initTables(): Promise<void> {
-        // 开启 WAL 模式以提高性能
-        await this.adapter.exec("PRAGMA journal_mode = WAL;");
-
         // 创建 runs 表
         await this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS runs (
@@ -219,21 +217,23 @@ export class TraceDatabase {
             traces.map(async (trace: any) => {
                 // 获取该 trace 的 feedback 和 attachments 统计
                 const feedbackStmt = await this.adapter.prepare(`
-                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ${this.adapter.getPlaceholder(
+                    1,
+                )}
             `);
                 const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
-                WHERE r.trace_id = ?
+                WHERE r.trace_id = ${this.adapter.getPlaceholder(1)}
             `);
 
-                const feedbackCount = (await feedbackStmt.get(
+                const feedbackCount = (await feedbackStmt.get([
                     trace.trace_id,
-                )) as any;
-                const attachmentCount = (await attachmentStmt.get(
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
                     trace.trace_id,
-                )) as any;
+                ])) as any;
 
                 return {
                     trace_id: trace.trace_id,
@@ -294,7 +294,25 @@ export class TraceDatabase {
                 id, trace_id, name, run_type, system, thread_id, start_time, end_time,
                 inputs, outputs, events, error, extra, serialized, total_tokens,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (${this.adapter.getPlaceholder(
+                1,
+            )}, ${this.adapter.getPlaceholder(
+            2,
+        )}, ${this.adapter.getPlaceholder(3)}, ${this.adapter.getPlaceholder(
+            4,
+        )}, ${this.adapter.getPlaceholder(5)}, ${this.adapter.getPlaceholder(
+            6,
+        )}, ${this.adapter.getPlaceholder(7)}, ${this.adapter.getPlaceholder(
+            8,
+        )}, ${this.adapter.getPlaceholder(9)}, ${this.adapter.getPlaceholder(
+            10,
+        )}, ${this.adapter.getPlaceholder(11)}, ${this.adapter.getPlaceholder(
+            12,
+        )}, ${this.adapter.getPlaceholder(13)}, ${this.adapter.getPlaceholder(
+            14,
+        )}, ${this.adapter.getPlaceholder(15)}, ${this.adapter.getPlaceholder(
+            16,
+        )}, ${this.adapter.getPlaceholder(17)})
         `);
 
         await stmt.run([
@@ -328,78 +346,115 @@ export class TraceDatabase {
 
         const updateFields: string[] = [];
         const updateValues: any[] = [];
+        let paramIndex = 1; // 用于PostgreSQL的参数索引，对于SQLite将是无用的，但逻辑统一
 
         if (runData.trace_id !== undefined) {
-            updateFields.push("trace_id = ?");
+            updateFields.push(
+                `trace_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.trace_id);
         }
         if (runData.name !== undefined) {
-            updateFields.push("name = ?");
+            updateFields.push(
+                `name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.name);
         }
         if (runData.run_type !== undefined) {
-            updateFields.push("run_type = ?");
+            updateFields.push(
+                `run_type = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.run_type);
         }
         if (runData.system !== undefined) {
-            updateFields.push("system = ?");
+            updateFields.push(
+                `system = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.system);
         }
         if (runData.start_time !== undefined) {
-            updateFields.push("start_time = ?");
+            updateFields.push(
+                `start_time = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.start_time);
         }
         if (runData.end_time !== undefined) {
-            updateFields.push("end_time = ?");
+            updateFields.push(
+                `end_time = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.end_time);
         }
         if (runData.inputs !== undefined) {
-            updateFields.push("inputs = ?");
+            updateFields.push(
+                `inputs = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.inputs));
         }
         if (runData.outputs !== undefined) {
-            updateFields.push("outputs = ?");
+            updateFields.push(
+                `outputs = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.outputs));
             // 如果 outputs 被更新，重新计算并更新 total_tokens
-            updateFields.push("total_tokens = ?");
+            updateFields.push(
+                `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(
                 this.extractTotalTokensFromOutputs(runData.outputs),
             );
         } else if (runData.total_tokens !== undefined) {
-            updateFields.push("total_tokens = ?");
+            updateFields.push(
+                `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.total_tokens);
         }
         if (runData.events !== undefined) {
-            updateFields.push("events = ?");
+            updateFields.push(
+                `events = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.events));
         }
         if (runData.error !== undefined) {
-            updateFields.push("error = ?");
+            updateFields.push(
+                `error = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.error));
         }
         if (runData.extra !== undefined) {
-            updateFields.push("extra = ?");
+            updateFields.push(
+                `extra = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.extra));
 
             // 如果更新了 extra 且没有直接提供 thread_id，尝试从 extra 中提取
             if (runData.thread_id === undefined) {
                 const threadId = this.extractThreadIdFromExtra(runData.extra);
                 if (threadId) {
-                    updateFields.push("thread_id = ?");
+                    updateFields.push(
+                        `thread_id = ${this.adapter.getPlaceholder(
+                            paramIndex++,
+                        )}`,
+                    );
                     updateValues.push(threadId);
                 }
             }
         }
         if (runData.thread_id !== undefined) {
-            updateFields.push("thread_id = ?");
+            updateFields.push(
+                `thread_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.thread_id);
         }
         if (runData.serialized !== undefined) {
-            updateFields.push("serialized = ?");
+            updateFields.push(
+                `serialized = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(JSON.stringify(runData.serialized));
         }
         if (runData.total_tokens !== undefined) {
-            updateFields.push("total_tokens = ?");
+            updateFields.push(
+                `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
             updateValues.push(runData.total_tokens);
         }
 
@@ -407,12 +462,16 @@ export class TraceDatabase {
             return this.getRun(runId);
         }
 
-        updateFields.push("updated_at = ?");
+        updateFields.push(
+            `updated_at = ${this.adapter.getPlaceholder(paramIndex++)}`,
+        );
         updateValues.push(now);
-        updateValues.push(runId);
+        updateValues.push(runId); // runId 是 WHERE 子句的最后一个参数
 
         const stmt = await this.adapter.prepare(`
-            UPDATE runs SET ${updateFields.join(", ")} WHERE id = ?
+            UPDATE runs SET ${updateFields.join(
+                ", ",
+            )} WHERE id = ${this.adapter.getPlaceholder(paramIndex)}
         `);
 
         const result = await stmt.run(updateValues);
@@ -432,8 +491,13 @@ export class TraceDatabase {
         const now = new Date().toISOString();
         const jsonValue = JSON.stringify(value);
 
+        // field = $1, updated_at = $2, WHERE id = $3
         const stmt = await this.adapter.prepare(`
-            UPDATE runs SET ${field} = ?, updated_at = ? WHERE id = ?
+            UPDATE runs SET ${field} = ${this.adapter.getPlaceholder(
+            1,
+        )}, updated_at = ${this.adapter.getPlaceholder(
+            2,
+        )} WHERE id = ${this.adapter.getPlaceholder(3)}
         `);
 
         const result = await stmt.run([jsonValue, now, runId]);
@@ -452,9 +516,9 @@ export class TraceDatabase {
 
     async getRun(runId: string): Promise<RunRecord | null> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM runs WHERE id = ?",
+            `SELECT * FROM runs WHERE id = ${this.adapter.getPlaceholder(1)}`,
         );
-        const result = (await stmt.get(runId)) as RunRecord;
+        const result = (await stmt.get([runId])) as RunRecord;
         return result || null;
     }
 
@@ -482,7 +546,17 @@ export class TraceDatabase {
         const stmt = await this.adapter.prepare(`
             INSERT INTO feedback (
                 id, trace_id, run_id, feedback_id, score, comment, metadata, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (${this.adapter.getPlaceholder(
+                1,
+            )}, ${this.adapter.getPlaceholder(
+            2,
+        )}, ${this.adapter.getPlaceholder(3)}, ${this.adapter.getPlaceholder(
+            4,
+        )}, ${this.adapter.getPlaceholder(5)}, ${this.adapter.getPlaceholder(
+            6,
+        )}, ${this.adapter.getPlaceholder(7)}, ${this.adapter.getPlaceholder(
+            8,
+        )})
         `);
 
         await stmt.run([
@@ -523,7 +597,15 @@ export class TraceDatabase {
         const stmt = await this.adapter.prepare(`
             INSERT INTO attachments (
                 id, run_id, filename, content_type, file_size, storage_path, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (${this.adapter.getPlaceholder(
+                1,
+            )}, ${this.adapter.getPlaceholder(
+            2,
+        )}, ${this.adapter.getPlaceholder(3)}, ${this.adapter.getPlaceholder(
+            4,
+        )}, ${this.adapter.getPlaceholder(5)}, ${this.adapter.getPlaceholder(
+            6,
+        )}, ${this.adapter.getPlaceholder(7)})
         `);
 
         await stmt.run([
@@ -542,9 +624,11 @@ export class TraceDatabase {
     // 查询操作
     async getRunsByTraceId(traceId: string): Promise<RunRecord[]> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM runs WHERE trace_id = ? ORDER BY created_at",
+            `SELECT * FROM runs WHERE trace_id = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at`,
         );
-        return (await stmt.all(traceId)) as RunRecord[];
+        return (await stmt.all([traceId])) as RunRecord[];
     }
 
     // 根据系统过滤获取 traces
@@ -567,32 +651,36 @@ export class TraceDatabase {
                 )} as systems,
                 SUM(total_tokens) as total_tokens_sum
             FROM runs 
-            WHERE trace_id IS NOT NULL AND system = ?
+            WHERE trace_id IS NOT NULL AND system = ${this.adapter.getPlaceholder(
+                1,
+            )}
             GROUP BY trace_id 
             ORDER BY MAX(created_at) DESC
         `);
 
-        const traces = (await stmt.all(system)) as any[];
+        const traces = (await stmt.all([system])) as any[];
 
         return Promise.all(
             traces.map(async (trace: any) => {
                 // 获取该 trace 的 feedback 和 attachments 统计
                 const feedbackStmt = await this.adapter.prepare(`
-                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ${this.adapter.getPlaceholder(
+                    1,
+                )}
             `);
                 const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
-                WHERE r.trace_id = ?
+                WHERE r.trace_id = ${this.adapter.getPlaceholder(1)}
             `);
 
-                const feedbackCount = (await feedbackStmt.get(
+                const feedbackCount = (await feedbackStmt.get([
                     trace.trace_id,
-                )) as any;
-                const attachmentCount = (await attachmentStmt.get(
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
                     trace.trace_id,
-                )) as any;
+                ])) as any;
 
                 return {
                     trace_id: trace.trace_id,
@@ -616,17 +704,21 @@ export class TraceDatabase {
     // 根据系统获取 runs
     async getRunsBySystem(system: string): Promise<RunRecord[]> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM runs WHERE system = ? ORDER BY created_at DESC",
+            `SELECT * FROM runs WHERE system = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at DESC`,
         );
-        return (await stmt.all(system)) as RunRecord[];
+        return (await stmt.all([system])) as RunRecord[];
     }
 
     // 根据线程ID获取 runs
     async getRunsByThreadId(threadId: string): Promise<RunRecord[]> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM runs WHERE thread_id = ? ORDER BY created_at DESC",
+            `SELECT * FROM runs WHERE thread_id = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at DESC`,
         );
-        return (await stmt.all(threadId)) as RunRecord[];
+        return (await stmt.all([threadId])) as RunRecord[];
     }
 
     // 根据线程ID获取相关的 traces
@@ -649,32 +741,36 @@ export class TraceDatabase {
                 )} as systems,
                 SUM(total_tokens) as total_tokens_sum
             FROM runs 
-            WHERE trace_id IS NOT NULL AND thread_id = ?
+            WHERE trace_id IS NOT NULL AND thread_id = ${this.adapter.getPlaceholder(
+                1,
+            )}
             GROUP BY trace_id 
             ORDER BY MAX(created_at) DESC
         `);
 
-        const traces = (await stmt.all(threadId)) as any[];
+        const traces = (await stmt.all([threadId])) as any[];
 
         return Promise.all(
             traces.map(async (trace: any) => {
                 // 获取该 trace 的 feedback 和 attachments 统计
                 const feedbackStmt = await this.adapter.prepare(`
-                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ?
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ${this.adapter.getPlaceholder(
+                    1,
+                )}
             `);
                 const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
-                WHERE r.trace_id = ?
+                WHERE r.trace_id = ${this.adapter.getPlaceholder(1)}
             `);
 
-                const feedbackCount = (await feedbackStmt.get(
+                const feedbackCount = (await feedbackStmt.get([
                     trace.trace_id,
-                )) as any;
-                const attachmentCount = (await attachmentStmt.get(
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
                     trace.trace_id,
-                )) as any;
+                ])) as any;
 
                 return {
                     trace_id: trace.trace_id,
@@ -743,21 +839,21 @@ export class TraceDatabase {
                 SELECT COUNT(*) as count 
                 FROM feedback f
                 JOIN runs r ON f.run_id = r.id 
-                WHERE r.thread_id = ?
+                WHERE r.thread_id = ${this.adapter.getPlaceholder(1)}
             `);
                 const attachmentStmt = await this.adapter.prepare(`
                 SELECT COUNT(*) as count 
                 FROM attachments a
                 JOIN runs r ON a.run_id = r.id 
-                WHERE r.thread_id = ?
+                WHERE r.thread_id = ${this.adapter.getPlaceholder(1)}
             `);
 
-                const feedbackCount = (await feedbackStmt.get(
+                const feedbackCount = (await feedbackStmt.get([
                     thread.thread_id,
-                )) as any;
-                const attachmentCount = (await attachmentStmt.get(
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
                     thread.thread_id,
-                )) as any;
+                ])) as any;
 
                 return {
                     thread_id: thread.thread_id,
@@ -805,16 +901,20 @@ export class TraceDatabase {
 
     async getFeedbackByRunId(runId: string): Promise<FeedbackRecord[]> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM feedback WHERE run_id = ? ORDER BY created_at",
+            `SELECT * FROM feedback WHERE run_id = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at`,
         );
-        return (await stmt.all(runId)) as FeedbackRecord[];
+        return (await stmt.all([runId])) as FeedbackRecord[];
     }
 
     async getAttachmentsByRunId(runId: string): Promise<AttachmentRecord[]> {
         const stmt = await this.adapter.prepare(
-            "SELECT * FROM attachments WHERE run_id = ? ORDER BY created_at",
+            `SELECT * FROM attachments WHERE run_id = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at`,
         );
-        return (await stmt.all(runId)) as AttachmentRecord[];
+        return (await stmt.all([runId])) as AttachmentRecord[];
     }
 
     // 事务操作

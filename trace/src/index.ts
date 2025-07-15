@@ -1,8 +1,9 @@
 import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
-import { serveStatic } from "hono/bun";
+// import { serveStatic } from "hono/bun";
 import { MultipartProcessor } from "./multipart-processor.js";
 import { createTraceRouter } from "./trace-router.js";
 import { TraceDatabase, type DatabaseAdapter } from "./database.js";
@@ -10,6 +11,7 @@ import { TraceDatabase, type DatabaseAdapter } from "./database.js";
 const app = new Hono();
 
 let adapter: DatabaseAdapter;
+
 if (process.env.TRACE_DATABASE_URL) {
     const { PgAdapter } = await import("./adapters/pg-adapter.js");
     adapter = new PgAdapter({
@@ -214,7 +216,7 @@ serve(
     },
     (info) => {
         console.log(`🚀 Server is running on http://localhost:${info.port}`);
-        console.log(`📊 Using Bun native SQLite for high performance`);
+
         console.log(
             `🎯 Web Dashboard: http://localhost:${info.port}/ui/index.html`,
         );

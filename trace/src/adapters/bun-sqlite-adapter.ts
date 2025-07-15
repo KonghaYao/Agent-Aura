@@ -8,6 +8,7 @@ export class BunSQLiteAdapter implements DatabaseAdapter {
     private db: Database;
 
     constructor(dbPath: string = "./.langgraph_api/trace.db") {
+        console.log(`📊 Using Bun native SQLite for high performance`);
         // 确保文件夹存在
         const dir = path.dirname(dbPath);
         if (!fs.existsSync(dir)) {
@@ -55,5 +56,9 @@ export class BunSQLiteAdapter implements DatabaseAdapter {
         delimiter: string,
     ): string {
         return `GROUP_CONCAT(${column}, '${delimiter}')`;
+    }
+
+    getPlaceholder(index: number): string {
+        return "?";
     }
 }
