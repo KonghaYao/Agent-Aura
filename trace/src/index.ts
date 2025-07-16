@@ -47,6 +47,13 @@ const traceRouter = createTraceRouter(multipartProcessor["db"]);
 
 app.use(logger());
 
+// /v1/metadata/submit
+app.post("/v1/metadata/submit", async (c) => {
+    const body = await c.req.json();
+    // console.log(body);
+    return c.text("");
+});
+
 const uiPath = path.join(__dirname, "../public/");
 app.use(
     "/ui/*",
@@ -128,6 +135,7 @@ app.get("/info", (c) => {
         // 可用的 API 端点
         endpoints: {
             dashboard: "GET / - Web Dashboard",
+            batch: "POST /runs/batch - Submit batch data",
             multipart: "POST /runs/multipart - Submit multipart data",
             trace_list:
                 "GET /trace - Get all traces (supports ?system=xxx filter)",
@@ -150,6 +158,35 @@ app.get("/info", (c) => {
                 "GET /runs/{runId}/attachments - Get run attachments",
         },
     });
+});
+
+app.post("/runs/batch", async (c) => {
+    const body = await c.req.json();
+    const fd = new FormData();
+    body.patch?.forEach((item: any) => {
+        fd.append("patch.222333", JSON.stringify(item));
+    });
+    body.post?.forEach((item: any) => {
+        fd.append("post.222333", JSON.stringify(item));
+    });
+    const system = c.req.raw.headers.get("x-api-key") || undefined;
+    const result = await multipartProcessor.processMultipartData(fd, system);
+    if (result.success) {
+        return c.json({
+            success: true,
+            message: result.message,
+            data: result.data,
+        });
+    } else {
+        return c.json(
+            {
+                success: false,
+                message: result.message,
+                errors: result.errors,
+            },
+            400,
+        );
+    }
 });
 
 /** 接受 langSmith 参数的控件 */
@@ -191,7 +228,60 @@ app.post("/runs/multipart", async (c) => {
     }
 });
 
-app.notFound((c) => {
+app.notFound(async (c) => {
+    const url = c.req.url;
+    const method = c.req.method;
+    const headers = c.req.raw.headers;
+    let curlCommand = `curl -X ${method} ${url}`;
+
+    // 添加请求头
+    for (const [key, value] of headers.entries()) {
+        // 排除一些默认的、不需要打印的头
+        if (
+            ![
+                "host",
+                "connection",
+                "content-length",
+                "user-agent",
+                "accept-encoding",
+            ].includes(key.toLowerCase())
+        ) {
+            curlCommand += ` -H '${key}: ${value}'`;
+        }
+    }
+
+    // 处理请求体（仅限 POST, PUT, PATCH）
+    if (method === "POST" || method === "PUT" || method === "PATCH") {
+        try {
+            const contentType = headers.get("content-type");
+            if (contentType?.includes("application/json")) {
+                const jsonBody = await c.req.json();
+                curlCommand += ` -H 'Content-Type: application/json' -d '${JSON.stringify(
+                    jsonBody,
+                ).replace(/'/g, "'''")}'`;
+            } else if (contentType?.includes("multipart/form-data")) {
+                // 对于 multipart/form-data，需要特殊处理，因为FormData()会消耗流
+                // 这里只能打印一个提示，无法完全重构出 curl -F 命令
+                curlCommand += ` -H 'Content-Type: ${contentType}' -F '... (multipart form data, refer to original request)'`;
+            } else if (c.req.raw.body) {
+                // 尝试读取原始 body，但Hono可能已经消耗了
+                // 这里只是一个尝试，不保证成功
+                const bodyText = await c.req.text();
+                if (bodyText) {
+                    curlCommand += ` -d '${bodyText.replace(/'/g, "'''")}'`;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not parse request body for curl command:", e);
+        }
+    }
+
+    console.log(
+        "\n--- Incoming Request as Curl Command ---\n" +
+            curlCommand +
+            "\n--------------------------------------\n",
+    );
+
     return c.text("404 Not Found", 404);
 });
 

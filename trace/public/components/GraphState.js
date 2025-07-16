@@ -1,6 +1,7 @@
 import { createMemo, createSignal, createResource } from "solid-js";
 import html from "solid-js/html";
 import { load } from "https://esm.run/@langchain/core/dist/load/index.js";
+import * as Messages from "https://esm.run/@langchain/core/dist/messages/index.js";
 export const GraphStatePanel = (props) => {
     const state = createMemo(() => {
         const data = { ...props.state };
@@ -18,7 +19,22 @@ export const GraphStateMessage = (props) => {
             }
             const messages = props.state.messages.flat();
             const LangChainMessages = await Promise.all(
-                messages.map((i) => load(JSON.stringify(i))),
+                messages.map((i) => {
+                    if (i.id[0] === "langchain") {
+                        i.id = [
+                            "langchain_core",
+                            "messages",
+                            i.id[i.id.length - 1],
+                        ];
+                    }
+                    return load(JSON.stringify(i), {
+                        importMap: {
+                            schema: {
+                                messages: Messages,
+                            },
+                        },
+                    });
+                }),
             );
             console.log(LangChainMessages);
             return LangChainMessages;

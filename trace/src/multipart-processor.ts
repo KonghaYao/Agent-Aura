@@ -5,6 +5,7 @@ import { MultipartParser } from './multipart-types.js';
 import { TraceDatabase } from './database.js';
 import multipartConfig from './multipart-config.json' with { type: 'json' };
 
+
 export interface ProcessingResult {
   success: boolean;
   message: string;
@@ -101,7 +102,7 @@ export class MultipartProcessor {
 
     if (typeof parsed.data === 'string') {
       const runData: RunPayload = JSON.parse(parsed.data);
-      runData.id = parsed.runId; // 确保 ID 匹配
+      runData.id = runData.id || parsed.runId; // 确保 ID 匹配
       runData.system = system; // 设置系统标识
       await this.db.createRun(runData);
       result.data!.runs_created++;

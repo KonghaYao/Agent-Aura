@@ -1,6 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
 import type { RunPayload, FeedbackPayload } from "./multipart-types.js";
 
+const formatTimestamp = (time: string | void) => {
+    if (time) {
+        return new Date(time).getTime().toFixed(0);
+    }
+    return;
+};
+
 export interface RunRecord {
     id: string;
     trace_id?: string;
@@ -97,12 +104,31 @@ export class TraceDatabase {
         try {
             const outputData =
                 typeof outputs === "string" ? JSON.parse(outputs) : outputs;
-            if (
-                outputData &&
-                outputData.llmOutput &&
-                outputData.llmOutput.tokenUsage
-            ) {
-                return outputData.llmOutput.tokenUsage.totalTokens || 0;
+
+            if (outputData?.llmOutput?.tokenUsage) {
+                const result = outputData.llmOutput.tokenUsage.totalTokens;
+                if (result === null || result === undefined) {
+                    // 如果 totalTokens 为 null 或 undefined，则赋值为 5
+                }
+                return result || 0;
+            } else if (outputData.generations) {
+                console.log(outputData.generations);
+                return outputData.generations.reduce(
+                    (col: number, cur: any) => {
+                        const sum = cur
+                            .map((i: any) => i.message)
+                            .reduce((sum: number, i: any) => {
+                                console.log(i);
+                                return (
+                                    sum +
+                                    (i?.kwargs?.usage_metadata?.total_tokens ||
+                                        0)
+                                );
+                            }, 0);
+                        return col + sum;
+                    },
+                    0,
+                );
             }
         } catch (error) {
             console.warn("解析 outputs 提取 total_tokens 时出错:", error);
@@ -270,8 +296,8 @@ export class TraceDatabase {
             run_type: runData.run_type,
             system: runData.system,
             thread_id: threadId,
-            start_time: runData.start_time,
-            end_time: runData.end_time,
+            start_time: formatTimestamp(runData.start_time),
+            end_time: formatTimestamp(runData.end_time),
             inputs: runData.inputs ? JSON.stringify(runData.inputs) : undefined,
             outputs: runData.outputs
                 ? JSON.stringify(runData.outputs)
@@ -376,13 +402,13 @@ export class TraceDatabase {
             updateFields.push(
                 `start_time = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
-            updateValues.push(runData.start_time);
+            updateValues.push(formatTimestamp(runData.start_time));
         }
         if (runData.end_time !== undefined) {
             updateFields.push(
                 `end_time = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
-            updateValues.push(runData.end_time);
+            updateValues.push(formatTimestamp(runData.end_time));
         }
         if (runData.inputs !== undefined) {
             updateFields.push(
