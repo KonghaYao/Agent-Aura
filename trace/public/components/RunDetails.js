@@ -10,10 +10,12 @@ import {
     FeedbackTab,
     getRunType,
 } from "./RunDetails/index.js";
+// import { useRefresh } from "../context/RefreshContext.js"; // 移除 Context 导入
 
 // RunDetails 组件 (右侧面板)
 export const RunDetails = (props) => {
     const [activeTab, setActiveTab] = createSignal("overview");
+    // const { refresh } = useRefresh(); // 移除 Context 使用
 
     const selectedRunData = createMemo(() => {
         if (!props.selectedRunId() || !props.currentTraceData()) return null;
@@ -60,12 +62,23 @@ export const RunDetails = (props) => {
                     props.selectedRunId() && selectedRunData()
                         ? html`
                               <div>
-                                  <h3
-                                      class="text-lg font-semibold text-gray-900 mb-1"
-                                  >
-                                      ${selectedRunData().name ||
-                                      props.selectedRunId()}
-                                  </h3>
+                                  <div class="flex items-center justify-between mb-1">
+                                      <h3
+                                          class="text-lg font-semibold text-gray-900"
+                                      >
+                                          ${selectedRunData().name ||
+                                          props.selectedRunId()}
+                                      </h3>
+                                      <button
+                                          class="p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                                          onclick=${props.refresh}
+                                          title="刷新数据"
+                                      >
+                                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                          </svg>
+                                      </button>
+                                  </div>
                                   <div
                                       class="flex items-center space-x-4 text-sm text-gray-600"
                                   >

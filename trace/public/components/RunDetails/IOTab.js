@@ -13,7 +13,7 @@ export const IOTab = ({ run, attachments }) => {
         return JSON.parse(run.outputs);
     });
     const tokenUsage = createMemo(() => {
-        return getTokenUsage(outputs());
+        return run.total_tokens;
     });
 
     return html`
@@ -55,7 +55,7 @@ export const IOTab = ({ run, attachments }) => {
                     ${() =>
                         run.run_type === "tool"
                             ? html`<pre class="text-gray-500 text-sm">
-                                  ${outputs().output.kwargs.content}
+                                  ${outputs().output?.kwargs?.content}
                               </pre
                               >`
                             : ""}

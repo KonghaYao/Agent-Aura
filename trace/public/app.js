@@ -10,10 +10,14 @@ export const App = () => {
     const [selectedThreadId, setSelectedThreadId] = createSignal(null);
     const [selectedTraceId, setSelectedTraceId] = createSignal(null);
     const [selectedRunId, setSelectedRunId] = createSignal(null);
+
+    // 刷新相关
     const [refreshTrigger, setRefreshTrigger] = createSignal(0);
+    const refresh = () => setRefreshTrigger(t => t + 1);
 
     // 使用 createResource 获取线程概览列表
     const [allThreads, { refetch: refetchThreads }] = createResource(
+        () => refreshTrigger(), // 依赖 refreshTrigger 触发刷新
         async () => {
             const response = await fetch("/trace/threads/overview");
             if (!response.ok) throw new Error("Failed to load threads");
@@ -24,7 +28,7 @@ export const App = () => {
 
     // 使用 createResource 获取选中线程的 traces
     const [threadTraces, { refetch: refetchThreadTraces }] = createResource(
-        () => ({ threadId: selectedThreadId(), refresh: refreshTrigger() }),
+        () => ({ threadId: selectedThreadId(), refresh: refreshTrigger() }), // 依赖 refreshTrigger 触发刷新
         async (params) => {
             if (!params.threadId) return [];
             const response = await fetch(
@@ -38,7 +42,7 @@ export const App = () => {
 
     // 使用 createResource 获取特定 trace 的数据
     const [currentTraceData, { refetch: refetchTraceData }] = createResource(
-        () => ({ traceId: selectedTraceId(), refresh: refreshTrigger() }),
+        () => ({ traceId: selectedTraceId(), refresh: refreshTrigger() }), // 依赖 refreshTrigger 触发刷新
         async (params) => {
             if (!params.traceId) return null;
             const response = await fetch(`/trace/${params.traceId}`);
@@ -63,10 +67,6 @@ export const App = () => {
         setSelectedRunId(runId);
     };
 
-    const handleRefresh = async () => {
-        setRefreshTrigger((prev) => prev + 1);
-    };
-
     return html`
         <div
             class="three-column h-screen flex flex-row bg-white overflow-hidden"
@@ -80,18 +80,23 @@ export const App = () => {
                 onTraceSelect: handleTraceSelect,
                 onLoadThreads: refetchThreads,
                 onLoadTraces: refetchThreadTraces,
+                refresh: refresh, // 传递 refresh 方法
+                refreshTrigger: refreshTrigger, // 传递 refreshTrigger 信号
             })}
             ${RunsList({
                 selectedTraceId,
                 selectedRunId,
                 currentTraceData,
                 onRunSelect: handleRunSelect,
-                onRefresh: handleRefresh,
                 onLoadTrace: refetchTraceData,
+                refresh: refresh, // 传递 refresh 方法
+                refreshTrigger: refreshTrigger, // 传递 refreshTrigger 信号
             })}
             ${RunDetails({
                 selectedRunId,
                 currentTraceData,
+                refresh: refresh, // 传递 refresh 方法
+                refreshTrigger: refreshTrigger, // 传递 refreshTrigger 信号
             })}
         </div>
     `;

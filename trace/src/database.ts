@@ -112,13 +112,11 @@ export class TraceDatabase {
                 }
                 return result || 0;
             } else if (outputData.generations) {
-                console.log(outputData.generations);
                 return outputData.generations.reduce(
                     (col: number, cur: any) => {
                         const sum = cur
                             .map((i: any) => i.message)
                             .reduce((sum: number, i: any) => {
-                                console.log(i);
                                 return (
                                     sum +
                                     (i?.kwargs?.usage_metadata?.total_tokens ||

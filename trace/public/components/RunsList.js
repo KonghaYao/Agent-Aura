@@ -3,6 +3,7 @@ import { formatDateTime } from "../utils.js";
 import { RunItem } from "./RunItem.js";
 import { createMemo, createSignal } from "solid-js";
 import { getTokenUsage } from "./RunDetails/IOTab.js";
+// import { useRefresh } from "../context/RefreshContext.js"; // 移除 Context 导入
 
 // RunsList 组件 (中间面板)
 export const RunsList = (props) => {
@@ -10,6 +11,8 @@ export const RunsList = (props) => {
         return props.currentTraceData()?.runs || [];
     });
     const [showNoneTime, setShowNoneTime] = createSignal(false);
+    // const { refresh } = useRefresh(); // 移除 Context 使用
+
     const hasSpentTime = (run) => {
         if (showNoneTime() || run.run_type === "tool") {
             return true;
@@ -25,7 +28,7 @@ export const RunsList = (props) => {
 
     const totalTokens = createMemo(() => {
         return runs().reduce((sum, run) => {
-            return sum + getTokenUsage(JSON.parse(run.outputs));
+            return sum + run.total_tokens;
         }, 0);
     });
 
@@ -37,9 +40,20 @@ export const RunsList = (props) => {
                 class="p-4 border-b border-gray-200 flex items-center justify-between"
             >
                 <h2 class="text-lg font-semibold text-gray-900">Runs</h2>
-                <span class="text-sm text-gray-500"
-                    >${() => runs()?.length} runs</span
-                >
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-500"
+                        >${() => runs()?.length} runs</span
+                    >
+                    <button
+                        class="p-1 text-gray-500 hover:text-blue-600 transition-colors"
+                        onclick=${props.refresh}
+                        title="刷新数据"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="flex-1 overflow-auto p-4 scrollbar">

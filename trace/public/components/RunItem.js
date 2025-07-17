@@ -86,12 +86,9 @@ export const RunItem = (props) => {
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium"
                                 >
-                                    ${(
-                                        getTokenUsage(
-                                            JSON.parse(props.run.outputs),
-                                            true,
-                                        ) / time()
-                                    ).toFixed(0) + " "}
+                                    ${(props.run.total_tokens / time()).toFixed(
+                                        0,
+                                    ) + " "}
                                     tps
                                 </span>
                             </div>`
