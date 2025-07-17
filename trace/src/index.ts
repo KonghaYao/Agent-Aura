@@ -9,9 +9,10 @@ import { createTraceRouter } from "./trace-router.js";
 import { TraceDatabase, type DatabaseAdapter } from "./database.js";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 
 // 实现 __dirname
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = new Hono();
 
