@@ -31,3 +31,143 @@ json-viewer {
     /* Search highlight color */
     --highlight-color: #ff4500;
 }
+#app {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+/* 自定义滚动条 */
+.scrollbar {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+.scrollbar::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+.scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+.scrollbar::-webkit-scrollbar-corner {
+    background: #f1f1f1;
+}
+
+/* 代码高亮 */
+.json-key {
+    color: #0066cc;
+}
+.json-string {
+    color: #009900;
+}
+.json-number {
+    color: #ff6600;
+}
+.json-boolean {
+    color: #cc0066;
+}
+.json-null {
+    color: #999999;
+}
+
+/* 响应式布局 */
+@media (max-width: 1024px) {
+    .three-column {
+        grid-template-columns: 280px 1fr;
+    }
+    .right-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .three-column {
+        grid-template-columns: 1fr;
+    }
+    .left-panel {
+        position: fixed;
+        z-index: 100;
+        left: -320px;
+        transition: left 0.3s;
+        width: 320px;
+        height: 100vh;
+        background: white;
+        border-right: 1px solid #e5e7eb;
+        overflow: hidden;
+    }
+    .left-panel.open {
+        left: 0;
+    }
+    .mobile-menu {
+        display: block;
+    }
+
+    /* 移动端滚动条优化 */
+    .scrollbar {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #c1c1c1 #f1f1f1;
+    }
+}
+
+/* 加载动画 */
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+    transition: all 0.2s ease;
+}
+.card-hover:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 状态指示器 */
+.status-success::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    margin-right: 6px;
+}
+
+.status-error::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    margin-right: 6px;
+}
+
+.status-pending::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    margin-right: 6px;
+}

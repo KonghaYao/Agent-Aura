@@ -7,7 +7,7 @@ export const ThreadList = (props) => {
     };
 
     return html`
-        <div class="mb-3">
+        <div class="mb-3 flex-1 overflow-auto">
             <h3 class="text-sm font-medium text-gray-600 mb-2">🧵 线程列表</h3>
             ${() =>
                 props.threads.loading &&

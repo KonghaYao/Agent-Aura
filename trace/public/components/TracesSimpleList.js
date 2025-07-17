@@ -7,7 +7,7 @@ export const TracesSimpleList = (props) => {
     };
 
     return html`
-        <div class="border-t border-gray-200 pt-3">
+        <div class="border-t border-gray-300 pt-3 flex-1 overflow-auto">
             <h3 class="text-sm font-medium text-gray-600 mb-2">
                 📋 Traces (${props.filteredTraces().length})
             </h3>
@@ -54,7 +54,7 @@ export const TracesSimpleList = (props) => {
                           <div class="space-y-1">
                               ${[...props.filteredTraces()]
                                   .reverse()
-                                  .map((trace) => {
+                                  .map((trace, index) => {
                                       const isSelected =
                                           props.selectedTraceId() ===
                                           trace.trace_id;
@@ -78,6 +78,7 @@ export const TracesSimpleList = (props) => {
                                                   <span
                                                       class="font-mono text-gray-700 truncate"
                                                   >
+                                                      Run ${index + 1}:
                                                       ${trace.trace_id}
                                                   </span>
                                                   <span
@@ -93,18 +94,23 @@ export const TracesSimpleList = (props) => {
                                                       ${"⏱️ " +
                                                       formatDuration(
                                                           new Date(
-                                                              trace.last_run_time,
+                                                              parseInt(
+                                                                  trace.last_run_time,
+                                                              ),
                                                           ).getTime() -
                                                               new Date(
-                                                                  trace.first_run_time,
+                                                                  parseInt(
+                                                                      trace.first_run_time,
+                                                                  ),
                                                               ).getTime(),
                                                       )}
                                                   </span>
                                               </div>
                                               <div class="mt-0.5">
                                                   ${TimeAgo({
-                                                      datetime:
+                                                      datetime: parseInt(
                                                           trace.last_run_time,
+                                                      ),
                                                       class: "text-gray-400 text-xs",
                                                   })}
                                               </div>

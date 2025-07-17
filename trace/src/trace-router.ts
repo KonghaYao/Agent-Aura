@@ -105,6 +105,43 @@ export function createTraceRouter(db: TraceDatabase) {
         }
     });
 
+    traceRouter.get("/traces/search", async (c) => {
+        const runType = c.req.query("run_type");
+        const limit = parseInt(c.req.query("limit") || "10"); // 默认每页10条
+        const offset = parseInt(c.req.query("offset") || "0"); // 默认偏移0
+
+        if (!runType) {
+            return c.json(
+                { success: false, error: "run_type parameter is required" },
+                400,
+            );
+        }
+
+        try {
+            const traces = await db.getRunsByRunType(runType, limit, offset);
+            const total = await db.countRunsByRunType(runType);
+
+            return c.json({
+                success: true,
+                run_type: runType,
+                total: total,
+                limit: limit,
+                offset: offset,
+                traces: traces,
+            });
+        } catch (error) {
+            console.error("Error fetching runs by run_type:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
     // 根据系统过滤获取 traces
     traceRouter.get("/system/:system", async (c) => {
         try {

@@ -661,8 +661,8 @@ export class TraceDatabase {
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
-                MIN(created_at) as first_run_time,
-                MAX(created_at) as last_run_time,
+                MIN(start_time) as first_run_time,
+                MAX(end_time) as last_run_time,
                 ${this.adapter.getStringAggregateFunction(
                     "run_type",
                     true,
@@ -751,8 +751,8 @@ export class TraceDatabase {
             SELECT 
                 trace_id,
                 COUNT(*) as total_runs,
-                MIN(created_at) as first_run_time,
-                MAX(created_at) as last_run_time,
+                MIN(start_time) as first_run_time,
+                MAX(end_time) as last_run_time,
                 ${this.adapter.getStringAggregateFunction(
                     "run_type",
                     true,
@@ -921,6 +921,34 @@ export class TraceDatabase {
         `);
         const results = (await stmt.all()) as { thread_id: string }[];
         return results.map((r) => r.thread_id);
+    }
+
+    // 获取指定 run_type 的 runs，支持分页
+    async getRunsByRunType(
+        runType: string,
+        limit: number,
+        offset: number,
+    ): Promise<RunRecord[]> {
+        const stmt = await this.adapter.prepare(`
+            SELECT * FROM runs
+            WHERE run_type = ${this.adapter.getPlaceholder(1)}
+            ORDER BY created_at DESC
+            LIMIT ${this.adapter.getPlaceholder(
+                2,
+            )} OFFSET ${this.adapter.getPlaceholder(3)}
+        `);
+        return (await stmt.all([runType, limit, offset])) as RunRecord[];
+    }
+
+    // 获取指定 run_type 的总记录数
+    async countRunsByRunType(runType: string): Promise<number> {
+        const stmt = await this.adapter.prepare(`
+            SELECT COUNT(*) as count
+            FROM runs
+            WHERE run_type = ${this.adapter.getPlaceholder(1)}
+        `);
+        const result = (await stmt.get([runType])) as { count: number };
+        return result.count || 0;
     }
 
     async getFeedbackByRunId(runId: string): Promise<FeedbackRecord[]> {
