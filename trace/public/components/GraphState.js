@@ -20,6 +20,19 @@ export const GraphStateMessage = (props) => {
             const messages = props.state.messages.flat();
             const LangChainMessages = await Promise.all(
                 messages.map((i) => {
+                    if (i.lc !== 1) {
+                        switch (i.type) {
+                            case "ai":
+                                return new Messages.AIMessage(i);
+                            case "human":
+                                return new Messages.HumanMessage(i);
+                            case "system":
+                                return new Messages.SystemMessage(i);
+                            case "tool":
+                                return new Messages.ToolMessage(i);
+                        }
+                    }
+
                     if (i.id[0] === "langchain") {
                         i.id = [
                             "langchain_core",

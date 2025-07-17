@@ -3,18 +3,7 @@ import { formatDateTime } from "../utils.js";
 import { getRunType, getMetaDataOfRun } from "./RunDetails/utils.js";
 import { createMemo } from "solid-js";
 import { getTokenUsage, getModelName } from "./RunDetails/IOTab.js";
-
-const icon = {
-    CompiledStateGraph: "🗺️",
-    RunnableSequence: "📋",
-    ChannelWrite: "📤",
-    ChatOpenAI: "🤖",
-    RunnableLambda: "🧩",
-    RunnableCallable: "🔄",
-    LangGraph: "🗺️",
-    DynamicStructuredTool: "🔧",
-};
-
+import { icon } from "./RunDetails/utils.js";
 // 单个 Run 项组件
 export const RunItem = (props) => {
     const handleClick = () => {
@@ -30,7 +19,7 @@ export const RunItem = (props) => {
         return (props.run.end_time - props.run.start_time) / 1000;
     });
     const tokens = createMemo(() => {
-        return getTokenUsage(JSON.parse(props.run.outputs));
+        return props.run.total_tokens;
     });
     const modelName = createMemo(() => {
         return getModelName(JSON.parse(props.run.outputs));
@@ -111,7 +100,6 @@ const calcLevelFromCheckpointNs = (checkpointNs, type) => {
         if (type === "RunnableLambda") return 3;
         if (type === "RunnableCallable") return 3;
         if (type === "DynamicStructuredTool") return 3;
-        console.log(type);
         return 0;
     };
     if (!checkpointNs) return addForType();

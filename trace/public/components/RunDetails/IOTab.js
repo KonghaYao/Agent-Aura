@@ -9,22 +9,11 @@ export const IOTab = ({ run, attachments }) => {
         return JSON.parse(run.inputs);
     });
     const outputs = createMemo(() => {
-        console.log(JSON.parse(run.outputs));
         return JSON.parse(run.outputs);
-    });
-    const tokenUsage = createMemo(() => {
-        return run.total_tokens;
     });
 
     return html`
         <div class="p-4 space-y-6">
-            ${tokenUsage() > 0
-                ? html`<span
-                      class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full ml-2 align-middle"
-                      >${tokenUsage()} tokens</span
-                  >`
-                : ""}
-            <!-- 输入 -->
             <div>
                 <h4 class="font-semibold text-gray-900 mb-3">输入 (Inputs)</h4>
                 <div class="bg-gray-50 rounded-lg p-4">
@@ -101,6 +90,9 @@ export const getTokenUsage = (outputs, onlyOutput = false) => {
 };
 
 export const getModelName = (outputs) => {
-    const outputData = outputs;
-    return outputData?.generations?.[0]?.[0]?.generationInfo?.model_name;
+    console.log(outputs);
+    const outputData = outputs?.generations?.[0]?.[0];
+
+    return (outputData?.generationInfo || outputData?.generation_info)
+        ?.model_name;
 };

@@ -1,3 +1,15 @@
+export const icon = {
+    CompiledStateGraph: "🗺️",
+    RunnableSequence: "📋",
+    ChannelWrite: "📤",
+    ChatOpenAI: "🤖",
+    RunnableLambda: "🧩",
+    RunnableCallable: "🔄",
+    LangGraph: "🗺️",
+    Prompt: "💬",
+    DynamicStructuredTool: "🔧",
+    unknown: "❓",
+};
 // 格式化执行时间
 export const formatDuration = (startTime, endTime) => {
     if (!startTime || !endTime) return "N/A";
@@ -23,7 +35,11 @@ export const formatTimestamp = (timestamp) => {
     return date.toLocaleString();
 };
 
+const specialName = Object.keys(icon);
 export const getRunType = (run) => {
+    if (specialName.includes(run.name)) {
+        return run.name;
+    }
     if (run.serialized) {
         try {
             const serialized = JSON.parse(run.serialized);

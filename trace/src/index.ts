@@ -72,13 +72,13 @@ app.route("/trace", traceRouter);
 app.get("/info", (c) => {
     return c.json({
         // API 版本
-        version: "0.10.102",
+        version: "0.10.107",
         // 实例功能标志
         instance_flags: {
             // Blob 存储是否启用
             blob_storage_enabled: true,
             // Blob 存储引擎
-            blob_storage_engine: "Bun SQLite",
+            blob_storage_engine: "S3",
             // 数据集示例分段是否启用
             dataset_examples_multipart_enabled: true,
             // 示例分段是否启用
@@ -95,8 +95,8 @@ app.get("/info", (c) => {
             personal_orgs_disabled: false,
             // Playground 认证绕过是否启用
             playground_auth_bypass_enabled: false,
-            // 本地 SQLite 存储是否启用
-            sqlite_storage_enabled: true,
+            // S3 存储是否启用 (新增)
+            s3_storage_enabled: true,
             // 搜索是否启用
             search_enabled: true,
             // 显示 TTL UI
@@ -108,8 +108,8 @@ app.get("/info", (c) => {
             },
             // 工作区范围组织邀请
             workspace_scope_org_invites: false,
-            // 高性能 SQLite 压缩是否启用
-            sqlite_wal_enabled: true,
+            // ZSTD 压缩是否启用 (新增)
+            zstd_compression_enabled: false,
         },
         // 批量摄取配置
         batch_ingest_config: {
@@ -125,13 +125,6 @@ app.get("/info", (c) => {
             size_limit: 100,
             // 大小限制（字节）
             size_limit_bytes: 20971520,
-        },
-        // 数据库信息
-        database_info: {
-            type: "SQLite",
-            engine: "Bun native SQLite",
-            wal_mode: true,
-            performance_optimized: true,
         },
         // 可用的 API 端点
         endpoints: {

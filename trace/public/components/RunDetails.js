@@ -14,7 +14,7 @@ import {
 
 // RunDetails 组件 (右侧面板)
 export const RunDetails = (props) => {
-    const [activeTab, setActiveTab] = createSignal("overview");
+    const [activeTab, setActiveTab] = createSignal("io");
     // const { refresh } = useRefresh(); // 移除 Context 使用
 
     const selectedRunData = createMemo(() => {
@@ -47,7 +47,6 @@ export const RunDetails = (props) => {
 
     const extraData = createMemo(() => {
         const run = selectedRunData();
-        console.log(run);
         if (!run || !run.extra) return null;
         return parseJSON(run.extra);
     });
@@ -62,7 +61,9 @@ export const RunDetails = (props) => {
                     props.selectedRunId() && selectedRunData()
                         ? html`
                               <div>
-                                  <div class="flex items-center justify-between mb-1">
+                                  <div
+                                      class="flex items-center justify-between mb-1"
+                                  >
                                       <h3
                                           class="text-lg font-semibold text-gray-900"
                                       >
@@ -74,8 +75,18 @@ export const RunDetails = (props) => {
                                           onclick=${props.refresh}
                                           title="刷新数据"
                                       >
-                                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                          <svg
+                                              class="w-4 h-4"
+                                              fill="none"
+                                              stroke="currentColor"
+                                              viewBox="0 0 24 24"
+                                          >
+                                              <path
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  stroke-width="2"
+                                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                              ></path>
                                           </svg>
                                       </button>
                                   </div>
