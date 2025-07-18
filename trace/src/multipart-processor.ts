@@ -76,6 +76,7 @@ export class MultipartProcessor {
           }
         } catch (error) {
           const errorMessage = `Error processing part ${name}: ${error instanceof Error ? error.message : String(error)}`;
+          console.error(error);
           result.errors?.push(errorMessage);
         }
       }
@@ -105,6 +106,7 @@ export class MultipartProcessor {
       runData.id = runData.id || parsed.runId; // 确保 ID 匹配
       runData.system = system; // 设置系统标识
       await this.db.createRun(runData);
+      
       result.data!.runs_created++;
     } else {
       throw new Error('Run data must be a string');

@@ -52,12 +52,13 @@ const fetchLlmRuns = async ([currentPage, itemsPerPage]) => {
     }
 };
 
-const App = () => {
+export const OverviewPage = () => {
+    // 将 App 重命名为 OverviewPage 并导出
     const [currentPage, setCurrentPage] = createSignal(1);
     const [itemsPerPage, setItemsPerPage] = createSignal(10);
 
     const [llmRunsResource] = createResource(
-        () => [currentPage(), itemsPerPage()], // 依赖 currentPage 和 itemsPerPage
+        () => [currentPage(), itemsPerPage()],
         fetchLlmRuns,
     );
 
@@ -78,7 +79,7 @@ const App = () => {
         setCurrentPage((prev) => Math.min(totalPages(), prev + 1));
     };
 
-    const [selectedRun, setSelectedRun] = createSignal(null); // 新增：选中行的数据
+    const [selectedRun, setSelectedRun] = createSignal(null);
 
     const handleRowClick = (run) => {
         setSelectedRun(run);
@@ -136,6 +137,11 @@ const App = () => {
                                                       >
                                                           总 Token
                                                       </th>
+                                                      <th
+                                                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                                      >
+                                                          起始时间
+                                                      </th>
                                                   </tr>
                                               </thead>
                                               <tbody
@@ -192,6 +198,13 @@ const App = () => {
                                                                   >
                                                                       ${run.total_tokens ||
                                                                       0}
+                                                                  </td>
+                                                                  <td
+                                                                      class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                                                  >
+                                                                      ${formatUnixTimestamp(
+                                                                          run.start_time,
+                                                                      )}
                                                                   </td>
                                                               </tr>
                                                           `,
@@ -252,5 +265,5 @@ const App = () => {
     `;
 };
 
-// 渲染应用
-render(App, document.getElementById("app"));
+// 渲染应用 (此文件不再直接渲染，而是由 index.js 路由渲染)
+// render(App, document.getElementById("app"));

@@ -1,8 +1,7 @@
 import html from "solid-js/html";
-import { formatDateTime } from "../utils.js";
 import { getRunType, getMetaDataOfRun } from "./RunDetails/utils.js";
 import { createMemo } from "solid-js";
-import { getTokenUsage, getModelName } from "./RunDetails/IOTab.js";
+
 import { icon } from "./RunDetails/utils.js";
 // 单个 Run 项组件
 export const RunItem = (props) => {
@@ -22,8 +21,9 @@ export const RunItem = (props) => {
         return props.run.total_tokens;
     });
     const modelName = createMemo(() => {
-        return getModelName(JSON.parse(props.run.outputs));
+        return props.run.model_name;
     });
+    console.log(props.run);
     return html`
         <div class=${cardClass} onclick=${handleClick}>
             <div

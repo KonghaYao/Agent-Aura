@@ -79,20 +79,3 @@ export const IOTab = ({ run, attachments }) => {
         </div>
     `;
 };
-export const getTokenUsage = (outputs, onlyOutput = false) => {
-    const outputData = outputs;
-    if (outputData && outputData.llmOutput && outputData.llmOutput.tokenUsage) {
-        return onlyOutput
-            ? outputData.llmOutput.tokenUsage.completionTokens
-            : outputData.llmOutput.tokenUsage.totalTokens;
-    }
-    return 0; // 如果没有找到 token 信息，则返回 0
-};
-
-export const getModelName = (outputs) => {
-    console.log(outputs);
-    const outputData = outputs?.generations?.[0]?.[0];
-
-    return (outputData?.generationInfo || outputData?.generation_info)
-        ?.model_name;
-};

@@ -24,6 +24,8 @@ export interface RunRecord {
     extra?: string; // JSON string
     serialized?: string; // JSON string
     total_tokens?: number; // 新增字段：总 token 数
+    model_name?: string; // 新增字段：模型名称
+    time_to_first_token?: number; // 新增字段：首个 token 时间
     created_at: string;
     updated_at: string;
 }
@@ -134,6 +136,44 @@ export class TraceDatabase {
         return 0;
     }
 
+    // 从 events 字段中提取 time_to_first_token 的辅助方法
+    private extractTimeToFirstTokenFromEvents(
+        events?: string | object,
+    ): number {
+        if (!events) return 0;
+        try {
+            const eventsData =
+                typeof events === "string" ? JSON.parse(events) : events;
+            if (Array.isArray(eventsData) && eventsData.length >= 2) {
+                const firstEventTime = new Date(eventsData[0].time).getTime();
+                const secondEventTime = new Date(eventsData[1].time).getTime();
+                return secondEventTime - firstEventTime;
+            }
+        } catch (error) {
+            console.warn("解析 events 提取 time_to_first_token 时出错:", error);
+        }
+        return 0;
+    }
+
+    // 从 outputs 字段中提取 model_name 的辅助方法
+    private extractModelNameFromOutputs(
+        outputs?: string | object,
+    ): string | undefined {
+        if (!outputs) return undefined;
+        try {
+            const outputData =
+                typeof outputs === "string" ? JSON.parse(outputs) : outputs;
+            const outputGenerations = outputData?.generations?.[0]?.[0];
+            return (
+                outputGenerations?.generationInfo ||
+                outputGenerations?.generation_info
+            )?.model_name;
+        } catch (error) {
+            console.warn("解析 outputs 提取 model_name 时出错:", error);
+            return undefined;
+        }
+    }
+
     private async initTables(): Promise<void> {
         // 创建 runs 表
         await this.adapter.exec(`
@@ -153,6 +193,8 @@ export class TraceDatabase {
                 extra TEXT,
                 serialized TEXT,
                 total_tokens INTEGER DEFAULT 0,
+                model_name TEXT,
+                time_to_first_token INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -191,6 +233,9 @@ export class TraceDatabase {
         await this.adapter.exec(`
             CREATE INDEX IF NOT EXISTS idx_runs_trace_id ON runs (trace_id);
             CREATE INDEX IF NOT EXISTS idx_runs_thread_id ON runs (thread_id);
+            CREATE INDEX IF NOT EXISTS idx_runs_model_name ON runs (model_name);
+            CREATE INDEX IF NOT EXISTS idx_runs_system ON runs (system);
+            CREATE INDEX IF NOT EXISTS idx_runs_run_type ON runs (run_type);
             CREATE INDEX IF NOT EXISTS idx_feedback_trace_id ON feedback (trace_id);
             CREATE INDEX IF NOT EXISTS idx_feedback_run_id ON feedback (run_id);
             CREATE INDEX IF NOT EXISTS idx_attachments_run_id ON attachments (run_id);
@@ -286,7 +331,6 @@ export class TraceDatabase {
         // 从 extra 中提取 thread_id（如果未直接提供）
         const threadId =
             runData.thread_id || this.extractThreadIdFromExtra(runData.extra);
-
         const record: RunRecord = {
             id,
             trace_id: runData.trace_id,
@@ -311,40 +355,20 @@ export class TraceDatabase {
             total_tokens: runData.outputs
                 ? this.extractTotalTokensFromOutputs(runData.outputs)
                 : 0,
+            model_name: runData.outputs
+                ? this.extractModelNameFromOutputs(runData.outputs)
+                : undefined,
+            time_to_first_token: runData.events
+                ? this.extractTimeToFirstTokenFromEvents(runData.events)
+                : 0,
         };
-
-        const stmt = await this.adapter.prepare(`
-            INSERT INTO runs (
-                id, trace_id, name, run_type, system, thread_id, start_time, end_time,
-                inputs, outputs, events, error, extra, serialized, total_tokens,
-                created_at, updated_at
-            ) VALUES (${this.adapter.getPlaceholder(
-                1,
-            )}, ${this.adapter.getPlaceholder(
-            2,
-        )}, ${this.adapter.getPlaceholder(3)}, ${this.adapter.getPlaceholder(
-            4,
-        )}, ${this.adapter.getPlaceholder(5)}, ${this.adapter.getPlaceholder(
-            6,
-        )}, ${this.adapter.getPlaceholder(7)}, ${this.adapter.getPlaceholder(
-            8,
-        )}, ${this.adapter.getPlaceholder(9)}, ${this.adapter.getPlaceholder(
-            10,
-        )}, ${this.adapter.getPlaceholder(11)}, ${this.adapter.getPlaceholder(
-            12,
-        )}, ${this.adapter.getPlaceholder(13)}, ${this.adapter.getPlaceholder(
-            14,
-        )}, ${this.adapter.getPlaceholder(15)}, ${this.adapter.getPlaceholder(
-            16,
-        )}, ${this.adapter.getPlaceholder(17)})
-        `);
-
-        await stmt.run([
+        const commitData = [
             record.id,
             record.trace_id,
             record.name,
             record.run_type,
             record.system,
+            record.model_name,
             record.thread_id,
             record.start_time,
             record.end_time,
@@ -357,7 +381,20 @@ export class TraceDatabase {
             record.total_tokens,
             record.created_at,
             record.updated_at,
-        ]);
+            record.time_to_first_token,
+        ];
+
+        const stmt = await this.adapter.prepare(`
+            INSERT INTO runs (
+                id, trace_id, name, run_type, system, model_name, thread_id, start_time, end_time,
+                inputs, outputs, events, error, extra, serialized, total_tokens,
+                created_at, updated_at, time_to_first_token
+            ) VALUES (${commitData
+                .map((item, index) => this.adapter.getPlaceholder(index + 1))
+                .join(",")})
+        `);
+
+        await stmt.run(commitData);
 
         return record;
     }
@@ -367,7 +404,6 @@ export class TraceDatabase {
         runData: RunPayload,
     ): Promise<RunRecord | null> {
         const now = new Date().toISOString();
-
         const updateFields: string[] = [];
         const updateValues: any[] = [];
         let paramIndex = 1; // 用于PostgreSQL的参数索引，对于SQLite将是无用的，但逻辑统一
@@ -419,6 +455,7 @@ export class TraceDatabase {
                 `outputs = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
             updateValues.push(JSON.stringify(runData.outputs));
+
             // 如果 outputs 被更新，重新计算并更新 total_tokens
             updateFields.push(
                 `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
@@ -426,17 +463,44 @@ export class TraceDatabase {
             updateValues.push(
                 this.extractTotalTokensFromOutputs(runData.outputs),
             );
+
+            // 如果 outputs 被更新，重新计算并更新 model_name
+            updateFields.push(
+                `model_name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(
+                this.extractModelNameFromOutputs(runData.outputs),
+            );
         } else if (runData.total_tokens !== undefined) {
             updateFields.push(
                 `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
             updateValues.push(runData.total_tokens);
         }
+
+        // 如果 runData.model_name 存在且 runData.outputs 未定义（即 outputs 未被更新）
+        // 并且模型名称需要单独更新，则添加 model_name 到更新字段
+        if (runData.model_name !== undefined && runData.outputs === undefined) {
+            updateFields.push(
+                `model_name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(runData.model_name);
+        }
+
         if (runData.events !== undefined) {
             updateFields.push(
                 `events = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
             updateValues.push(JSON.stringify(runData.events));
+            // 如果 events 被更新，重新计算并更新 time_to_first_token
+            updateFields.push(
+                `time_to_first_token = ${this.adapter.getPlaceholder(
+                    paramIndex++,
+                )}`,
+            );
+            updateValues.push(
+                this.extractTimeToFirstTokenFromEvents(runData.events),
+            );
         }
         if (runData.error !== undefined) {
             updateFields.push(
@@ -529,6 +593,17 @@ export class TraceDatabase {
         if (field === "outputs") {
             const total_tokens = this.extractTotalTokensFromOutputs(value);
             await this.updateRunField(runId, "total_tokens", total_tokens);
+            const model_name = this.extractModelNameFromOutputs(value);
+            await this.updateRunField(runId, "model_name", model_name);
+        }
+        if (field === "events") {
+            const time_to_first_token =
+                this.extractTimeToFirstTokenFromEvents(value);
+            await this.updateRunField(
+                runId,
+                "time_to_first_token",
+                time_to_first_token,
+            );
         }
 
         if (result.changes === 0) {
