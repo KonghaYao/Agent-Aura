@@ -75,9 +75,8 @@ export const RunItem = (props) => {
                                 <span
                                     class="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 font-medium"
                                 >
-                                    ${(props.run.total_tokens / time()).toFixed(
-                                        0,
-                                    ) + " "}
+                                    ${calcTpsFromRun(props.run).toFixed(0) +
+                                    " "}
                                     tps
                                 </span>
                             </div>`
@@ -87,6 +86,17 @@ export const RunItem = (props) => {
             </div>
         </div>
     `;
+};
+export const calcTpsFromRun = (run) => {
+    const data = JSON.parse(run.outputs);
+    const totalTokens = data.generations
+        .flat()
+        .map((i) => i.message)
+        .reduce((acc, cur) => {
+            return acc + (cur?.kwargs?.usage_metadata?.output_tokens || 0);
+        }, 0);
+    const duration = run.end_time - run.start_time;
+    return (totalTokens / duration) * 1000;
 };
 
 const calcLevelFromCheckpointNs = (checkpointNs, type) => {

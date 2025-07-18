@@ -27,3 +27,5 @@ dist
 .env.prod
 .env.dev
 .env
+
+*.egg-info
