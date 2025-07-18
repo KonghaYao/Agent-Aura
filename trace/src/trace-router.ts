@@ -58,15 +58,36 @@ export function createTraceRouter(db: TraceDatabase) {
     });
 
     // 获取所有线程ID列表
-    traceRouter.get("/threads", (c) => {
+    traceRouter.get("/threads", async (c) => {
         try {
-            const threadIds = db.getAllThreadIds();
+            const threadIds = await db.getAllThreadIds();
             return c.json({
                 success: true,
                 thread_ids: threadIds,
             });
         } catch (error) {
             console.error("Error fetching thread IDs:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 获取所有模型名称列表
+    traceRouter.get("/models", async (c) => {
+        try {
+            const modelNames = await db.getAllModelNames();
+            return c.json({
+                success: true,
+                model_names: modelNames,
+            });
+        } catch (error) {
+            console.error("Error fetching model names:", error);
             return c.json(
                 {
                     error: "Internal server error",
@@ -107,30 +128,48 @@ export function createTraceRouter(db: TraceDatabase) {
 
     traceRouter.get("/traces/search", async (c) => {
         const runType = c.req.query("run_type");
+        const system = c.req.query("system");
+        const modelName = c.req.query("model_name");
+        const threadId = c.req.query("thread_id");
         const limit = parseInt(c.req.query("limit") || "10"); // 默认每页10条
         const offset = parseInt(c.req.query("offset") || "0"); // 默认偏移0
 
-        if (!runType) {
+        // 构建查询条件
+        const conditions: any = {};
+        if (runType) conditions.run_type = runType;
+        if (system) conditions.system = system;
+        if (modelName) conditions.model_name = modelName;
+        if (threadId) conditions.thread_id = threadId;
+
+        // 如果没有任何查询条件，返回错误
+        if (Object.keys(conditions).length === 0) {
             return c.json(
-                { success: false, error: "run_type parameter is required" },
+                {
+                    success: false,
+                    error: "At least one filter parameter is required",
+                },
                 400,
             );
         }
 
         try {
-            const traces = await db.getRunsByRunType(runType, limit, offset);
-            const total = await db.countRunsByRunType(runType);
+            const traces = await db.getRunsByConditions(
+                conditions,
+                limit,
+                offset,
+            );
+            const total = await db.countRunsByConditions(conditions);
 
             return c.json({
                 success: true,
-                run_type: runType,
+                conditions: conditions,
                 total: total,
                 limit: limit,
                 offset: offset,
                 traces: traces,
             });
         } catch (error) {
-            console.error("Error fetching runs by run_type:", error);
+            console.error("Error fetching runs by conditions:", error);
             return c.json(
                 {
                     error: "Internal server error",

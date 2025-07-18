@@ -8,7 +8,7 @@ export const GraphStatePanel = (props) => {
         delete data.messages;
         return data;
     });
-    return html`<json-viewer data=${state()}></json-viewer>`;
+    return JSONViewer({ data: state() });
 };
 
 export const GraphStateMessage = (props) => {
@@ -110,10 +110,9 @@ ${JSON.stringify(i, null, 2)}</pre
                                           >
                                               🔧 工具调用: ${toolCall.name}
                                           </div>
-                                          <json-viewer
-                                              class="text-xs"
-                                              data=${toolCall.args}
-                                          ></json-viewer>
+                                          ${JSONViewer({
+                                              data: toolCall.args,
+                                          })}
                                       </div>`;
                                   })}
                               </div>
@@ -219,4 +218,19 @@ ${JSON.stringify(props.content, null, 2)}</pre
     } else {
         return html`<div class="text-gray-700">${props.content}</div>`;
     }
+};
+
+export const JSONViewer = (props) => {
+    return html`<andypf-json-viewer
+        indent="4"
+        expanded="2"
+        theme="default-light"
+        show-data-types="false"
+        show-toolbar="false"
+        expand-icon-type="circle"
+        show-copy="true"
+        show-size="true"
+        data=${props.data}
+    >
+    </andypf-json-viewer>`;
 };

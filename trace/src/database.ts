@@ -575,9 +575,10 @@ export class TraceDatabase {
         runId: string,
         field: string,
         value: any,
+        json = true,
     ): Promise<RunRecord | null> {
         const now = new Date().toISOString();
-        const jsonValue = JSON.stringify(value);
+        const jsonValue = json ? JSON.stringify(value) : value;
 
         // field = $1, updated_at = $2, WHERE id = $3
         const stmt = await this.adapter.prepare(`
@@ -594,7 +595,7 @@ export class TraceDatabase {
             const total_tokens = this.extractTotalTokensFromOutputs(value);
             await this.updateRunField(runId, "total_tokens", total_tokens);
             const model_name = this.extractModelNameFromOutputs(value);
-            await this.updateRunField(runId, "model_name", model_name);
+            await this.updateRunField(runId, "model_name", model_name, false);
         }
         if (field === "events") {
             const time_to_first_token =
@@ -998,6 +999,18 @@ export class TraceDatabase {
         return results.map((r) => r.thread_id);
     }
 
+    // 获取所有模型名称列表
+    async getAllModelNames(): Promise<string[]> {
+        const stmt = await this.adapter.prepare(`
+            SELECT DISTINCT model_name 
+            FROM runs 
+            WHERE model_name IS NOT NULL AND model_name != ''
+            ORDER BY model_name
+        `);
+        const results = (await stmt.all()) as { model_name: string }[];
+        return results.map((r) => r.model_name);
+    }
+
     // 获取指定 run_type 的 runs，支持分页
     async getRunsByRunType(
         runType: string,
@@ -1023,6 +1036,113 @@ export class TraceDatabase {
             WHERE run_type = ${this.adapter.getPlaceholder(1)}
         `);
         const result = (await stmt.get([runType])) as { count: number };
+        return result.count || 0;
+    }
+
+    // 获取指定条件的 runs，支持分页和多个过滤条件
+    async getRunsByConditions(
+        conditions: {
+            run_type?: string;
+            system?: string;
+            model_name?: string;
+            thread_id?: string;
+        },
+        limit: number,
+        offset: number,
+    ): Promise<RunRecord[]> {
+        const whereConditions: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if (conditions.run_type) {
+            whereConditions.push(
+                `run_type = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.run_type);
+        }
+        if (conditions.system) {
+            whereConditions.push(
+                `system = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.system);
+        }
+        if (conditions.model_name) {
+            whereConditions.push(
+                `model_name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.model_name);
+        }
+        if (conditions.thread_id) {
+            whereConditions.push(
+                `thread_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.thread_id);
+        }
+
+        const whereClause =
+            whereConditions.length > 0
+                ? `WHERE ${whereConditions.join(" AND ")}`
+                : "";
+
+        values.push(limit, offset);
+
+        const stmt = await this.adapter.prepare(`
+            SELECT * FROM runs
+            ${whereClause}
+            ORDER BY created_at DESC
+            LIMIT ${this.adapter.getPlaceholder(paramIndex++)} 
+            OFFSET ${this.adapter.getPlaceholder(paramIndex++)}
+        `);
+        return (await stmt.all(values)) as RunRecord[];
+    }
+
+    // 获取指定条件的总记录数
+    async countRunsByConditions(conditions: {
+        run_type?: string;
+        system?: string;
+        model_name?: string;
+        thread_id?: string;
+    }): Promise<number> {
+        const whereConditions: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if (conditions.run_type) {
+            whereConditions.push(
+                `run_type = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.run_type);
+        }
+        if (conditions.system) {
+            whereConditions.push(
+                `system = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.system);
+        }
+        if (conditions.model_name) {
+            whereConditions.push(
+                `model_name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.model_name);
+        }
+        if (conditions.thread_id) {
+            whereConditions.push(
+                `thread_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.thread_id);
+        }
+
+        const whereClause =
+            whereConditions.length > 0
+                ? `WHERE ${whereConditions.join(" AND ")}`
+                : "";
+
+        const stmt = await this.adapter.prepare(`
+            SELECT COUNT(*) as count
+            FROM runs
+            ${whereClause}
+        `);
+        const result = (await stmt.get(values)) as { count: number };
         return result.count || 0;
     }
 
