@@ -31,7 +31,8 @@ export const RunItem = (props) => {
                 style=${() => {
                     return `padding-left: ${
                         calcLevelFromCheckpointNs(
-                            metadata().langgraph_checkpoint_ns,
+                            props.run.name,
+                            metadata(),
                             getRunType(props.run),
                         ) * 15
                     }px`;
@@ -99,12 +100,15 @@ export const calcTpsFromRun = (run) => {
     return (totalTokens / duration) * 1000;
 };
 
-const calcLevelFromCheckpointNs = (checkpointNs, type) => {
-    console.log(checkpointNs);
+const calcLevelFromCheckpointNs = (name, metadata, type) => {
+    const checkpointNs = metadata.langgraph_checkpoint_ns;
+
     const addForType = () => {
+        // return 0;
         if (type === "LangGraph") return 0;
         if (type === "CompiledStateGraph") return 0;
-        if (type === "RunnableSequence") return 1;
+        if (type === "RunnableSequence")
+            return name === "RunnableSequence" ? 1 : 0;
         if (type === "ChannelWrite") return 2;
         if (type === "ChatOpenAI") return 3;
         if (type === "RunnableLambda") return 3;

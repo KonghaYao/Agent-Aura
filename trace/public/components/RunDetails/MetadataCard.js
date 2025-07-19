@@ -15,7 +15,7 @@ export const MetadataCard = ({ title, data, icon }) => {
                             <span class="text-gray-600">${key}</span>
                             <span
                                 class="text-gray-900 font-mono text-xs break-all"
-                                >${value}</span
+                                >${JSON.stringify(value)}</span
                             >
                         </div>
                     `,

@@ -6,7 +6,22 @@ import { createMemo, createSignal } from "solid-js";
 // RunsList 组件 (中间面板)
 export const RunsList = (props) => {
     const runs = createMemo(() => {
-        return props.currentTraceData()?.runs || [];
+        const runs = (props.currentTraceData()?.runs || []).map((i) => {
+            return { ...i, extraData: JSON.parse(i.extra) };
+        });
+        // 第一阶段：重新排序
+        const groupList = new Map();
+        runs.forEach((i) => {
+            const metadata = i.extraData.metadata;
+            const checkpointNs = metadata.langgraph_checkpoint_ns;
+            if (groupList.get(checkpointNs)) {
+                groupList.get(checkpointNs).push(i);
+            } else {
+                groupList.set(checkpointNs, [i]);
+            }
+            return i;
+        });
+        return Array.from(groupList.values()).flat();
     });
     const [showNoneTime, setShowNoneTime] = createSignal(false);
     // const { refresh } = useRefresh(); // 移除 Context 使用
