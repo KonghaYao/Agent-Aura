@@ -34,7 +34,7 @@ export const RunItem = (props) => {
                             props.run.name,
                             metadata(),
                             getRunType(props.run),
-                        ) * 15
+                        ) * 20
                     }px`;
                 }}
             >

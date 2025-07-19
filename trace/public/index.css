@@ -171,3 +171,30 @@ json-viewer {
     background: #f59e0b;
     margin-right: 6px;
 }
+@font-face {
+    font-family: "FontWithASyntaxHighlighter";
+    src: url("https://cdn.jsdelivr.net/gh/hlotvonen/FontWithASyntaxHighlighter/FontWithASyntaxHighlighter-Regular.woff2")
+        format("woff2");
+}
+@font-palette-values --CodePalette {
+    font-family: "FontWithASyntaxHighlighter";
+    /* github light 风格配色 */
+    override-colors: 0 #d73a49, /* keywords, {} - 红色 */ 1 #6a737d,
+        /* comments - 灰色 */ 2 #e36209, /* literals - 橙色 */ 3 #005cc5,
+        /* numbers - 蓝色 */ 4 #6f42c1, /* functions, [] - 紫色 */ 5 #22863a,
+        /* js others - 绿色 */ 6 #24292e, /* not in use - 深灰 */ 7 #b31d28,
+        /* hotpink - 深红 */ 8 #032f62
+            /* inside quotes, css properties, few chars - 深蓝 */;
+}
+code {
+    font-family: "FontWithASyntaxHighlighter", monospace;
+    font-palette: --CodePalette;
+}
+
+/* 隐去 summary 的三角 */
+summary {
+    list-style: none;
+}
+summary::-webkit-details-marker {
+    display: none;
+}

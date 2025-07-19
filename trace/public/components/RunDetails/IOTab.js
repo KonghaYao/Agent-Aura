@@ -1,10 +1,16 @@
-import { createMemo } from "solid-js";
+import { createMemo, createResource } from "solid-js";
 import html from "solid-js/html";
 import { AttachmentItem } from "../AttachmentItem.js";
 import { GraphStateMessage, GraphStatePanel } from "../GraphState.js";
-
+import { compile } from "json-schema-to-typescript-lite";
 // 输入输出标签页组件
 export const IOTab = ({ run, attachments }) => {
+    const tools = createMemo(() => {
+        const tools = JSON.parse(run.extra);
+        console.log(tools);
+
+        return tools?.options?.tools;
+    });
     const inputs = createMemo(() => {
         return JSON.parse(run.inputs);
     });
@@ -14,6 +20,52 @@ export const IOTab = ({ run, attachments }) => {
 
     return html`
         <div class="p-4 space-y-6">
+            ${tools()
+                ? html`
+                      <div>
+                          <h4 class="font-semibold text-gray-900 mb-3">
+                              工具 (Tools)
+                          </h4>
+                          <div class="bg-gray-50 rounded-lg p-4">
+                              ${tools().map((tool) => {
+                                  const [schema] = createResource(async () => {
+                                      try {
+                                          const schema = await compile(
+                                              tool?.function?.parameters,
+                                              "Demo",
+                                          );
+                                          return schema;
+                                      } catch (e) {
+                                          return "";
+                                      }
+                                  });
+                                  const prefix = `/**\n * ${tool.function.description}\n */\n`;
+                                  return html`
+                                      <details>
+                                          <summary
+                                              class="border mb-2 bg-white shadow-sm cursor-pointer rounded-lg"
+                                          >
+                                              <div
+                                                  class="px-4 py-2 font-medium text-gray-700 bg-gray-100 rounded-t"
+                                              >
+                                                  ${tool.function.name}
+                                              </div>
+                                          </summary>
+
+                                          <pre
+                                              class="text-sm p-4 whitespace-pre-wrap"
+                                          >
+                                            <code>${() =>
+                                                  prefix + schema()}</code>
+                                          </pre
+                                          >
+                                      </details>
+                                  `;
+                              })}
+                          </div>
+                      </div>
+                  `
+                : ""}
             <div>
                 <h4 class="font-semibold text-gray-900 mb-3">输入 (Inputs)</h4>
                 <div class="bg-gray-50 rounded-lg p-4">
