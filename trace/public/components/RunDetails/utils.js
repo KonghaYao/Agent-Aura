@@ -1,14 +1,40 @@
+import html from "solid-js/html";
+import { createLucideIcon } from "../../icons.js";
+
+const commonClass =
+    "w-6 h-6 rounded-lg flex items-center justify-center text-white p-1";
+
+const Graph = () =>
+    html`<div class=${() => commonClass + " bg-indigo-500 "}>
+        ${createLucideIcon("waypoints", true)}
+    </div>`;
+const LLM = () =>
+    html`<div class=${() => commonClass + " bg-yellow-500 "}>
+        ${createLucideIcon("orbit", true)}
+    </div>`;
+const Tool = () =>
+    html`<div class=${() => commonClass + " bg-emerald-500 "}>
+        ${createLucideIcon("wrench", true)}
+    </div>`;
+const Prompt = () =>
+    html`<div class=${() => commonClass + " bg-sky-400 "}>
+        ${createLucideIcon("message-square", true)}
+    </div>`;
+const InnerNode = () =>
+    html`<div class=${() => commonClass + " bg-sky-400 "}>
+        ${createLucideIcon("link", true)}
+    </div>`;
 export const icon = {
-    CompiledStateGraph: "🗺️",
-    RunnableSequence: "📋",
-    ChannelWrite: "📤",
-    ChatOpenAI: "🤖",
-    RunnableLambda: "🧩",
-    RunnableCallable: "🔄",
-    LangGraph: "🗺️",
-    Prompt: "💬",
-    DynamicStructuredTool: "🔧",
-    unknown: "❓",
+    CompiledStateGraph: Graph,
+    RunnableSequence: InnerNode,
+    ChannelWrite: InnerNode,
+    ChatOpenAI: LLM,
+    RunnableLambda: InnerNode,
+    RunnableCallable: InnerNode,
+    LangGraph: Graph,
+    Prompt: Prompt,
+    DynamicStructuredTool: Tool,
+    unknown: InnerNode,
 };
 // 格式化执行时间
 export const formatDuration = (startTime, endTime) => {

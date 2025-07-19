@@ -19,9 +19,10 @@ export const RunsList = (props) => {
     };
 
     const totalDuration = createMemo(() => {
-        return runs().reduce((sum, run) => {
-            return sum + (run.end_time - run.start_time);
-        }, 0);
+        return (
+            new Date(props.currentTraceData()?.last_run_time).getTime() -
+            new Date(props.currentTraceData()?.first_run_time).getTime()
+        );
     });
 
     const totalTokens = createMemo(() => {

@@ -26,6 +26,7 @@ export interface RunRecord {
     total_tokens?: number; // 新增字段：总 token 数
     model_name?: string; // 新增字段：模型名称
     time_to_first_token?: number; // 新增字段：首个 token 时间
+    tags?: string; // 新增字段：标签数组，存储为JSON字符串
     created_at: string;
     updated_at: string;
 }
@@ -195,6 +196,7 @@ export class TraceDatabase {
                 total_tokens INTEGER DEFAULT 0,
                 model_name TEXT,
                 time_to_first_token INTEGER DEFAULT 0,
+                tags TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
@@ -361,6 +363,9 @@ export class TraceDatabase {
             time_to_first_token: runData.events
                 ? this.extractTimeToFirstTokenFromEvents(runData.events)
                 : 0,
+            tags: (runData as any).tags
+                ? (runData as any).tags.join(",")
+                : undefined,
         };
         const commitData = [
             record.id,
@@ -382,13 +387,14 @@ export class TraceDatabase {
             record.created_at,
             record.updated_at,
             record.time_to_first_token,
+            record.tags,
         ];
 
         const stmt = await this.adapter.prepare(`
             INSERT INTO runs (
                 id, trace_id, name, run_type, system, model_name, thread_id, start_time, end_time,
                 inputs, outputs, events, error, extra, serialized, total_tokens,
-                created_at, updated_at, time_to_first_token
+                created_at, updated_at, time_to_first_token, tags
             ) VALUES (${commitData
                 .map((item, index) => this.adapter.getPlaceholder(index + 1))
                 .join(",")})
@@ -544,6 +550,14 @@ export class TraceDatabase {
                 `total_tokens = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
             updateValues.push(runData.total_tokens);
+        }
+        if ((runData as any).tags !== undefined) {
+            updateFields.push(
+                `tags = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(
+                (runData as any).tags ? (runData as any).tags.join(",") : null,
+            );
         }
 
         if (updateFields.length === 0) {
@@ -1046,6 +1060,7 @@ export class TraceDatabase {
             system?: string;
             model_name?: string;
             thread_id?: string;
+            tag?: string;
         },
         limit: number,
         offset: number,
@@ -1078,6 +1093,14 @@ export class TraceDatabase {
             );
             values.push(conditions.thread_id);
         }
+        if (conditions.tag) {
+            whereConditions.push(
+                `tags IS NOT NULL AND tags LIKE ${this.adapter.getPlaceholder(
+                    paramIndex++,
+                )}`,
+            );
+            values.push(`%"${conditions.tag}"%`);
+        }
 
         const whereClause =
             whereConditions.length > 0
@@ -1102,6 +1125,7 @@ export class TraceDatabase {
         system?: string;
         model_name?: string;
         thread_id?: string;
+        tag?: string;
     }): Promise<number> {
         const whereConditions: string[] = [];
         const values: any[] = [];
@@ -1130,6 +1154,14 @@ export class TraceDatabase {
                 `thread_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
             );
             values.push(conditions.thread_id);
+        }
+        if (conditions.tag) {
+            whereConditions.push(
+                `tags IS NOT NULL AND tags LIKE ${this.adapter.getPlaceholder(
+                    paramIndex++,
+                )}`,
+            );
+            values.push(`%"${conditions.tag}"%`);
         }
 
         const whereClause =

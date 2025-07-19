@@ -9,8 +9,9 @@ export const RunItem = (props) => {
         props.onSelect(props.run.id);
     };
     const cardClass = () => {
-        return ` bg-white  rounded-lg cursor-pointer   ${() =>
-            props.isSelected() ? "ring-2 ring-blue-500 " : ""}`;
+        return `bg-white  rounded-lg cursor-pointer   ${
+            props.isSelected() ? "ring-2 ring-blue-500 " : ""
+        }`;
     };
     const metadata = createMemo(() => getMetaDataOfRun(props.run));
 
@@ -23,7 +24,6 @@ export const RunItem = (props) => {
     const modelName = createMemo(() => {
         return props.run.model_name;
     });
-    console.log(props.run);
     return html`
         <div class=${cardClass} onclick=${handleClick}>
             <div
@@ -37,10 +37,10 @@ export const RunItem = (props) => {
                     }px`;
                 }}
             >
-                <div class="text-xs text-gray-400 text-left">
+                <div class=" text-gray-400 text-left">
                     ${icon[getRunType(props.run)]}
                 </div>
-                <div class="px-2 text-xs font-medium text-gray-900">
+                <div class="px-2  font-medium text-gray-900">
                     ${props.run.name}
                 </div>
                 <div class="flex space-x-2 flex-wrap">
