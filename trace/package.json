@@ -1,8 +1,8 @@
 {
-    "name": "@langgraph-js/smith-server",
+    "name": "@langgraph-js/open-smith",
     "type": "module",
-    "version": "0.4.0",
-    "description": "Open Smith Server",
+    "version": "0.5.0",
+    "description": "Open Smith",
     "author": "KonghaYao",
     "license": "Apache-2.0",
     "main": "dist/index.js",

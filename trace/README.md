@@ -1,6 +1,6 @@
-# @langgraph-js/smith-server
+# @langgraph-js/open-smith
 
-`@langgraph-js/smith-server` is an open-source backend for `langgraph-js` that offers LangSmith-compatible tracing and observability for your AI applications. It provides a self-hostable alternative, giving developers full control over their tracing data.
+`@langgraph-js/open-smith` is an open-source backend for `langgraph-js` that offers LangSmith-compatible tracing and observability for your AI applications. It provides a self-hostable alternative, giving developers full control over their tracing data.
 
 ## Features
 
@@ -15,7 +15,7 @@
 ## Installation
 
 ```sh
-pnpm i -D @langgraph-js/smith-server
+pnpm i -D @langgraph-js/open-smith
 pnpm open-smith
 ```
 

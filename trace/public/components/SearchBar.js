@@ -16,9 +16,7 @@ export const SearchBar = (props) => {
     });
     return html`
         <div class="p-4 border-b border-gray-200">
-            <h1 class="text-lg font-semibold text-gray-900 mb-4">
-                Thread & Trace 管理
-            </h1>
+            <h1 class="text-lg font-semibold text-gray-900 mb-4">会话监控</h1>
 
             <!-- 系统过滤器 -->
             <div class="mb-3">

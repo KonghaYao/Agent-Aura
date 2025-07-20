@@ -35,7 +35,19 @@ export const Layout = (props) => {
             <div
                 class="w-20 bg-white shadow-lg flex flex-col p-4 border-r border-gray-200"
             >
-                <nav class="flex flex-col space-y-4">${navLinks}</nav>
+                <nav class="flex flex-col space-y-4">
+                    <div
+                        class="text-3xl font-bold border-2 border-green-200 rounded-xl w-12 h-12 flex items-center justify-center mx-auto mb-4 select-none"
+                        style="
+                            letter-spacing: 0.1em;
+                            background: linear-gradient(135deg, #f6fef8 0%, #e3f9e5 100%);
+                        "
+                        title="Parrot"
+                    >
+                        🦜
+                    </div>
+                    ${navLinks}
+                </nav>
             </div>
             <!-- 内容区域 -->
             <div class="flex-1 overflow-auto">${props.children}</div>
