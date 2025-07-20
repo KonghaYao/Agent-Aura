@@ -8,7 +8,9 @@ export const ThreadList = (props) => {
 
     return html`
         <div class="mb-3 flex-1 overflow-auto">
-            <h3 class="text-sm font-medium text-gray-600 mb-2">🧵 线程列表</h3>
+            <h3 class="text-sm font-medium text-gray-600 mb-2">
+                🧵 会话列表 (${() => props.filteredThreads().length})
+            </h3>
             ${() =>
                 props.threads.loading &&
                 html`

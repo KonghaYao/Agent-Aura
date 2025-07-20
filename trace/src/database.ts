@@ -989,6 +989,92 @@ export class TraceDatabase {
         );
     }
 
+    // 根据系统过滤获取线程概览信息
+    async getThreadOverviewsBySystem(system: string): Promise<
+        Array<{
+            thread_id: string;
+            total_runs: number;
+            total_traces: number;
+            total_feedback: number;
+            total_attachments: number;
+            first_run_time: string;
+            last_run_time: string;
+            run_types: string[];
+            systems: string[];
+            total_tokens_sum: number;
+        }>
+    > {
+        const stmt = await this.adapter.prepare(`
+            SELECT 
+                thread_id,
+                COUNT(*) as total_runs,
+                COUNT(DISTINCT trace_id) as total_traces,
+                MIN(created_at) as first_run_time,
+                MAX(created_at) as last_run_time,
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
+                SUM(total_tokens) as total_tokens_sum
+            FROM runs 
+            WHERE thread_id IS NOT NULL AND thread_id != '' AND system = ${this.adapter.getPlaceholder(
+                1,
+            )}
+            GROUP BY thread_id 
+            ORDER BY MAX(created_at) DESC
+        `);
+
+        const threads = (await stmt.all([system])) as any[];
+
+        return Promise.all(
+            threads.map(async (thread: any) => {
+                // 获取该 thread 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM feedback f
+                JOIN runs r ON f.run_id = r.id 
+                WHERE r.thread_id = ${this.adapter.getPlaceholder(1)}
+            `);
+                const attachmentStmt = await this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM attachments a
+                JOIN runs r ON a.run_id = r.id 
+                WHERE r.thread_id = ${this.adapter.getPlaceholder(1)}
+            `);
+
+                const feedbackCount = (await feedbackStmt.get([
+                    thread.thread_id,
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
+                    thread.thread_id,
+                ])) as any;
+
+                return {
+                    thread_id: thread.thread_id,
+                    total_runs: thread.total_runs,
+                    total_traces: thread.total_traces,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: thread.first_run_time,
+                    last_run_time: thread.last_run_time,
+                    run_types: thread.run_types
+                        ? thread.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: thread.systems
+                        ? thread.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: thread.total_tokens_sum || 0,
+                };
+            }),
+        );
+    }
+
     // 获取所有系统列表
     async getAllSystems(): Promise<string[]> {
         const stmt = await this.adapter.prepare(`

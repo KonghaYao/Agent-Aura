@@ -38,11 +38,20 @@ export function createTraceRouter(db: TraceDatabase) {
     // 获取线程概览信息 (必须在 /threads 之前定义)
     traceRouter.get("/threads/overview", async (c) => {
         try {
-            const threadOverviews = await db.getThreadOverviews();
+            const system = c.req.query("system");
+
+            let threadOverviews;
+            if (system) {
+                threadOverviews = await db.getThreadOverviewsBySystem(system);
+            } else {
+                threadOverviews = await db.getThreadOverviews();
+            }
+
             return c.json({
                 success: true,
                 total: threadOverviews.length,
                 threads: threadOverviews,
+                system: system || null,
             });
         } catch (error) {
             console.error("Error fetching thread overviews:", error);

@@ -22,9 +22,6 @@ export const SearchBar = (props) => {
 
             <!-- 系统过滤器 -->
             <div class="mb-3">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    按系统过滤
-                </label>
                 <select
                     value=${props.selectedSystem}
                     onchange=${(e) => props.onSystemChange(e?.target?.value)}
@@ -32,7 +29,6 @@ export const SearchBar = (props) => {
                 >
                     <option value="">全部系统</option>
                     ${() => {
-                        console.log("systems:", systems());
                         return systems.loading
                             ? html`<option disabled>加载中...</option>`
                             : (systems() || []).map(

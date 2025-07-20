@@ -3,8 +3,9 @@ import { TimeAgo } from "./TimeAgo.js";
 
 export const ThreadItem = (props) => {
     const Header = () => {
-        return `thread-item card-hover p-3 mb-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 flex ${() =>
-            props.isSelected() ? "ring-2 ring-blue-500 border-blue-500" : ""}`;
+        return `thread-item card-hover p-3 m-2 bg-white border-2 rounded-lg cursor-pointer flex ${
+            props.isSelected() ? "border-blue-500" : "border-gray-200"
+        }`;
     };
     return html`
         <div

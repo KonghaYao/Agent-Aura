@@ -3,6 +3,7 @@ import html from "solid-js/html";
 import { TraceList } from "./components/TraceList.js";
 import { RunsList } from "./components/RunsList.js";
 import { RunDetails } from "./components/RunDetails.js";
+import { createStoreSignal } from "./utils.js";
 
 // 主 App 组件
 export const App = () => {
@@ -10,16 +11,25 @@ export const App = () => {
     const [selectedThreadId, setSelectedThreadId] = createSignal(null);
     const [selectedTraceId, setSelectedTraceId] = createSignal(null);
     const [selectedRunId, setSelectedRunId] = createSignal(null);
+    const [selectedSystem, setSelectedSystem] = createStoreSignal(
+        "selectedSystem",
+        "",
+    );
 
     // 刷新相关
     const [refreshTrigger, setRefreshTrigger] = createSignal(0);
-    const refresh = () => setRefreshTrigger(t => t + 1);
+    const refresh = () => setRefreshTrigger((t) => t + 1);
 
     // 使用 createResource 获取线程概览列表
     const [allThreads, { refetch: refetchThreads }] = createResource(
-        () => refreshTrigger(), // 依赖 refreshTrigger 触发刷新
-        async () => {
-            const response = await fetch("/trace/threads/overview");
+        () => ({ refresh: refreshTrigger(), system: selectedSystem() }), // 依赖 refreshTrigger 和 selectedSystem 触发刷新
+        async (params) => {
+            const url = params.system
+                ? `/trace/threads/overview?system=${encodeURIComponent(
+                      params.system,
+                  )}`
+                : "/trace/threads/overview";
+            const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to load threads");
             const data = await response.json();
             return data.threads || [];
@@ -76,8 +86,10 @@ export const App = () => {
                 traces: threadTraces,
                 selectedThreadId,
                 selectedTraceId,
+                selectedSystem,
                 onThreadSelect: handleThreadSelect,
                 onTraceSelect: handleTraceSelect,
+                onSystemChange: setSelectedSystem,
                 onLoadThreads: refetchThreads,
                 onLoadTraces: refetchThreadTraces,
                 refresh: refresh, // 传递 refresh 方法

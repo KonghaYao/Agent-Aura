@@ -12,53 +12,63 @@ export const GraphStatePanel = (props) => {
 };
 
 export const GraphStateMessage = (props) => {
-    const [message] = createResource(async () => {
-        try {
-            if (!props.state?.messages?.length) {
+    const [LCMessage] = createResource(
+        async () => {
+            try {
+                if (!props.state?.messages?.length) {
+                    return [];
+                }
+                const messages = props.state.messages.flat();
+                const LangChainMessages = await Promise.all(
+                    messages.map((i) => {
+                        if (i.lc !== 1) {
+                            switch (i.type) {
+                                case "ai":
+                                    return new Messages.AIMessage(i);
+                                case "human":
+                                    return new Messages.HumanMessage(i);
+                                case "system":
+                                    return new Messages.SystemMessage(i);
+                                case "tool":
+                                    return new Messages.ToolMessage(i);
+                            }
+                        }
+
+                        if (i.id[0] === "langchain") {
+                            i.id = [
+                                "langchain_core",
+                                "messages",
+                                i.id[i.id.length - 1],
+                            ];
+                        }
+                        return load(JSON.stringify(i), {
+                            importMap: {
+                                schema: {
+                                    messages: Messages,
+                                },
+                            },
+                        });
+                    }),
+                );
+                return LangChainMessages;
+            } catch (error) {
+                console.error(error);
                 return [];
             }
-            const messages = props.state.messages.flat();
-            const LangChainMessages = await Promise.all(
-                messages.map((i) => {
-                    if (i.lc !== 1) {
-                        switch (i.type) {
-                            case "ai":
-                                return new Messages.AIMessage(i);
-                            case "human":
-                                return new Messages.HumanMessage(i);
-                            case "system":
-                                return new Messages.SystemMessage(i);
-                            case "tool":
-                                return new Messages.ToolMessage(i);
-                        }
-                    }
-
-                    if (i.id[0] === "langchain") {
-                        i.id = [
-                            "langchain_core",
-                            "messages",
-                            i.id[i.id.length - 1],
-                        ];
-                    }
-                    return load(JSON.stringify(i), {
-                        importMap: {
-                            schema: {
-                                messages: Messages,
-                            },
-                        },
-                    });
-                }),
-            );
-            console.log(LangChainMessages);
-            return LangChainMessages;
-        } catch (error) {
-            console.error(error);
-            return [];
+        },
+        {
+            initialValue: [],
+        },
+    );
+    const message = createMemo(() => {
+        if (props.reverse()) {
+            return [...LCMessage()].reverse();
         }
+        return LCMessage();
     });
     return html`<div class="space-y-4 p-4">
         ${() =>
-            message.loading
+            LCMessage.loading
                 ? html`<div
                       class="flex items-center justify-center p-8 text-gray-500"
                   >
@@ -122,18 +132,18 @@ ${JSON.stringify(i, null, 2)}</pre
                           i["_getType"]() === "system"
                       ) {
                           const isSystem = i["_getType"]() === "system";
-                          const isSystemPanelClass = isSystem
-                              ? "bg-yellow-50 border-yellow-200"
+                          const PanelClass = isSystem
+                              ? "bg-yellow-50 border-yellow-200 overflow-auto max-h-128"
                               : "bg-green-50 border-green-200";
-                          const isSystemSubPanelClass = isSystem
+                          const SubPanelClass = isSystem
                               ? "bg-yellow-100 border-yellow-200 px-4 py-2 border-b"
                               : "bg-green-100 border-green-200 px-4 py-2 border-b";
-                          const isSystemTextClass = isSystem
+                          const TextClass = isSystem
                               ? "text-yellow-700 font-medium text-sm"
                               : "text-green-700 font-medium text-sm";
-                          return html`<div class="${isSystemPanelClass}">
-                              <div class="${isSystemSubPanelClass}">
-                                  <span class="${isSystemTextClass}">
+                          return html`<div class="${PanelClass}">
+                              <div class="${SubPanelClass}">
+                                  <span class="${TextClass}">
                                       ${isSystem ? "⚙️ 系统" : "👤 用户"}
                                   </span>
                               </div>
@@ -223,7 +233,7 @@ ${JSON.stringify(props.content, null, 2)}</pre
 export const JSONViewer = (props) => {
     return html`<andypf-json-viewer
         indent="4"
-        expanded="2"
+        expanded="4"
         theme="default-light"
         show-data-types="false"
         show-toolbar="false"

@@ -3,7 +3,6 @@ import html from "solid-js/html";
 import { formatDateTime } from "../utils.js";
 import {
     parseJSON,
-    OverviewTab,
     IOTab,
     EventsTab,
     MetadataTab,
@@ -152,12 +151,6 @@ export const RunDetails = (props) => {
                     ? html`
                           <div class="flex border-b border-gray-200 bg-gray-50">
                               <button
-                                  class=${selectedClass("overview")}
-                                  onclick=${() => setActiveTab("overview")}
-                              >
-                                  概览
-                              </button>
-                              <button
                                   class=${selectedClass("io")}
                                   onclick=${() => setActiveTab("io")}
                               >
@@ -191,10 +184,6 @@ export const RunDetails = (props) => {
                 ${() =>
                     selectedRunData()
                         ? html`
-                              ${() =>
-                                  activeTab() === "overview"
-                                      ? OverviewTab({ run: selectedRunData() })
-                                      : ""}
                               ${() =>
                                   activeTab() === "io"
                                       ? IOTab({

@@ -4,49 +4,17 @@ import { SearchBar } from "./SearchBar.js";
 import { ThreadList } from "./ThreadList.js";
 import { TracesSimpleList } from "./TracesSimpleList.js";
 import { Statistics } from "./Statistics.js";
-// import { useRefresh } from "../context/RefreshContext.js"; // 移除 Context 导入
 
-// TraceList 组件 (左侧面板) - 使用小组件拆分
 export const TraceList = (props) => {
     const [searchQuery, setSearchQuery] = createSignal("");
-    const [selectedSystem, setSelectedSystem] = createSignal("");
-    // const { refresh } = useRefresh(); // 移除 Context 使用
 
     const filteredThreads = createMemo(() => {
         let threads = props.threads() || [];
-
-        // 系统过滤
-        if (selectedSystem()) {
-            threads = threads.filter(
-                (thread) =>
-                    thread.systems && thread.systems.includes(selectedSystem()),
-            );
-        }
-
-        // 搜索过滤
-        if (searchQuery()) {
-            threads = threads.filter((thread) =>
-                thread.thread_id
-                    .toLowerCase()
-                    .includes(searchQuery().toLowerCase()),
-            );
-        }
-
         return threads;
     });
 
     const filteredTraces = createMemo(() => {
         let traces = props.traces() || [];
-
-        // 搜索过滤 traces
-        if (searchQuery()) {
-            traces = traces.filter((trace) =>
-                trace.trace_id
-                    .toLowerCase()
-                    .includes(searchQuery().toLowerCase()),
-            );
-        }
-
         return traces;
     });
 
@@ -57,9 +25,9 @@ export const TraceList = (props) => {
             <!-- 搜索栏 -->
             ${SearchBar({
                 searchQuery,
-                selectedSystem,
+                selectedSystem: props.selectedSystem,
                 onSearchChange: setSearchQuery,
-                onSystemChange: setSelectedSystem,
+                onSystemChange: props.onSystemChange,
             })}
 
             <!-- 刷新按钮 -->
@@ -115,7 +83,7 @@ export const TraceList = (props) => {
             ${Statistics({
                 filteredThreads,
                 threads: props.threads,
-                selectedSystem,
+                selectedSystem: props.selectedSystem,
                 selectedThreadId: props.selectedThreadId,
                 filteredTraces,
             })}

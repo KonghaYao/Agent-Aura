@@ -9,7 +9,7 @@ export const TracesSimpleList = (props) => {
     return html`
         <div class="border-t border-gray-300 pt-3 flex-1 overflow-auto">
             <h3 class="text-sm font-medium text-gray-600 mb-2">
-                📋 Traces (${props.filteredTraces().length})
+                📋 多轮对话 (${props.filteredTraces().length})
             </h3>
 
             ${() =>
@@ -55,14 +55,15 @@ export const TracesSimpleList = (props) => {
                               ${[...props.filteredTraces()]
                                   .reverse()
                                   .map((trace, index) => {
-                                      const isSelected =
-                                          props.selectedTraceId() ===
-                                          trace.trace_id;
                                       const panelCard = () => {
-                                          return `trace-item card-hover p-3 mb-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 ${() =>
-                                              isSelected()
-                                                  ? "ring-2 ring-blue-500 border-blue-500"
-                                                  : ""}`;
+                                          const isSelected =
+                                              props.selectedTraceId() ===
+                                              trace.trace_id;
+                                          return `trace-item card-hover py-1 px-2 m-2  bg-white border-2  rounded-lg cursor-pointer ${
+                                              isSelected
+                                                  ? "border-blue-500"
+                                                  : "border-gray-200"
+                                          }`;
                                       };
                                       return html`
                                           <div
@@ -81,6 +82,15 @@ export const TracesSimpleList = (props) => {
                                                       Run ${index + 1}:
                                                       ${trace.trace_id}
                                                   </span>
+                                              </div>
+                                              <div class="mt-0.5">
+                                                  ${TimeAgo({
+                                                      datetime: parseInt(
+                                                          trace.last_run_time,
+                                                      ),
+                                                      class: "text-gray-400 text-xs",
+                                                  })}
+
                                                   <span
                                                       class="whitespace-nowrap inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full mr-1 font-mono"
                                                   >
@@ -105,14 +115,6 @@ export const TracesSimpleList = (props) => {
                                                               ).getTime(),
                                                       )}
                                                   </span>
-                                              </div>
-                                              <div class="mt-0.5">
-                                                  ${TimeAgo({
-                                                      datetime: parseInt(
-                                                          trace.last_run_time,
-                                                      ),
-                                                      class: "text-gray-400 text-xs",
-                                                  })}
                                               </div>
                                           </div>
                                       `;

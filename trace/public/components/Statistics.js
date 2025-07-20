@@ -7,18 +7,15 @@ export const Statistics = (props) => {
                 ${() => {
                     const filteredThreadCount = props.filteredThreads().length;
                     const totalThreadCount = (props.threads() || []).length;
-                    const systemInfo = props.selectedSystem()
-                        ? ` (${props.selectedSystem()})`
-                        : "";
 
                     let result =
                         filteredThreadCount === totalThreadCount
-                            ? `${totalThreadCount} 个线程${systemInfo}`
-                            : `${filteredThreadCount}/${totalThreadCount} 个线程${systemInfo}`;
+                            ? `${totalThreadCount} 个会话`
+                            : `${filteredThreadCount}/${totalThreadCount} 个会话`;
 
                     if (props.selectedThreadId()) {
                         const traceCount = props.filteredTraces().length;
-                        result += ` | ${traceCount} 个trace`;
+                        result += ` | ${traceCount} 个多轮对话`;
                     }
 
                     return result;

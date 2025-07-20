@@ -1,5 +1,5 @@
 import html from "solid-js/html";
-
+import { createMemo, createSignal } from "solid-js";
 // 格式化日期时间
 export const formatDateTime = (dateString) => {
     if (!dateString) return "";
@@ -35,4 +35,23 @@ export const highlightJSON = (obj) => {
 
     let json = JSON.stringify(obj, null, 2);
     return html`<pre>${json}</pre>`;
+};
+
+const [userStore, _setUserStore] = createSignal(
+    JSON.parse(localStorage.getItem("userStore") || JSON.stringify({})),
+);
+
+const setUserStore = (data) => {
+    localStorage.setItem("userStore", JSON.stringify(data));
+    _setUserStore(data);
+};
+
+const patchUserStore = (data) => {
+    const store = userStore();
+    setUserStore({ ...store, ...data });
+};
+
+export const createStoreSignal = (key, defaultValue) => {
+    const value = createMemo(() => userStore()[key] || defaultValue);
+    return [value, (v) => patchUserStore({ [key]: v })];
 };
