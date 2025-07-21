@@ -2,6 +2,7 @@ import { createSignal, createResource, Show, For } from "solid-js";
 import html from "solid-js/html";
 import { createLucideIcon } from "./icons.js";
 import { Table } from "./components/Table.js"; // 导入 Table 组件
+import { getMasterKey } from "./utils/master-key-manager.js"; // 导入 getMasterKey
 
 export const SystemsPage = () => {
     // 状态管理
@@ -12,12 +13,44 @@ export const SystemsPage = () => {
     const [message, setMessage] = createSignal(null);
     const [refreshTrigger, setRefreshTrigger] = createSignal(0);
 
+    // 辅助函数：获取认证头
+    const getAuthHeaders = () => {
+        const masterKey = getMasterKey(); // 调用新函数获取 MASTER_KEY
+        if (masterKey) {
+            return { Authorization: `Bearer ${masterKey}` };
+        }
+        return {};
+    };
+
     // 获取系统列表
     const [systems, { refetch: refetchSystems }] = createResource(
         refreshTrigger,
         async () => {
-            const response = await fetch("/admin/systems");
-            if (!response.ok) throw new Error("获取系统列表失败");
+            const response = await fetch("/admin/systems", {
+                headers: getAuthHeaders(), // 添加认证头
+            });
+            if (!response.ok) {
+                // 如果认证失败，可以显示更具体的错误信息
+                if (response.status === 401) {
+                    setMessage({
+                        type: "error",
+                        text: "未授权访问系统列表，请检查 MASTER_KEY",
+                    });
+                } else if (response.status === 500) {
+                    setMessage({
+                        type: "error",
+                        text: "服务器配置错误，请联系管理员",
+                    });
+                } else {
+                    setMessage({
+                        type: "error",
+                        text: `获取系统列表失败: HTTP error! status: ${response.status}`,
+                    });
+                }
+                throw new Error(
+                    `获取系统列表失败: HTTP error! status: ${response.status}`,
+                );
+            }
             const data = await response.json();
             return data.data || [];
         },
@@ -55,7 +88,10 @@ export const SystemsPage = () => {
         try {
             const response = await fetch("/admin/systems", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders(), // 合并认证头
+                },
                 body: JSON.stringify({
                     name: name,
                     description: newSystemDescription().trim() || null,
@@ -91,6 +127,7 @@ export const SystemsPage = () => {
         try {
             const response = await fetch(`/admin/systems/${systemId}`, {
                 method: "DELETE",
+                headers: getAuthHeaders(), // 添加认证头
             });
 
             const result = await response.json();
@@ -120,6 +157,7 @@ export const SystemsPage = () => {
                 `/admin/systems/${systemId}/regenerate-key`,
                 {
                     method: "POST",
+                    headers: getAuthHeaders(), // 添加认证头
                 },
             );
 
@@ -217,13 +255,6 @@ export const SystemsPage = () => {
                     重置
                 </button>
                 <!-- 保障安全，则不使用删除功能 -->
-                <!-- <button
-                    onclick=${() => deleteSystem(row.id, row.name)}
-                    class="text-red-600 hover:text-red-900"
-                    title="删除系统"
-                >
-                    删除
-                </button> -->
             `,
         },
     ];

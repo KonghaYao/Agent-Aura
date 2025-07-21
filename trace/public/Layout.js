@@ -16,7 +16,7 @@ const menuItems = [
     {
         href: "#/systems",
         title: "系统管理",
-        icon: createLucideIcon("settings"),
+        icon: createLucideIcon("key"),
     },
 ];
 

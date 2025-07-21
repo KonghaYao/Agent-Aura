@@ -23,6 +23,7 @@ After installation, configure your LangGraph project to use this server by setti
 
 ```sh
 LANGSMITH_ENDPOINT="http://localhost:7765"
+LANGSMITH_API_KEY="lsv2_ts" # create key in open-smith
 ```
 
 GUI Admin URL:
@@ -39,4 +40,5 @@ To use PostgreSQL, add the following to your `.env` file:
 
 ```sh
 TRACE_DATABASE_URL=postgresql://postgres:postgres@localhost:5434/open_smith
+MASTER_KEY=test-test
 ```
