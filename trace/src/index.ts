@@ -7,12 +7,19 @@ import { HTTPException } from "hono/http-exception";
 import { MultipartProcessor } from "./multipart-processor.js";
 import { createTraceRouter } from "./trace-router.js";
 import { TraceDatabase, type DatabaseAdapter } from "./database.js";
+import { ApiKeyCache } from "./api-key-cache.js"; // 更新导入路径
+import { createAdminRouter } from "./routes/admin-routes.js";
+import { createRunsRouter } from "./routes/runs-routes.js";
+
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
 // 实现 __dirname
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// API Key 缓存类
+// ApiKeyCache 已经导出并移动到外部文件，这里不再需要重复定义
 
 const app = new Hono();
 
@@ -40,20 +47,27 @@ if (process.env.TRACE_DATABASE_URL) {
 
 const db = new TraceDatabase(adapter!);
 await db.init();
+
+// 创建 API Key 缓存实例
+const apiKeyCache = new ApiKeyCache(db);
+
 // 创建全局的 multipart 处理器实例
 const multipartProcessor = new MultipartProcessor(db);
 
 // 创建 trace 路由器
 const traceRouter = createTraceRouter(multipartProcessor["db"]);
 
+// 创建并挂载 admin 路由器
+const adminRouter = createAdminRouter(db, apiKeyCache);
+app.route("/admin", adminRouter);
+
+// 创建并挂载 runs 路由器
+const runsRouter = createRunsRouter(multipartProcessor, apiKeyCache);
+app.route("/runs", runsRouter);
+
 app.use(logger());
 
-// /v1/metadata/submit
-app.post("/v1/metadata/submit", async (c) => {
-    const body = await c.req.json();
-    // console.log(body);
-    return c.text("");
-});
+// /v1/metadata/submit 路由已移动到 runs-routes.ts
 
 const uiPath = path.join(__dirname, "../public/");
 app.use(
@@ -68,6 +82,8 @@ app.use(
 
 // 挂载 trace 路由器
 app.route("/trace", traceRouter);
+
+// API Key 缓存管理接口、系统管理接口、数据迁移接口等已移动到 admin-routes.ts
 
 app.get("/info", (c) => {
     return c.json({
@@ -153,76 +169,27 @@ app.get("/info", (c) => {
             run_feedback: "GET /runs/{runId}/feedback - Get run feedback",
             run_attachments:
                 "GET /runs/{runId}/attachments - Get run attachments",
+            // 管理接口
+            cache_stats:
+                "GET /admin/cache/stats - Get API key cache statistics",
+            cache_invalidate:
+                "POST /admin/cache/invalidate - Invalidate cache (body: {api_key?: string})",
+            admin_systems_list: "GET /admin/systems - Get all system records",
+            admin_systems_create:
+                "POST /admin/systems - Create new system (body: {name: string, description?: string})",
+            admin_systems_update: "PATCH /admin/systems/{id} - Update system",
+            admin_systems_regenerate_key:
+                "POST /admin/systems/{id}/regenerate-key - Regenerate API key",
+            admin_systems_stats:
+                "GET /admin/systems/{id}/stats - Get system statistics",
+            admin_systems_delete: "DELETE /admin/systems/{id} - Delete system",
+            // 数据迁移和验证接口
+            admin_migrate_existing_runs:
+                "POST /admin/migrate/existing-runs - Migrate existing runs to create system records",
+            admin_validate_system_refs:
+                "GET /admin/validate/system-references - Validate system references integrity",
         },
     });
-});
-
-app.post("/runs/batch", async (c) => {
-    const body = await c.req.json();
-    const fd = new FormData();
-    body.patch?.forEach((item: any) => {
-        fd.append("patch.222333", JSON.stringify(item));
-    });
-    body.post?.forEach((item: any) => {
-        fd.append("post.222333", JSON.stringify(item));
-    });
-    const system = c.req.raw.headers.get("x-api-key") || undefined;
-    const result = await multipartProcessor.processMultipartData(fd, system);
-    if (result.success) {
-        return c.json({
-            success: true,
-            message: result.message,
-            data: result.data,
-        });
-    } else {
-        return c.json(
-            {
-                success: false,
-                message: result.message,
-                errors: result.errors,
-            },
-            400,
-        );
-    }
-});
-
-/** 接受 langSmith 参数的控件 */
-app.post("/runs/multipart", async (c) => {
-    try {
-        const formData = await c.req.formData();
-        const system = c.req.raw.headers.get("x-api-key") || undefined;
-        const result = await multipartProcessor.processMultipartData(
-            formData,
-            system,
-        );
-
-        if (result.success) {
-            return c.json({
-                success: true,
-                message: result.message,
-                data: result.data,
-            });
-        } else {
-            return c.json(
-                {
-                    success: false,
-                    message: result.message,
-                    errors: result.errors,
-                },
-                400,
-            );
-        }
-    } catch (error) {
-        console.error("Error processing multipart data:", error);
-        return c.json(
-            {
-                success: false,
-                message: "Internal server error",
-                error: error instanceof Error ? error.message : String(error),
-            },
-            500,
-        );
-    }
 });
 
 app.notFound(async (c) => {
@@ -293,12 +260,14 @@ app.onError((err, c) => {
 // 优雅关闭处理
 process.on("SIGINT", () => {
     console.log("Shutting down gracefully...");
+    apiKeyCache.invalidate(); // 清理缓存
     multipartProcessor.close();
     process.exit(0);
 });
 
 process.on("SIGTERM", () => {
     console.log("Shutting down gracefully...");
+    apiKeyCache.invalidate(); // 清理缓存
     multipartProcessor.close();
     process.exit(0);
 });

@@ -52,6 +52,16 @@ export interface AttachmentRecord {
     created_at: string;
 }
 
+export interface SystemRecord {
+    id: string;
+    name: string; // 系统名称，与runs表的system字段关联
+    description?: string; // 系统描述
+    api_key: string; // API密钥
+    status: "active" | "inactive"; // 系统状态
+    created_at: string;
+    updated_at: string;
+}
+
 export interface TraceOverview {
     trace_id: string;
     total_runs: number;
@@ -176,6 +186,19 @@ export class TraceDatabase {
     }
 
     private async initTables(): Promise<void> {
+        // 创建 systems 表
+        await this.adapter.exec(`
+            CREATE TABLE IF NOT EXISTS systems (
+                id TEXT PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                api_key TEXT UNIQUE NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        `);
+
         // 创建 runs 表
         await this.adapter.exec(`
             CREATE TABLE IF NOT EXISTS runs (
@@ -198,7 +221,8 @@ export class TraceDatabase {
                 time_to_first_token INTEGER DEFAULT 0,
                 tags TEXT,
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (system) REFERENCES systems (name)
             )
         `);
 
@@ -233,6 +257,9 @@ export class TraceDatabase {
 
         // 创建索引
         await this.adapter.exec(`
+            CREATE INDEX IF NOT EXISTS idx_systems_name ON systems (name);
+            CREATE INDEX IF NOT EXISTS idx_systems_api_key ON systems (api_key);
+            CREATE INDEX IF NOT EXISTS idx_systems_status ON systems (status);
             CREATE INDEX IF NOT EXISTS idx_runs_trace_id ON runs (trace_id);
             CREATE INDEX IF NOT EXISTS idx_runs_thread_id ON runs (thread_id);
             CREATE INDEX IF NOT EXISTS idx_runs_model_name ON runs (model_name);
@@ -325,10 +352,32 @@ export class TraceDatabase {
         );
     }
 
+    // 确保系统存在的辅助方法
+    async ensureSystemExists(systemName: string): Promise<SystemRecord> {
+        if (!systemName) {
+            throw new Error("系统名称不能为空");
+        }
+
+        let system = await this.getSystemByName(systemName);
+        if (!system) {
+            // 如果系统不存在，自动创建一个
+            system = await this.createSystem(
+                systemName,
+                `自动创建的系统: ${systemName}`,
+            );
+        }
+        return system;
+    }
+
     // Run 操作
     async createRun(runData: RunPayload): Promise<RunRecord> {
         const id = runData.id || uuidv4();
         const now = new Date().toISOString();
+
+        // 如果提供了系统名称，确保系统存在
+        if (runData.system) {
+            await this.ensureSystemExists(runData.system);
+        }
 
         // 从 extra 中提取 thread_id（如果未直接提供）
         const threadId =
@@ -1291,5 +1340,306 @@ export class TraceDatabase {
 
     async close(): Promise<void> {
         return await this.adapter.close();
+    }
+
+    // 生成API密钥的辅助方法
+    private generateApiKey(): string {
+        return `sk-${uuidv4().replace(/-/g, "")}`;
+    }
+
+    // 系统管理方法
+    async createSystem(
+        name: string,
+        description?: string,
+        apiKey?: string, // 新增：可选的 API Key 参数
+    ): Promise<SystemRecord> {
+        const id = uuidv4();
+        const finalApiKey = apiKey || this.generateApiKey(); // 如果提供了 API Key，则使用它，否则生成新的
+        const now = new Date().toISOString();
+
+        const record: SystemRecord = {
+            id,
+            name,
+            description,
+            api_key: finalApiKey,
+            status: "active",
+            created_at: now,
+            updated_at: now,
+        };
+
+        const stmt = await this.adapter.prepare(`
+            INSERT INTO systems (
+                id, name, description, api_key, status, created_at, updated_at
+            ) VALUES (${this.adapter.getPlaceholder(
+                1,
+            )}, ${this.adapter.getPlaceholder(
+            2,
+        )}, ${this.adapter.getPlaceholder(3)}, ${this.adapter.getPlaceholder(
+            4,
+        )}, ${this.adapter.getPlaceholder(5)}, ${this.adapter.getPlaceholder(
+            6,
+        )}, ${this.adapter.getPlaceholder(7)})
+        `);
+
+        await stmt.run([
+            record.id,
+            record.name,
+            record.description,
+            record.api_key,
+            record.status,
+            record.created_at,
+            record.updated_at,
+        ]);
+
+        return record;
+    }
+
+    async getSystemByApiKey(apiKey: string): Promise<SystemRecord | null> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM systems WHERE api_key = ${this.adapter.getPlaceholder(
+                1,
+            )} AND status = 'active'`,
+        );
+        const result = (await stmt.get([apiKey])) as SystemRecord;
+        return result || null;
+    }
+
+    async getSystemByName(name: string): Promise<SystemRecord | null> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM systems WHERE name = ${this.adapter.getPlaceholder(
+                1,
+            )}`,
+        );
+        const result = (await stmt.get([name])) as SystemRecord;
+        return result || null;
+    }
+
+    async getSystemById(id: string): Promise<SystemRecord | null> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM systems WHERE id = ${this.adapter.getPlaceholder(
+                1,
+            )}`,
+        );
+        const result = (await stmt.get([id])) as SystemRecord;
+        return result || null;
+    }
+
+    async getAllSystemRecords(): Promise<SystemRecord[]> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM systems ORDER BY created_at DESC`,
+        );
+        return (await stmt.all()) as SystemRecord[];
+    }
+
+    async getActiveSystems(): Promise<SystemRecord[]> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM systems WHERE status = 'active' ORDER BY created_at DESC`,
+        );
+        return (await stmt.all()) as SystemRecord[];
+    }
+
+    async updateSystemStatus(
+        id: string,
+        status: "active" | "inactive",
+    ): Promise<SystemRecord | null> {
+        const now = new Date().toISOString();
+
+        const stmt = await this.adapter.prepare(`
+            UPDATE systems SET 
+                status = ${this.adapter.getPlaceholder(1)}, 
+                updated_at = ${this.adapter.getPlaceholder(2)} 
+            WHERE id = ${this.adapter.getPlaceholder(3)}
+        `);
+
+        const result = await stmt.run([status, now, id]);
+
+        if (result.changes === 0) {
+            return null;
+        }
+
+        return this.getSystemById(id);
+    }
+
+    async updateSystem(
+        id: string,
+        updates: {
+            name?: string;
+            description?: string;
+            status?: "active" | "inactive";
+        },
+    ): Promise<SystemRecord | null> {
+        const now = new Date().toISOString();
+        const updateFields: string[] = [];
+        const updateValues: any[] = [];
+        let paramIndex = 1;
+
+        if (updates.name !== undefined) {
+            updateFields.push(
+                `name = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(updates.name);
+        }
+        if (updates.description !== undefined) {
+            updateFields.push(
+                `description = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(updates.description);
+        }
+        if (updates.status !== undefined) {
+            updateFields.push(
+                `status = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            updateValues.push(updates.status);
+        }
+
+        if (updateFields.length === 0) {
+            return this.getSystemById(id);
+        }
+
+        updateFields.push(
+            `updated_at = ${this.adapter.getPlaceholder(paramIndex++)}`,
+        );
+        updateValues.push(now);
+        updateValues.push(id); // id 是 WHERE 子句的参数
+
+        const stmt = await this.adapter.prepare(`
+            UPDATE systems SET ${updateFields.join(
+                ", ",
+            )} WHERE id = ${this.adapter.getPlaceholder(paramIndex)}
+        `);
+
+        const result = await stmt.run(updateValues);
+
+        if (result.changes === 0) {
+            return null;
+        }
+
+        return this.getSystemById(id);
+    }
+
+    async regenerateApiKey(id: string): Promise<SystemRecord | null> {
+        const newApiKey = this.generateApiKey();
+        const now = new Date().toISOString();
+
+        const stmt = await this.adapter.prepare(`
+            UPDATE systems SET 
+                api_key = ${this.adapter.getPlaceholder(1)}, 
+                updated_at = ${this.adapter.getPlaceholder(2)} 
+            WHERE id = ${this.adapter.getPlaceholder(3)}
+        `);
+
+        const result = await stmt.run([newApiKey, now, id]);
+
+        if (result.changes === 0) {
+            return null;
+        }
+
+        return this.getSystemById(id);
+    }
+
+    async deleteSystem(id: string): Promise<boolean> {
+        const stmt = await this.adapter.prepare(
+            `DELETE FROM systems WHERE id = ${this.adapter.getPlaceholder(1)}`,
+        );
+        const result = await stmt.run([id]);
+        return result.changes > 0;
+    }
+
+    // 获取系统的运行统计信息
+    async getSystemStats(systemName: string): Promise<{
+        total_runs: number;
+        total_traces: number;
+        total_tokens: number;
+        total_feedback: number;
+        total_attachments: number;
+        first_run_time?: string;
+        last_run_time?: string;
+    }> {
+        const runStatsStmt = await this.adapter.prepare(`
+            SELECT 
+                COUNT(*) as total_runs,
+                COUNT(DISTINCT trace_id) as total_traces,
+                COALESCE(SUM(total_tokens), 0) as total_tokens,
+                MIN(created_at) as first_run_time,
+                MAX(created_at) as last_run_time
+            FROM runs 
+            WHERE system = ${this.adapter.getPlaceholder(1)}
+        `);
+
+        const feedbackStatsStmt = await this.adapter.prepare(`
+            SELECT COUNT(*) as count 
+            FROM feedback f
+            JOIN runs r ON f.run_id = r.id 
+            WHERE r.system = ${this.adapter.getPlaceholder(1)}
+        `);
+
+        const attachmentStatsStmt = await this.adapter.prepare(`
+            SELECT COUNT(*) as count 
+            FROM attachments a
+            JOIN runs r ON a.run_id = r.id 
+            WHERE r.system = ${this.adapter.getPlaceholder(1)}
+        `);
+
+        const runStats = (await runStatsStmt.get([systemName])) as any;
+        const feedbackStats = (await feedbackStatsStmt.get([
+            systemName,
+        ])) as any;
+        const attachmentStats = (await attachmentStatsStmt.get([
+            systemName,
+        ])) as any;
+
+        return {
+            total_runs: runStats.total_runs || 0,
+            total_traces: runStats.total_traces || 0,
+            total_tokens: runStats.total_tokens || 0,
+            total_feedback: feedbackStats.count || 0,
+            total_attachments: attachmentStats.count || 0,
+            first_run_time: runStats.first_run_time,
+            last_run_time: runStats.last_run_time,
+        };
+    }
+
+    // 数据迁移：为现有的runs记录创建对应的系统记录
+    async migrateExistingRunsToSystems(): Promise<{
+        created: number;
+        skipped: number;
+    }> {
+        // 获取所有不同的系统名称
+        const distinctSystems = await this.getAllSystems();
+
+        let created = 0;
+        let skipped = 0;
+
+        for (const systemName of distinctSystems) {
+            if (!systemName) continue;
+
+            const existingSystem = await this.getSystemByName(systemName);
+            if (!existingSystem) {
+                await this.createSystem(
+                    systemName,
+                    `从现有数据迁移: ${systemName}`,
+                );
+                created++;
+            } else {
+                skipped++;
+            }
+        }
+
+        return { created, skipped };
+    }
+
+    // 验证数据一致性：检查是否有runs记录的system字段不存在于systems表中
+    async validateSystemReferences(): Promise<string[]> {
+        const stmt = await this.adapter.prepare(`
+            SELECT DISTINCT r.system 
+            FROM runs r 
+            LEFT JOIN systems s ON r.system = s.name 
+            WHERE r.system IS NOT NULL 
+              AND r.system != '' 
+              AND s.name IS NULL
+        `);
+
+        const result = (await stmt.all()) as { system: string }[];
+        return result.map((r) => r.system);
     }
 }

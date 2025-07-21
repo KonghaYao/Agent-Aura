@@ -13,6 +13,11 @@ const menuItems = [
         title: "数据概览",
         icon: createLucideIcon("chart-bar-big"),
     },
+    {
+        href: "#/systems",
+        title: "系统管理",
+        icon: createLucideIcon("settings"),
+    },
 ];
 
 export const Layout = (props) => {

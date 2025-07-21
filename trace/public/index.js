@@ -3,6 +3,7 @@ import { App } from "./app.js";
 import { HashRouter, Route } from "@solidjs/router"; // 导入 Routes
 import { Layout } from "./Layout.js";
 import { OverviewPage } from "./overview.js";
+import { SystemsPage } from "./SystemsPage.js";
 import html from "solid-js/html"; // 确保导入 html
 
 // 渲染应用
@@ -20,6 +21,10 @@ render(() => {
                 Route({
                     path: "/overview",
                     component: OverviewPage, // 将 OverviewPage 包裹在 Layout 中
+                }),
+                Route({
+                    path: "/systems",
+                    component: SystemsPage, // 将 SystemsPage 包裹在 Layout 中
                 }),
             ],
         }),
