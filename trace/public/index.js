@@ -4,6 +4,7 @@ import { HashRouter, Route } from "@solidjs/router"; // 导入 Routes
 import { Layout } from "./Layout.js";
 import { OverviewPage } from "./overview.js";
 import { SystemsPage } from "./SystemsPage.js";
+import { PlayGround } from "./PlayGround.js";
 import html from "solid-js/html"; // 确保导入 html
 
 // 渲染应用
@@ -24,7 +25,11 @@ render(() => {
                 }),
                 Route({
                     path: "/systems",
-                    component: SystemsPage, // 将 SystemsPage 包裹在 Layout 中
+                    component: SystemsPage, // 将 SystemsPage selectedConfig包裹在 Layout 中
+                }),
+                Route({
+                    path: "/playground",
+                    component: PlayGround, // 将 PlayGround 包裹在 Layout 中
                 }),
             ],
         }),

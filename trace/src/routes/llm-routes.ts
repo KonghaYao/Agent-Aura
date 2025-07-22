@@ -53,6 +53,10 @@ async function createChain(body: any) {
         modelName: model_name,
         temperature: 0,
         ...camelCaseParams,
+        configuration: {
+            apiKey: model.provider_key,
+            baseURL: model.provider_url,
+        },
     });
 
     const promptTemplate = ChatPromptTemplate.fromMessages(messages as any);

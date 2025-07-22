@@ -14,6 +14,7 @@ import { createRunsRouter } from "./routes/runs-routes.js";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { llmRouter } from "./routes/llm-routes.js";
 
 // 实现 __dirname
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -82,6 +83,8 @@ app.use(
 
 // 挂载 trace 路由器
 app.route("/trace", traceRouter);
+
+app.route("/llm", llmRouter);
 
 // API Key 缓存管理接口、系统管理接口、数据迁移接口等已移动到 admin-routes.ts
 

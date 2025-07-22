@@ -18,6 +18,11 @@ const menuItems = [
         title: "系统管理",
         icon: createLucideIcon("key"),
     },
+    {
+        href: "#/playground",
+        title: "大模型测试",
+        icon: createLucideIcon("circle-play"),
+    },
 ];
 
 export const Layout = (props) => {
