@@ -8,6 +8,18 @@ import { createLucideIcon } from "./icons.js";
 // import { TraceDatabase } from "../src/database.ts"; // 不再直接使用数据库类
 // import { IndexedDBAdapter } from "../src/indexed-db-adapter.js"; // 不再直接使用数据库类
 
+const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(
+        () => {
+            console.log("Copied to clipboard:", text);
+            // 可以添加一个简单的视觉反馈，例如改变图标或显示一个临时消息
+        },
+        (err) => {
+            console.error("Failed to copy:", err);
+        },
+    );
+};
+
 const formatUnixTimestamp = (timestamp) => {
     if (!timestamp) return "-";
     const date = new Date(parseInt(timestamp));
@@ -38,14 +50,38 @@ const columnsConfig = [
         key: ["trace_id", "thread_id"],
         format: (run) => html`
             <div class="space-y-1">
-                <div class="text-xs text-gray-400 uppercase tracking-wide">
-                    Trace
+                <div class="flex items-center space-x-2">
+                    <div class="text-xs text-gray-400 uppercase tracking-wide">
+                        会话
+                    </div>
+                    ${run.trace_id &&
+                    html`
+                        <button
+                            onclick=${() => copyToClipboard(run.trace_id)}
+                            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                            title="复制 Trace ID"
+                        >
+                            复制
+                        </button>
+                    `}
                 </div>
                 <div class="text-sm font-mono text-gray-700 break-all">
                     ${run.trace_id || "-"}
                 </div>
-                <div class="text-xs text-gray-400 uppercase tracking-wide">
-                    Thread
+                <div class="flex items-center space-x-2">
+                    <div class="text-xs text-gray-400 uppercase tracking-wide">
+                        线程
+                    </div>
+                    ${run.thread_id &&
+                    html`
+                        <button
+                            onclick=${() => copyToClipboard(run.thread_id)}
+                            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                            title="复制 Thread ID"
+                        >
+                            复制
+                        </button>
+                    `}
                 </div>
                 <div class="text-sm font-mono text-gray-700 break-all">
                     ${run.thread_id || "-"}
@@ -483,7 +519,7 @@ export const OverviewPage = () => {
                             </div>
                             <div class="text-xs text-gray-500">
                                 当前筛选结果：<span class="font-medium"
-                                    >${totalRunsCount()}</span
+                                    >${totalRunsCount}</span
                                 >
                                 条记录
                             </div>
@@ -512,7 +548,7 @@ export const OverviewPage = () => {
                                 <div
                                     class="flex items-center text-sm text-gray-500"
                                 >
-                                    <span>共 ${totalRunsCount()} 条记录</span>
+                                    <span>共 ${totalRunsCount} 条记录</span>
                                 </div>
                             </div>
                         </div>
@@ -673,7 +709,7 @@ export const OverviewPage = () => {
                                             <span class="text-sm text-gray-500">
                                                 总计
                                                 <span class="font-medium"
-                                                    >${totalRunsCount()}</span
+                                                    >${totalRunsCount}</span
                                                 >
                                                 条记录
                                             </span>
