@@ -5,7 +5,7 @@ export const SearchBar = (props) => {
     // 获取系统列表
     const [systems] = createResource(async () => {
         try {
-            const response = await fetch("/trace/systems");
+            const response = await fetch("../trace/systems");
             if (!response.ok) throw new Error("Failed to load systems");
             const data = await response.json();
             return data.systems || [];

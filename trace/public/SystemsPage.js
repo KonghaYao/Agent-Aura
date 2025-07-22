@@ -26,7 +26,7 @@ export const SystemsPage = () => {
     const [systems, { refetch: refetchSystems }] = createResource(
         refreshTrigger,
         async () => {
-            const response = await fetch("/admin/systems", {
+            const response = await fetch("../admin/systems", {
                 headers: getAuthHeaders(), // 添加认证头
             });
             if (!response.ok) {
@@ -76,7 +76,7 @@ export const SystemsPage = () => {
         }
 
         // API Key 输入验证 (如果提供了)
-        if (apiKey && !/^[a-zA-Z0-9-]+$/.test(apiKey)) {
+        if (apiKey && !/^[a-zA-Z0-9-_]+$/.test(apiKey)) {
             setMessage({
                 type: "error",
                 text: "API Key 只能包含字母、数字和连字符。",
@@ -86,7 +86,7 @@ export const SystemsPage = () => {
 
         setIsCreating(true);
         try {
-            const response = await fetch("/admin/systems", {
+            const response = await fetch("../admin/systems", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

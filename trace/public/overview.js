@@ -118,6 +118,18 @@ const columnsConfig = [
         className: "px-4 py-3 border-b border-gray-100 text-center",
     },
     {
+        header: "用户 ID",
+        key: "user_id",
+        format: (run) => html`
+            <span
+                class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200"
+            >
+                ${run.user_id || "-"}
+            </span>
+        `,
+        className: "px-4 py-3 border-b border-gray-100 text-center",
+    },
+    {
         header: "起始时间",
         key: "start_time",
         format: (run) => html`
@@ -132,7 +144,7 @@ const columnsConfig = [
 // 获取系统列表
 const fetchSystems = async () => {
     try {
-        const response = await fetch("/trace/systems");
+        const response = await fetch("../trace/systems");
         if (!response.ok)
             throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -146,7 +158,7 @@ const fetchSystems = async () => {
 // 获取模型名称列表
 const fetchModelNames = async () => {
     try {
-        const response = await fetch("/trace/models");
+        const response = await fetch("../trace/models");
         if (!response.ok)
             throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
@@ -172,6 +184,7 @@ const fetchLlmRuns = async ([currentPage, itemsPerPage, filters]) => {
     if (filters.model_name)
         queryParams.append("model_name", filters.model_name);
     if (filters.thread_id) queryParams.append("thread_id", filters.thread_id);
+    if (filters.user_id) queryParams.append("user_id", filters.user_id);
 
     try {
         const response = await fetch(
@@ -203,6 +216,7 @@ export const OverviewPage = () => {
         system: "",
         model_name: "",
         thread_id: "",
+        user_id: "", // 添加 user_id 过滤条件
     });
 
     // 临时过滤条件（用于输入）
@@ -211,6 +225,7 @@ export const OverviewPage = () => {
         system: "",
         model_name: "",
         thread_id: "",
+        user_id: "", // 添加 user_id 临时过滤条件
     });
 
     // 资源加载
@@ -263,6 +278,7 @@ export const OverviewPage = () => {
             system: "",
             model_name: "",
             thread_id: "",
+            user_id: "", // 清除 user_id 过滤条件
         };
         setTempFilters(defaultFilters);
         setFilters(defaultFilters);
@@ -402,6 +418,23 @@ export const OverviewPage = () => {
                                     oninput=${(e) =>
                                         handleTempFilterChange(
                                             "thread_id",
+                                            e.target.value,
+                                        )}
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                    >用户ID</label
+                                >
+                                <input
+                                    type="text"
+                                    class="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    placeholder="请输入用户ID..."
+                                    value=${() => tempFilters().user_id}
+                                    oninput=${(e) =>
+                                        handleTempFilterChange(
+                                            "user_id",
                                             e.target.value,
                                         )}
                                 />

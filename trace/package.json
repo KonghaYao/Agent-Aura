@@ -1,7 +1,7 @@
 {
     "name": "@langgraph-js/open-smith",
     "type": "module",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Open Smith",
     "author": "KonghaYao",
     "license": "Apache-2.0",
@@ -21,11 +21,14 @@
     },
     "dependencies": {
         "@hono/node-server": "^1.15.0",
+        "@langchain/core": "^0.3.66",
+        "@langchain/openai": "^0.6.2",
         "@types/pg": "^8.15.4",
         "better-sqlite3": "^12.2.0",
         "hono": "^4.8.4",
         "pg": "^8.16.3",
-        "uuid": "^11.0.0"
+        "uuid": "^11.0.0",
+        "zod-to-json-schema": "^3.24.6"
     },
     "devDependencies": {
         "@types/better-sqlite3": "^7.6.13",

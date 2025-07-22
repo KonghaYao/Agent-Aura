@@ -5,7 +5,7 @@ import { logger } from "hono/logger";
 import { HTTPException } from "hono/http-exception";
 // import { serveStatic } from "hono/bun";
 import { MultipartProcessor } from "./multipart-processor.js";
-import { createTraceRouter } from "./trace-router.js";
+import { createTraceRouter } from "./routes/trace-router.js";
 import { TraceDatabase, type DatabaseAdapter } from "./database.js";
 import { ApiKeyCache } from "./api-key-cache.js"; // 更新导入路径
 import { createAdminRouter } from "./routes/admin-routes.js";

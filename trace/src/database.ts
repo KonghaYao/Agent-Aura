@@ -15,6 +15,7 @@ export interface RunRecord {
     run_type?: string;
     system?: string; // 系统标识，来自 x-api-key
     thread_id?: string; // 线程ID，来自 extra.metadata.thread_id
+    user_id?: string; // 用户ID，来自 extra.metadata.user_id
     start_time?: string;
     end_time?: string;
     inputs?: string; // JSON string
@@ -208,6 +209,7 @@ export class TraceDatabase {
                 run_type TEXT,
                 system TEXT,
                 thread_id TEXT,
+                user_id TEXT,
                 start_time TEXT,
                 end_time TEXT,
                 inputs TEXT,
@@ -262,6 +264,7 @@ export class TraceDatabase {
             CREATE INDEX IF NOT EXISTS idx_systems_status ON systems (status);
             CREATE INDEX IF NOT EXISTS idx_runs_trace_id ON runs (trace_id);
             CREATE INDEX IF NOT EXISTS idx_runs_thread_id ON runs (thread_id);
+            CREATE INDEX IF NOT EXISTS idx_runs_user_id ON runs (user_id);
             CREATE INDEX IF NOT EXISTS idx_runs_model_name ON runs (model_name);
             CREATE INDEX IF NOT EXISTS idx_runs_system ON runs (system);
             CREATE INDEX IF NOT EXISTS idx_runs_run_type ON runs (run_type);
@@ -279,6 +282,19 @@ export class TraceDatabase {
             const extraData =
                 typeof extra === "string" ? JSON.parse(extra) : extra;
             return extraData?.metadata?.thread_id;
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    // 从 extra 字段中提取 user_id 的辅助方法
+    private extractUserIdFromExtra(extra: any): string | undefined {
+        if (!extra) return undefined;
+
+        try {
+            const extraData =
+                typeof extra === "string" ? JSON.parse(extra) : extra;
+            return extraData?.metadata?.user_id;
         } catch (error) {
             return undefined;
         }
@@ -382,6 +398,10 @@ export class TraceDatabase {
         // 从 extra 中提取 thread_id（如果未直接提供）
         const threadId =
             runData.thread_id || this.extractThreadIdFromExtra(runData.extra);
+
+        // 从 extra 中提取 user_id
+        const userId = this.extractUserIdFromExtra(runData.extra);
+
         const record: RunRecord = {
             id,
             trace_id: runData.trace_id,
@@ -389,6 +409,7 @@ export class TraceDatabase {
             run_type: runData.run_type,
             system: runData.system,
             thread_id: threadId,
+            user_id: userId,
             start_time: formatTimestamp(runData.start_time),
             end_time: formatTimestamp(runData.end_time),
             inputs: runData.inputs ? JSON.stringify(runData.inputs) : undefined,
@@ -424,6 +445,7 @@ export class TraceDatabase {
             record.system,
             record.model_name,
             record.thread_id,
+            record.user_id,
             record.start_time,
             record.end_time,
             record.inputs,
@@ -441,7 +463,7 @@ export class TraceDatabase {
 
         const stmt = await this.adapter.prepare(`
             INSERT INTO runs (
-                id, trace_id, name, run_type, system, model_name, thread_id, start_time, end_time,
+                id, trace_id, name, run_type, system, model_name, thread_id, user_id, start_time, end_time,
                 inputs, outputs, events, error, extra, serialized, total_tokens,
                 created_at, updated_at, time_to_first_token, tags
             ) VALUES (${commitData
@@ -581,6 +603,15 @@ export class TraceDatabase {
                     updateValues.push(threadId);
                 }
             }
+
+            // 从 extra 中提取并更新 user_id
+            const userId = this.extractUserIdFromExtra(runData.extra);
+            if (userId) {
+                updateFields.push(
+                    `user_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+                );
+                updateValues.push(userId);
+            }
         }
         if (runData.thread_id !== undefined) {
             updateFields.push(
@@ -668,6 +699,9 @@ export class TraceDatabase {
                 "time_to_first_token",
                 time_to_first_token,
             );
+        }
+        if (field === "user_id") {
+            await this.updateRunField(runId, "user_id", value, false);
         }
 
         if (result.changes === 0) {
@@ -884,6 +918,16 @@ export class TraceDatabase {
         return (await stmt.all([threadId])) as RunRecord[];
     }
 
+    // 根据用户ID获取 runs
+    async getRunsByUserId(userId: string): Promise<RunRecord[]> {
+        const stmt = await this.adapter.prepare(
+            `SELECT * FROM runs WHERE user_id = ${this.adapter.getPlaceholder(
+                1,
+            )} ORDER BY created_at DESC`,
+        );
+        return (await stmt.all([userId])) as RunRecord[];
+    }
+
     // 根据线程ID获取相关的 traces
     async getTracesByThreadId(threadId: string): Promise<TraceOverview[]> {
         const stmt = await this.adapter.prepare(`
@@ -902,7 +946,8 @@ export class TraceDatabase {
                     true,
                     ",",
                 )} as systems,
-                SUM(total_tokens) as total_tokens_sum
+                SUM(total_tokens) as total_tokens_sum,
+                MIN(user_id) as user_id
             FROM runs 
             WHERE trace_id IS NOT NULL AND thread_id = ${this.adapter.getPlaceholder(
                 1,
@@ -949,6 +994,7 @@ export class TraceDatabase {
                         ? trace.systems.split(",").filter(Boolean)
                         : [],
                     total_tokens_sum: trace.total_tokens_sum || 0,
+                    user_id: trace.user_id,
                 };
             }),
         );
@@ -1148,6 +1194,88 @@ export class TraceDatabase {
         return results.map((r) => r.thread_id);
     }
 
+    // 获取所有用户ID列表
+    async getAllUserIds(): Promise<string[]> {
+        const stmt = await this.adapter.prepare(`
+            SELECT DISTINCT user_id 
+            FROM runs 
+            WHERE user_id IS NOT NULL AND user_id != ''
+            ORDER BY user_id
+        `);
+        const results = (await stmt.all()) as { user_id: string }[];
+        return results.map((r) => r.user_id);
+    }
+
+    // 根据用户ID获取相关的 traces
+    async getTracesByUserId(userId: string): Promise<TraceOverview[]> {
+        const stmt = await this.adapter.prepare(`
+            SELECT 
+                trace_id,
+                COUNT(*) as total_runs,
+                MIN(start_time) as first_run_time,
+                MAX(end_time) as last_run_time,
+                ${this.adapter.getStringAggregateFunction(
+                    "run_type",
+                    true,
+                    ",",
+                )} as run_types,
+                ${this.adapter.getStringAggregateFunction(
+                    "system",
+                    true,
+                    ",",
+                )} as systems,
+                SUM(total_tokens) as total_tokens_sum
+            FROM runs 
+            WHERE trace_id IS NOT NULL AND user_id = ${this.adapter.getPlaceholder(
+                1,
+            )}
+            GROUP BY trace_id 
+            ORDER BY MAX(created_at) DESC
+        `);
+
+        const traces = (await stmt.all([userId])) as any[];
+
+        return Promise.all(
+            traces.map(async (trace: any) => {
+                // 获取该 trace 的 feedback 和 attachments 统计
+                const feedbackStmt = await this.adapter.prepare(`
+                SELECT COUNT(*) as count FROM feedback WHERE trace_id = ${this.adapter.getPlaceholder(
+                    1,
+                )}
+            `);
+                const attachmentStmt = await this.adapter.prepare(`
+                SELECT COUNT(*) as count 
+                FROM attachments a
+                JOIN runs r ON a.run_id = r.id 
+                WHERE r.trace_id = ${this.adapter.getPlaceholder(1)}
+            `);
+
+                const feedbackCount = (await feedbackStmt.get([
+                    trace.trace_id,
+                ])) as any;
+                const attachmentCount = (await attachmentStmt.get([
+                    trace.trace_id,
+                ])) as any;
+
+                return {
+                    trace_id: trace.trace_id,
+                    total_runs: trace.total_runs,
+                    total_feedback: feedbackCount.count,
+                    total_attachments: attachmentCount.count,
+                    first_run_time: trace.first_run_time,
+                    last_run_time: trace.last_run_time,
+                    run_types: trace.run_types
+                        ? trace.run_types.split(",").filter(Boolean)
+                        : [],
+                    systems: trace.systems
+                        ? trace.systems.split(",").filter(Boolean)
+                        : [],
+                    total_tokens_sum: trace.total_tokens_sum || 0,
+                };
+            }),
+        );
+    }
+
     // 获取所有模型名称列表
     async getAllModelNames(): Promise<string[]> {
         const stmt = await this.adapter.prepare(`
@@ -1195,6 +1323,7 @@ export class TraceDatabase {
             system?: string;
             model_name?: string;
             thread_id?: string;
+            user_id?: string;
             tag?: string;
         },
         limit: number,
@@ -1228,6 +1357,12 @@ export class TraceDatabase {
             );
             values.push(conditions.thread_id);
         }
+        if (conditions.user_id) {
+            whereConditions.push(
+                `user_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.user_id);
+        }
         if (conditions.tag) {
             whereConditions.push(
                 `tags IS NOT NULL AND tags LIKE ${this.adapter.getPlaceholder(
@@ -1260,12 +1395,19 @@ export class TraceDatabase {
         system?: string;
         model_name?: string;
         thread_id?: string;
+        user_id?: string;
         tag?: string;
     }): Promise<number> {
         const whereConditions: string[] = [];
         const values: any[] = [];
         let paramIndex = 1;
 
+        if (conditions.user_id) {
+            whereConditions.push(
+                `user_id = ${this.adapter.getPlaceholder(paramIndex++)}`,
+            );
+            values.push(conditions.user_id);
+        }
         if (conditions.run_type) {
             whereConditions.push(
                 `run_type = ${this.adapter.getPlaceholder(paramIndex++)}`,

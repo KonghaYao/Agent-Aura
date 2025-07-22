@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { TraceDatabase } from "./database.js";
+import type { TraceDatabase } from "../database.js";
 
 export interface TraceInfo {
     trace_id: string;
@@ -140,6 +140,7 @@ export function createTraceRouter(db: TraceDatabase) {
         const system = c.req.query("system");
         const modelName = c.req.query("model_name");
         const threadId = c.req.query("thread_id");
+        const user_id = c.req.query("user_id");
         const limit = parseInt(c.req.query("limit") || "10"); // 默认每页10条
         const offset = parseInt(c.req.query("offset") || "0"); // 默认偏移0
 
@@ -149,7 +150,7 @@ export function createTraceRouter(db: TraceDatabase) {
         if (system) conditions.system = system;
         if (modelName) conditions.model_name = modelName;
         if (threadId) conditions.thread_id = threadId;
-
+        if (user_id) conditions.user_id = user_id;
         // 如果没有任何查询条件，返回错误
         if (Object.keys(conditions).length === 0) {
             return c.json(
