@@ -1,7 +1,8 @@
-import { createMemo, createSignal, createResource } from "solid-js";
+import { createMemo, createEffect, createResource } from "solid-js";
 import html from "solid-js/html";
 import { load } from "https://esm.run/@langchain/core/dist/load/index.js";
 import * as Messages from "https://esm.run/@langchain/core/dist/messages/index.js";
+
 export const GraphStatePanel = (props) => {
     const state = createMemo(() => {
         const data = { ...props.state };
@@ -12,13 +13,13 @@ export const GraphStatePanel = (props) => {
 };
 
 export const GraphStateMessage = (props) => {
-    const [LCMessage] = createResource(
+    const [LCMessage, { refetch }] = createResource(
         async () => {
             try {
                 if (!props.state?.messages?.length) {
                     return [];
                 }
-                const messages = props.state.messages.flat();
+                const messages = [...props.state.messages].flat();
                 const LangChainMessages = await Promise.all(
                     messages.map((i) => {
                         if (i.lc !== 1) {
@@ -60,6 +61,11 @@ export const GraphStateMessage = (props) => {
             initialValue: [],
         },
     );
+    createEffect(() => {
+        if (props.state.messages.length) {
+            refetch();
+        }
+    });
     const message = createMemo(() => {
         if (props.reverse()) {
             return [...LCMessage()].reverse();

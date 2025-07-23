@@ -3,18 +3,15 @@ import {
     For,
     Show,
     createMemo,
-    onMount,
     createResource,
+    onMount,
 } from "solid-js";
 import html from "solid-js/html";
 import { createLucideIcon } from "./icons.js";
 import { ModelConfigModal } from "./components/ModelConfigModal.js";
 import { createStoreSignal } from "./utils.js";
-import { load } from "https://esm.run/@langchain/core/dist/load/index.js";
 import { GraphStateMessage } from "./components/GraphState.js";
-// 消息类型选项
-const messageTypes = ["system", "human", "ai", "user"];
-
+import { MessageEditor } from "./components/MessageEditor.js";
 // 默认消息
 const defaultMessage = [
     ["system", "You are a chatbot."],
@@ -24,7 +21,7 @@ const defaultMessage = [
 export const PlayGround = () => {
     // 状态管理
     const [messages, setMessages] = createSignal(defaultMessage);
-    const [inputs, setInputs] = createSignal({ question: "Hello!" });
+    const [inputs, setInputs] = createSignal({});
 
     const [modelConfigs] = createStoreSignal("modelConfigs", []);
     const [selectedModelId, setSelectedModelId] = createStoreSignal(
@@ -37,10 +34,11 @@ export const PlayGround = () => {
 
     const [showModelModal, setShowModelModal] = createSignal(false);
 
-    const [showOutputSchema, setShowOutputSchema] = createSignal(false);
     const [outputSchemaText, setOutputSchemaText] = createSignal("");
-    const [showTools, setShowTools] = createSignal(false);
     const [toolsText, setToolsText] = createSignal("[]");
+
+    // Tab 状态管理
+    const [activeTab, setActiveTab] = createSignal(null); // null, 'schema', 'tools'
 
     // Request payload for createResource
     const [requestPayload, setRequestPayload] = createSignal(null);
@@ -50,14 +48,16 @@ export const PlayGround = () => {
     const composedStreamContent = createMemo(() => {
         let content = "";
         for (const i of streamContent()) {
-            content += i.content;
+            content += i.kwargs.content;
         }
-
         return [
             {
-                type: "ai",
+                type: "constructor",
                 lc: 1,
-                content: content,
+                id: ["langchain_core", "messages", "AIMessage"],
+                kwargs: {
+                    content: content,
+                },
             },
         ];
     });
@@ -71,7 +71,8 @@ export const PlayGround = () => {
 
             setStreamContent([]); // Clear previous stream content for new request
 
-            const endpoint = type === "stream" ? "../llm/stream" : "../llm/invoke";
+            const endpoint =
+                type === "stream" ? "../llm/stream" : "../llm/invoke";
 
             try {
                 const response = await fetch(endpoint, {
@@ -94,15 +95,11 @@ export const PlayGround = () => {
                 }
 
                 if (type === "stream") {
-                    const reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let buffer = "";
 
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-
-                        buffer += decoder.decode(value, { stream: true });
+                    for await (const chunk of response.body) {
+                        buffer += decoder.decode(chunk, { stream: true });
                         const lines = buffer.split("\n");
                         buffer = lines.pop();
 
@@ -116,10 +113,10 @@ export const PlayGround = () => {
                                     };
                                 }
                                 try {
-                                    const chunk = JSON.parse(data);
+                                    const parsedChunk = JSON.parse(data);
                                     setStreamContent((prev) => [
                                         ...prev,
-                                        chunk,
+                                        parsedChunk,
                                     ]);
                                 } catch (e) {
                                     console.error("解析流数据错误:", e);
@@ -144,21 +141,6 @@ export const PlayGround = () => {
             }
         },
     );
-
-    // 在组件挂载时，从 localStorage 加载并设置第一个模型配置（如果存在）
-    onMount(() => {
-        try {
-            const savedConfigs = localStorage.getItem("modelConfigs");
-            if (savedConfigs) {
-                const configs = JSON.parse(savedConfigs);
-                if (configs.length > 0) {
-                    setSelectedModelId(configs[0].id);
-                }
-            }
-        } catch (e) {
-            console.error("Failed to load and set initial model config:", e);
-        }
-    });
 
     // 从消息中解析变量
     const variables = createMemo(() => {
@@ -194,6 +176,25 @@ export const PlayGround = () => {
         );
     };
 
+    const commitTestRun = (type) => {
+        if (!selectedConfig()) {
+            alert("请先选择一个模型配置！");
+            setShowModelModal(true);
+            return;
+        }
+        setRequestPayload({
+            messages: messages(),
+            inputs: inputs(),
+            model: selectedConfig(),
+            tools:
+                activeTab() === "tools" ? JSON.parse(toolsText() || "[]") : [],
+            output_schema: outputSchemaText()
+                ? JSON.parse(outputSchemaText())
+                : undefined,
+            type: type,
+        });
+    };
+
     return html`
         <div class="h-screen flex flex-col bg-gray-50 font-sans text-gray-800">
             <!-- Top Bar -->
@@ -207,62 +208,25 @@ export const PlayGround = () => {
                     </h1>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button
-                        class="px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-100"
-                    >
-                        Set up Evaluation
-                    </button>
                     <div class="flex rounded-md border border-gray-300">
                         <button
                             onclick=${() => {
-                                if (!selectedConfig()) {
-                                    alert("请先选择一个模型配置！");
-                                    setShowModelModal(true);
-                                    return;
-                                }
-                                setRequestPayload({
-                                    messages: messages(),
-                                    inputs: inputs(),
-                                    model: selectedConfig(),
-                                    tools: showTools()
-                                        ? JSON.parse(toolsText() || "[]")
-                                        : [],
-                                    output_schema: showOutputSchema()
-                                        ? JSON.parse(outputSchemaText() || "{}")
-                                        : undefined,
-                                    type: "invoke",
-                                });
+                                commitTestRun("invoke");
                             }}
                             disabled=${responseResource.loading}
-                            class="px-4 py-1.5 bg-green-600 text-white rounded-l-md flex items-center hover:bg-green-700 disabled:bg-gray-400"
+                            class="px-5 py-2 bg-green-600 text-white rounded-l-lg flex items-center font-medium shadow-sm transition-colors duration-150 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed border-r border-green-700"
                         >
-                            ${createLucideIcon("play")} Start
+                            运行
                         </button>
                         <button
                             onclick=${() => {
-                                if (!selectedConfig()) {
-                                    alert("请先选择一个模型配置！");
-                                    setShowModelModal(true);
-                                    return;
-                                }
-                                setRequestPayload({
-                                    messages: messages(),
-                                    inputs: inputs(),
-                                    model: selectedConfig(),
-                                    tools: showTools()
-                                        ? JSON.parse(toolsText() || "[]")
-                                        : [],
-                                    output_schema: showOutputSchema()
-                                        ? JSON.parse(outputSchemaText() || "{}")
-                                        : undefined,
-                                    type: "stream",
-                                });
+                                commitTestRun("stream");
                             }}
                             disabled=${responseResource.loading}
-                            class="px-2 py-1.5 bg-green-600 text-white rounded-r-md border-l border-green-700 hover:bg-green-700 disabled:bg-gray-400"
-                            title="Start with streaming"
+                            class="px-3 py-2 bg-green-600 text-white rounded-r-lg flex items-center font-medium shadow-sm transition-colors duration-150 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            title="流式运行"
                         >
-                            ${createLucideIcon("chevron-down")}
+                            流式
                         </button>
                     </div>
                 </div>
@@ -270,10 +234,10 @@ export const PlayGround = () => {
 
             <main class="flex-1 grid grid-cols-12 gap-6 p-6 overflow-y-auto">
                 <!-- Left and Middle Panel -->
-                <div class="col-span-8 flex flex-col gap-4">
+                <div class="col-span-8 flex flex-col gap-4 min-h-0">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-semibold flex items-center">
-                            Prompts ${createLucideIcon("info")}
+                            Prompts
                         </h2>
                         <div class="flex items-center gap-2">
                             <div
@@ -295,125 +259,152 @@ export const PlayGround = () => {
                         </div>
                     </div>
 
-                    <!-- Messages -->
-                    <div class="space-y-3">
-                        ${For({
-                            each: messages,
-                            children: (message, index) => html`
+                    <!-- Messages Section -->
+                    <div class="flex-1 flex flex-col min-h-0">
+                        <div class="flex-1 overflow-y-auto space-y-3 pr-2">
+                            ${MessageEditor({
+                                messages: messages,
+                                onUpdateMessage: updateMessage,
+                                onRemoveMessage: removeMessage,
+                            })}
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div
+                            class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200"
+                        >
+                            <button
+                                onclick=${addMessage}
+                                class="px-3 py-1 text-sm border border-gray-300 rounded-md flex items-center bg-white hover:bg-gray-100"
+                            >
+                                ${createLucideIcon("plus")} Message
+                            </button>
+                            <button
+                                onclick=${() =>
+                                    setActiveTab(
+                                        activeTab() === "schema"
+                                            ? null
+                                            : "schema",
+                                    )}
+                                class=${() =>
+                                    "px-3 py-1 text-sm border rounded-md flex items-center hover:bg-gray-100" +
+                                    (activeTab() === "schema"
+                                        ? "bg-blue-100 border-blue-300"
+                                        : "bg-white border-gray-300")}
+                            >
+                                ${createLucideIcon("plus")} Output Schema
+                            </button>
+                            <button
+                                onclick=${() =>
+                                    setActiveTab(
+                                        activeTab() === "tools"
+                                            ? null
+                                            : "tools",
+                                    )}
+                                class=${() =>
+                                    "px-3 py-1 text-sm border rounded-md flex items-center hover:bg-gray-100" +
+                                    (activeTab() === "tools"
+                                        ? "bg-blue-100 border-blue-300"
+                                        : "bg-white border-gray-300")}
+                            >
+                                ${createLucideIcon("plus")} Tool
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tab Content Area -->
+                    ${() =>
+                        Show({
+                            when: activeTab(),
+                            children: () => html`
                                 <div
-                                    class="bg-white border border-gray-200 rounded-lg p-3"
+                                    class="bg-white border border-gray-200 rounded-lg overflow-hidden"
                                 >
-                                    <div
-                                        class="flex justify-between items-center mb-2"
-                                    >
-                                        <select
-                                            value=${message[0]}
-                                            onchange=${(e) =>
-                                                updateMessage(
-                                                    index(),
-                                                    e.target.value,
-                                                    message[1],
-                                                )}
-                                            class="font-semibold text-xs uppercase bg-transparent focus:outline-none"
+                                    <!-- Tab Headers -->
+                                    <div class="flex border-b border-gray-200">
+                                        <button
+                                            onclick=${() =>
+                                                setActiveTab("schema")}
+                                            class=${() =>
+                                                "px-4 py-2 text-sm font-medium" +
+                                                (activeTab() === "schema"
+                                                    ? "bg-blue-50 text-blue-700 border-b-2 border-blue-500"
+                                                    : "text-gray-500 hover:text-gray-700")}
                                         >
-                                            ${For({
-                                                each: messageTypes,
-                                                children: (type) =>
-                                                    html`<option value=${type}>
-                                                        ${type}
-                                                    </option>`,
-                                            })}
-                                        </select>
-                                        <div class="flex items-center">
-                                            <button
-                                                onclick=${() =>
-                                                    removeMessage(index())}
-                                                class="p-1 text-gray-400 hover:text-red-500"
-                                            >
-                                                ${createLucideIcon("trash-2")}
-                                            </button>
-                                        </div>
+                                            Output Schema
+                                        </button>
+                                        <button
+                                            onclick=${() =>
+                                                setActiveTab("tools")}
+                                            class=${() =>
+                                                "px-4 py-2 text-sm font-medium" +
+                                                (activeTab() === "tools"
+                                                    ? "bg-blue-50 text-blue-700 border-b-2 border-blue-500"
+                                                    : "text-gray-500 hover:text-gray-700")}
+                                        >
+                                            Tools
+                                        </button>
+                                        <div class="flex-1"></div>
+                                        <button
+                                            onclick=${() => setActiveTab(null)}
+                                            class="px-3 py-2 text-gray-400 hover:text-gray-600"
+                                            title="关闭"
+                                        >
+                                            ${createLucideIcon("x")}
+                                        </button>
                                     </div>
-                                    <textarea
-                                        value=${message[1]}
-                                        oninput=${(e) =>
-                                            updateMessage(
-                                                index(),
-                                                message[0],
-                                                e.target.value,
-                                            )}
-                                        placeholder="Enter a message..."
-                                        class="w-full p-2 border border-gray-300 rounded-md resize-y focus:ring-2 focus:ring-blue-400"
-                                        rows="3"
-                                    ></textarea>
+
+                                    <!-- Tab Content -->
+                                    <div class="p-4 max-h-60 overflow-y-auto">
+                                        ${() =>
+                                            activeTab() === "schema" &&
+                                            html`
+                                                <div>
+                                                    <h3
+                                                        class="text-sm font-semibold mb-2"
+                                                    >
+                                                        Output Schema (JSON)
+                                                    </h3>
+                                                    <textarea
+                                                        value=${outputSchemaText()}
+                                                        onchange=${(e) =>
+                                                            setOutputSchemaText(
+                                                                e.target.value,
+                                                            )}
+                                                        placeholder=""
+                                                        class="w-full p-2 border border-gray-300 rounded-md font-mono text-sm resize-none"
+                                                        rows="8"
+                                                    ></textarea>
+                                                </div>
+                                            `}
+                                        ${() =>
+                                            Show({
+                                                when: activeTab() === "tools",
+                                                children: html`
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-semibold mb-2"
+                                                        >
+                                                            Tools (JSON)
+                                                        </h3>
+                                                        <textarea
+                                                            value=${toolsText()}
+                                                            oninput=${(e) =>
+                                                                setToolsText(
+                                                                    e.target
+                                                                        .value,
+                                                                )}
+                                                            placeholder=""
+                                                            class="w-full p-2 border border-gray-300 rounded-md font-mono text-sm resize-none"
+                                                            rows="8"
+                                                        ></textarea>
+                                                    </div>
+                                                `,
+                                            })}
+                                    </div>
                                 </div>
                             `,
                         })}
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex items-center gap-2">
-                        <button
-                            onclick=${addMessage}
-                            class="px-3 py-1 text-sm border border-gray-300 rounded-md flex items-center bg-white hover:bg-gray-100"
-                        >
-                            ${createLucideIcon("plus")} Message
-                        </button>
-                        <button
-                            onclick=${() => setShowOutputSchema((p) => !p)}
-                            class="px-3 py-1 text-sm border border-gray-300 rounded-md flex items-center bg-white hover:bg-gray-100"
-                        >
-                            ${createLucideIcon("plus")} Output Schema
-                        </button>
-                        <button
-                            onclick=${() => setShowTools((p) => !p)}
-                            class="px-3 py-1 text-sm border border-gray-300 rounded-md flex items-center bg-white hover:bg-gray-100"
-                        >
-                            ${createLucideIcon("plus")} Tool
-                        </button>
-                    </div>
-
-                    <!-- Advanced Sections -->
-                    ${Show({
-                        when: showOutputSchema(),
-                        children: html`
-                            <div
-                                class="bg-white border border-gray-200 rounded-lg p-3"
-                            >
-                                <h3 class="text-sm font-semibold mb-2">
-                                    Output Schema (JSON)
-                                </h3>
-                                <textarea
-                                    value=${outputSchemaText()}
-                                    oninput=${(e) =>
-                                        setOutputSchemaText(e.target.value)}
-                                    placeholder='{"type": "object", "properties": {...}}'
-                                    class="w-full p-2 border border-gray-300 rounded-md font-mono text-sm"
-                                    rows="6"
-                                ></textarea>
-                            </div>
-                        `,
-                    })}
-                    ${Show({
-                        when: showTools(),
-                        children: html`
-                            <div
-                                class="bg-white border border-gray-200 rounded-lg p-3"
-                            >
-                                <h3 class="text-sm font-semibold mb-2">
-                                    Tools (JSON)
-                                </h3>
-                                <textarea
-                                    value=${toolsText()}
-                                    oninput=${(e) =>
-                                        setToolsText(e.target.value)}
-                                    placeholder='[{"name": "tool_name", "description": "...", "schema": {...}}]'
-                                    class="w-full p-2 border border-gray-300 rounded-md font-mono text-sm"
-                                    rows="6"
-                                ></textarea>
-                            </div>
-                        `,
-                    })}
                 </div>
 
                 <!-- Right Panel: Inputs & Output -->
@@ -423,31 +414,32 @@ export const PlayGround = () => {
                         <h2
                             class="text-base font-semibold flex items-center mb-3"
                         >
-                            Inputs ${createLucideIcon("info")}
+                            Inputs
                         </h2>
                         <div class="space-y-3">
-                            ${For({
-                                each: variables(),
-                                children: (variable) => html`
-                                    <div>
-                                        <label
-                                            class="text-sm font-medium text-gray-700"
-                                            >${variable}</label
-                                        >
-                                        <input
-                                            type="text"
-                                            value=${inputs()[variable] || ""}
-                                            oninput=${(e) =>
-                                                handleInputChange(
-                                                    variable,
-                                                    e.target.value,
-                                                )}
-                                            class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400"
-                                            placeholder="Enter variable value..."
-                                        />
-                                    </div>
-                                `,
-                            })}
+                            ${() =>
+                                variables().map(
+                                    (variable) => html`
+                                        <div>
+                                            <label
+                                                class="text-sm font-medium text-gray-700"
+                                                >${variable}</label
+                                            >
+                                            <input
+                                                type="text"
+                                                value=${inputs()[variable] ||
+                                                ""}
+                                                onchange=${(e) =>
+                                                    handleInputChange(
+                                                        variable,
+                                                        e.target.value,
+                                                    )}
+                                                class="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400"
+                                                placeholder="Enter variable value..."
+                                            />
+                                        </div>
+                                    `,
+                                )}
                             ${Show({
                                 when: variables().length === 0,
                                 children: html`<p class="text-sm text-gray-500">
@@ -464,7 +456,7 @@ export const PlayGround = () => {
                         <h2
                             class="text-base font-semibold flex items-center mb-3"
                         >
-                            Output ${createLucideIcon("info")}
+                            Output
                         </h2>
                         <div
                             class="flex-1 overflow-auto bg-gray-50 rounded-md p-3 text-sm"
@@ -486,19 +478,14 @@ export const PlayGround = () => {
                                     </p>`,
                                 })}
                             ${() =>
-                                Show({
-                                    when:
-                                        !responseResource.loading &&
-                                        responseResource() &&
-                                        responseResource().type === "stream",
-                                    children: () =>
-                                        GraphStateMessage({
-                                            state: {
-                                                messages:
-                                                    composedStreamContent(),
-                                            },
-                                            reverse: () => false,
-                                        }),
+                                !responseResource.loading &&
+                                responseResource() &&
+                                responseResource().type === "stream" &&
+                                GraphStateMessage({
+                                    state: {
+                                        messages: composedStreamContent(),
+                                    },
+                                    reverse: () => false,
                                 })}
                             ${() =>
                                 Show({
