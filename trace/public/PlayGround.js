@@ -71,7 +71,7 @@ export const PlayGround = () => {
 
             setStreamContent([]); // Clear previous stream content for new request
 
-            const endpoint = type === "stream" ? "/llm/stream" : "/llm/invoke";
+            const endpoint = type === "stream" ? "../llm/stream" : "../llm/invoke";
 
             try {
                 const response = await fetch(endpoint, {

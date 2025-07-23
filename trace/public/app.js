@@ -25,10 +25,10 @@ export const App = () => {
         () => ({ refresh: refreshTrigger(), system: selectedSystem() }), // 依赖 refreshTrigger 和 selectedSystem 触发刷新
         async (params) => {
             const url = params.system
-                ? `/trace/threads/overview?system=${encodeURIComponent(
+                ? `../trace/threads/overview?system=${encodeURIComponent(
                       params.system,
                   )}`
-                : "/trace/threads/overview";
+                : "../trace/threads/overview";
             const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to load threads");
             const data = await response.json();
@@ -42,7 +42,7 @@ export const App = () => {
         async (params) => {
             if (!params.threadId) return [];
             const response = await fetch(
-                `/trace/thread/${params.threadId}/traces`,
+                `../trace/thread/${params.threadId}/traces`,
             );
             if (!response.ok) throw new Error("Failed to load thread traces");
             const data = await response.json();
@@ -55,7 +55,7 @@ export const App = () => {
         () => ({ traceId: selectedTraceId(), refresh: refreshTrigger() }), // 依赖 refreshTrigger 触发刷新
         async (params) => {
             if (!params.traceId) return null;
-            const response = await fetch(`/trace/${params.traceId}`);
+            const response = await fetch(`../trace/${params.traceId}`);
             if (!response.ok) throw new Error("Failed to load trace data");
             return await response.json();
         },

@@ -224,7 +224,7 @@ const fetchLlmRuns = async ([currentPage, itemsPerPage, filters]) => {
 
     try {
         const response = await fetch(
-            `/trace/traces/search?${queryParams.toString()}`,
+            `../trace/traces/search?${queryParams.toString()}`,
         );
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

@@ -125,7 +125,7 @@ export const SystemsPage = () => {
             return;
 
         try {
-            const response = await fetch(`/admin/systems/${systemId}`, {
+            const response = await fetch(`../admin/systems/${systemId}`, {
                 method: "DELETE",
                 headers: getAuthHeaders(), // 添加认证头
             });
@@ -154,7 +154,7 @@ export const SystemsPage = () => {
 
         try {
             const response = await fetch(
-                `/admin/systems/${systemId}/regenerate-key`,
+                `../admin/systems/${systemId}/regenerate-key`,
                 {
                     method: "POST",
                     headers: getAuthHeaders(), // 添加认证头
