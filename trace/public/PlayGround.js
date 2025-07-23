@@ -408,7 +408,9 @@ export const PlayGround = () => {
                 </div>
 
                 <!-- Right Panel: Inputs & Output -->
-                <div class="col-span-4 flex flex-col gap-6">
+                <div
+                    class="col-span-4 flex flex-col gap-6 h-full overflow-hidden"
+                >
                     <!-- Inputs -->
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
                         <h2
@@ -451,7 +453,7 @@ export const PlayGround = () => {
 
                     <!-- Output -->
                     <div
-                        class="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col"
+                        class="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col overflow-auto"
                     >
                         <h2
                             class="text-base font-semibold flex items-center mb-3"
