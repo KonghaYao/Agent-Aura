@@ -176,10 +176,17 @@ export class TraceDatabase {
             const outputData =
                 typeof outputs === "string" ? JSON.parse(outputs) : outputs;
             const outputGenerations = outputData?.generations?.[0]?.[0];
-            return (
+            const model_name = (
                 outputGenerations?.generationInfo ||
                 outputGenerations?.generation_info
             )?.model_name;
+            if (model_name) {
+                return model_name;
+            } else {
+                const data = outputGenerations?.message?.kwargs;
+                return (data?.response_metadata || data?.responseMetadata)
+                    ?.model_name;
+            }
         } catch (error) {
             console.warn("解析 outputs 提取 model_name 时出错:", error);
             return undefined;
