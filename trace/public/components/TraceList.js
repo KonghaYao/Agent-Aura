@@ -6,16 +6,13 @@ import { TracesSimpleList } from "./TracesSimpleList.js";
 import { Statistics } from "./Statistics.js";
 
 export const TraceList = (props) => {
-    const [searchQuery, setSearchQuery] = createSignal("");
-
+    // 移除前端过滤逻辑，直接使用传入的数据
     const filteredThreads = createMemo(() => {
-        let threads = props.threads() || [];
-        return threads;
+        return props.threads() || [];
     });
 
     const filteredTraces = createMemo(() => {
-        let traces = props.traces() || [];
-        return traces;
+        return props.traces() || [];
     });
 
     return html`
@@ -24,9 +21,9 @@ export const TraceList = (props) => {
         >
             <!-- 搜索栏 -->
             ${SearchBar({
-                searchQuery,
+                searchQuery: props.searchQuery,
                 selectedSystem: props.selectedSystem,
-                onSearchChange: setSearchQuery,
+                onSearchChange: props.onSearchChange,
                 onSystemChange: props.onSystemChange,
             })}
 

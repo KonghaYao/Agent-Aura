@@ -20,15 +20,30 @@ export const App = () => {
     const [refreshTrigger, setRefreshTrigger] = createSignal(0);
     const refresh = () => setRefreshTrigger((t) => t + 1);
 
+    // 搜索相关状态
+    const [searchQuery, setSearchQuery] = createSignal("");
+
     // 使用 createResource 获取线程概览列表
     const [allThreads, { refetch: refetchThreads }] = createResource(
-        () => ({ refresh: refreshTrigger(), system: selectedSystem() }), // 依赖 refreshTrigger 和 selectedSystem 触发刷新
+        () => ({
+            refresh: refreshTrigger(),
+            system: selectedSystem(),
+            search: searchQuery(),
+        }), // 依赖 refreshTrigger、selectedSystem 和 search 触发刷新
         async (params) => {
-            const url = params.system
-                ? `../trace/threads/overview?system=${encodeURIComponent(
-                      params.system,
-                  )}`
-                : "../trace/threads/overview";
+            // 构建查询参数
+            const queryParams = new URLSearchParams();
+
+            if (params.system) {
+                queryParams.append("system", params.system);
+            }
+
+            if (params.search && params.search.trim()) {
+                queryParams.append("thread_id", params.search.trim());
+            }
+
+            // 使用线程概览接口
+            const url = `../trace/threads/overview?${queryParams.toString()}`;
             const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to load threads");
             const data = await response.json();
@@ -36,17 +51,20 @@ export const App = () => {
         },
     );
 
-    // 使用 createResource 获取选中线程的 traces
+    // 使用 createResource 获取选中线程的 traces - 改用新的搜索接口
     const [threadTraces, { refetch: refetchThreadTraces }] = createResource(
         () => ({ threadId: selectedThreadId(), refresh: refreshTrigger() }), // 依赖 refreshTrigger 触发刷新
         async (params) => {
             if (!params.threadId) return [];
+            // 使用新的搜索接口
             const response = await fetch(
-                `../trace/thread/${params.threadId}/traces`,
+                `../trace/search/traces?thread_id=${encodeURIComponent(
+                    params.threadId,
+                )}`,
             );
             if (!response.ok) throw new Error("Failed to load thread traces");
             const data = await response.json();
-            return data.traces || [];
+            return data.data || [];
         },
     );
 
@@ -87,9 +105,11 @@ export const App = () => {
                 selectedThreadId,
                 selectedTraceId,
                 selectedSystem,
+                searchQuery,
                 onThreadSelect: handleThreadSelect,
                 onTraceSelect: handleTraceSelect,
                 onSystemChange: setSelectedSystem,
+                onSearchChange: setSearchQuery,
                 onLoadThreads: refetchThreads,
                 onLoadTraces: refetchThreadTraces,
                 refresh: refresh, // 传递 refresh 方法

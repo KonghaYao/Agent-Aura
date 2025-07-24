@@ -39,11 +39,19 @@ export function createTraceRouter(db: TraceDatabase) {
     traceRouter.get("/threads/overview", async (c) => {
         try {
             const system = c.req.query("system");
+            const threadId = c.req.query("thread_id");
 
             let threadOverviews;
-            if (system) {
+            if (threadId) {
+                // 按 thread_id 搜索
+                threadOverviews = await db.getThreadOverviewsByThreadId(
+                    threadId,
+                );
+            } else if (system) {
+                // 按系统过滤
                 threadOverviews = await db.getThreadOverviewsBySystem(system);
             } else {
+                // 获取所有
                 threadOverviews = await db.getThreadOverviews();
             }
 
@@ -52,6 +60,7 @@ export function createTraceRouter(db: TraceDatabase) {
                 total: threadOverviews.length,
                 threads: threadOverviews,
                 system: system || null,
+                thread_id: threadId || null,
             });
         } catch (error) {
             console.error("Error fetching thread overviews:", error);
@@ -108,33 +117,6 @@ export function createTraceRouter(db: TraceDatabase) {
         }
     });
 
-    // 根据线程ID获取相关的 traces
-    traceRouter.get("/thread/:threadId/traces", async (c) => {
-        try {
-            const threadId = c.req.param("threadId");
-            const traces = await db.getTracesByThreadId(threadId);
-            return c.json({
-                success: true,
-                thread_id: threadId,
-                total: traces.length,
-                traces: traces,
-            });
-        } catch (error) {
-            console.error(
-                `Error fetching traces for thread ${c.req.param("threadId")}:`,
-                error,
-            );
-            return c.json(
-                {
-                    error: "Internal server error",
-                    message:
-                        error instanceof Error ? error.message : String(error),
-                },
-                500,
-            );
-        }
-    });
-
     traceRouter.get("/traces/search", async (c) => {
         const runType = c.req.query("run_type");
         const system = c.req.query("system");
@@ -151,16 +133,9 @@ export function createTraceRouter(db: TraceDatabase) {
         if (modelName) conditions.model_name = modelName;
         if (threadId) conditions.thread_id = threadId;
         if (user_id) conditions.user_id = user_id;
-        // 如果没有任何查询条件，返回错误
-        if (Object.keys(conditions).length === 0) {
-            return c.json(
-                {
-                    success: false,
-                    error: "At least one filter parameter is required",
-                },
-                400,
-            );
-        }
+
+        // 移除"至少需要一个条件"的限制，增加扩展性
+        // 如果没有任何查询条件，返回最近的 runs（分页）
 
         try {
             const traces = await db.getRunsByConditions(
@@ -180,6 +155,125 @@ export function createTraceRouter(db: TraceDatabase) {
             });
         } catch (error) {
             console.error("Error fetching runs by conditions:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 新增：组合条件搜索 traces（更加灵活的搜索端点）
+    traceRouter.get("/search", async (c) => {
+        const system = c.req.query("system");
+        const threadId = c.req.query("thread_id");
+        const userId = c.req.query("user_id");
+        const runType = c.req.query("run_type");
+        const modelName = c.req.query("model_name");
+        const limit = parseInt(c.req.query("limit") || "20"); // 默认每页20条
+        const offset = parseInt(c.req.query("offset") || "0"); // 默认偏移0
+
+        // 构建查询条件
+        const conditions: any = {};
+        if (system) conditions.system = system;
+        if (threadId) conditions.thread_id = threadId;
+        if (userId) conditions.user_id = userId;
+        if (runType) conditions.run_type = runType;
+        if (modelName) conditions.model_name = modelName;
+
+        try {
+            const traces = await db.getTracesByConditions(
+                conditions,
+                limit,
+                offset,
+            );
+            const total = await db.countTracesByConditions(conditions);
+
+            return c.json({
+                success: true,
+                conditions: conditions,
+                total: total,
+                limit: limit,
+                offset: offset,
+                traces: traces,
+                message:
+                    Object.keys(conditions).length === 0
+                        ? "返回最近的 traces（无过滤条件）"
+                        : `根据条件搜索到 ${total} 个 traces`,
+            });
+        } catch (error) {
+            console.error("Error fetching traces by conditions:", error);
+            return c.json(
+                {
+                    error: "Internal server error",
+                    message:
+                        error instanceof Error ? error.message : String(error),
+                },
+                500,
+            );
+        }
+    });
+
+    // 新增：组合条件搜索，支持指定返回数据类型
+    traceRouter.get("/search/:type", async (c) => {
+        const type = c.req.param("type"); // "traces" 或 "runs"
+        const system = c.req.query("system");
+        const threadId = c.req.query("thread_id");
+        const userId = c.req.query("user_id");
+        const runType = c.req.query("run_type");
+        const modelName = c.req.query("model_name");
+        const limit = parseInt(c.req.query("limit") || "20");
+        const offset = parseInt(c.req.query("offset") || "0");
+
+        // 验证类型参数
+        if (type !== "traces" && type !== "runs") {
+            return c.json(
+                {
+                    success: false,
+                    error: "Invalid type parameter. Must be 'traces' or 'runs'",
+                },
+                400,
+            );
+        }
+
+        // 构建查询条件
+        const conditions: any = {};
+        if (system) conditions.system = system;
+        if (threadId) conditions.thread_id = threadId;
+        if (userId) conditions.user_id = userId;
+        if (runType) conditions.run_type = runType;
+        if (modelName) conditions.model_name = modelName;
+
+        try {
+            let data, total;
+
+            if (type === "traces") {
+                data = await db.getTracesByConditions(
+                    conditions,
+                    limit,
+                    offset,
+                );
+                total = await db.countTracesByConditions(conditions);
+            } else {
+                data = await db.getRunsByConditions(conditions, limit, offset);
+                total = await db.countRunsByConditions(conditions);
+            }
+
+            return c.json({
+                success: true,
+                type: type,
+                conditions: conditions,
+                total: total,
+                limit: limit,
+                offset: offset,
+                data: data,
+                message: `搜索到 ${total} 个 ${type}`,
+            });
+        } catch (error) {
+            console.error(`Error fetching ${type} by conditions:`, error);
             return c.json(
                 {
                     error: "Internal server error",

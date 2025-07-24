@@ -207,18 +207,34 @@ const ContentViewer = (props) => {
                 ${props.content.text}
             </div>`;
         } else if (props.content.type === "image_url") {
-            return html`<div
-                class="bg-gray-100 border border-gray-300 rounded-md p-3"
-            >
-                <div class="text-sm text-gray-600 mb-2">📷 图片链接:</div>
-                <a
-                    href="${props.content.image_url.url}"
-                    target="_blank"
-                    class="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+            const imageUrl = props.content.image_url.url;
+            if (imageUrl.startsWith("data:image")) {
+                // 如果是base64编码的图片，直接显示
+                return html`<div
+                    class="bg-gray-100 border border-gray-300 rounded-md p-3 text-center"
                 >
-                    ${props.content.image_url.url}
-                </a>
-            </div>`;
+                    <div class="text-sm text-gray-600 mb-2">📷 图片:</div>
+                    <img
+                        src="${imageUrl}"
+                        class="max-w-full h-auto"
+                        alt="Embedded Image"
+                    />
+                </div>`;
+            } else {
+                // 否则，显示链接
+                return html`<div
+                    class="bg-gray-100 border border-gray-300 rounded-md p-3"
+                >
+                    <div class="text-sm text-gray-600 mb-2">📷 图片链接:</div>
+                    <a
+                        href="${imageUrl}"
+                        target="_blank"
+                        class="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+                    >
+                        ${imageUrl}
+                    </a>
+                </div>`;
+            }
         } else {
             return html`<div
                 class="bg-gray-100 border border-gray-300 rounded-md p-3"

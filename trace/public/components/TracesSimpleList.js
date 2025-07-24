@@ -9,7 +9,7 @@ export const TracesSimpleList = (props) => {
     return html`
         <div class="border-t border-gray-300 pt-3 flex-1 overflow-auto">
             <h3 class="text-sm font-medium text-gray-600 mb-2">
-                📋 多轮对话 (${props.filteredTraces().length})
+                📋 多轮对话 (${() => props.filteredTraces().length})
             </h3>
 
             ${() =>

@@ -156,13 +156,16 @@ app.get("/info", (c) => {
             trace_models: "GET /trace/models - Get all available model names",
             trace_threads: "GET /trace/threads - Get all available thread IDs",
             thread_overviews:
-                "GET /trace/threads/overview - Get thread overview information (supports ?system=xxx filter)",
+                "GET /trace/threads/overview - Get thread overview information (supports ?system=xxx and ?thread_id=xxx filters)",
             trace_search:
-                "GET /trace/traces/search - Search runs by conditions (supports run_type, system, model_name, thread_id filters)",
+                "GET /trace/traces/search - Search runs by conditions (supports run_type, system, model_name, thread_id, user_id filters, no longer requires conditions)",
+            traces_advanced_search:
+                "GET /trace/search - Advanced search for traces by conditions (supports system, thread_id, user_id, run_type, model_name filters)",
+            traces_search_by_type:
+                "GET /trace/search/{type} - Search by type (traces|runs) with conditions (supports system, thread_id, user_id, run_type, model_name filters)",
             trace_by_system:
                 "GET /trace/system/{system} - Get traces by system",
-            traces_by_thread:
-                "GET /trace/thread/{threadId}/traces - Get traces by thread ID",
+            // traces_by_thread: "GET /trace/thread/{threadId}/traces - Get traces by thread ID [DEPRECATED: Use /trace/search/traces?thread_id=xxx instead]",
             thread_runs:
                 "GET /trace/thread/{threadId}/runs - Get runs by thread ID",
             trace_info: "GET /trace/{traceId} - Get complete trace info",

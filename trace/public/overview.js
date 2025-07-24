@@ -54,30 +54,12 @@ const columnsConfig = [
                     <div class="text-xs text-gray-400 uppercase tracking-wide">
                         会话
                     </div>
-                    ${run.trace_id &&
-                    html`
-                        <button
-                            onclick=${() => copyToClipboard(run.trace_id)}
-                            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                            title="复制 Trace ID"
-                        >
-                            复制
-                        </button>
-                    `}
-                </div>
-                <div class="text-sm font-mono text-gray-700 break-all">
-                    ${run.trace_id || "-"}
-                </div>
-                <div class="flex items-center space-x-2">
-                    <div class="text-xs text-gray-400 uppercase tracking-wide">
-                        线程
-                    </div>
                     ${run.thread_id &&
                     html`
                         <button
                             onclick=${() => copyToClipboard(run.thread_id)}
                             class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                            title="复制 Thread ID"
+                            title="复制 会话 ID"
                         >
                             复制
                         </button>
@@ -85,6 +67,24 @@ const columnsConfig = [
                 </div>
                 <div class="text-sm font-mono text-gray-700 break-all">
                     ${run.thread_id || "-"}
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="text-xs text-gray-400 uppercase tracking-wide">
+                        多轮对话 ID
+                    </div>
+                    ${run.trace_id &&
+                    html`
+                        <button
+                            onclick=${() => copyToClipboard(run.trace_id)}
+                            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                            title="复制 多轮对话 ID"
+                        >
+                            复制
+                        </button>
+                    `}
+                </div>
+                <div class="text-sm font-mono text-gray-700 break-all">
+                    ${run.trace_id || "-"}
                 </div>
             </div>
         `,
@@ -223,16 +223,17 @@ const fetchLlmRuns = async ([currentPage, itemsPerPage, filters]) => {
     if (filters.user_id) queryParams.append("user_id", filters.user_id);
 
     try {
+        // 使用新的搜索接口
         const response = await fetch(
-            `../trace/traces/search?${queryParams.toString()}`,
+            `../trace/search/runs?${queryParams.toString()}`,
         );
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
 
-        if (data.success && Array.isArray(data.traces)) {
-            return { runs: data.traces, total: data.total };
+        if (data.success && Array.isArray(data.data)) {
+            return { runs: data.data, total: data.total };
         } else {
             throw new Error("Invalid data format from API.");
         }
