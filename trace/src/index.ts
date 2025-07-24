@@ -156,7 +156,7 @@ app.get("/info", (c) => {
             trace_models: "GET /trace/models - Get all available model names",
             trace_threads: "GET /trace/threads - Get all available thread IDs",
             thread_overviews:
-                "GET /trace/threads/overview - Get thread overview information (supports ?system=xxx and ?thread_id=xxx filters)",
+                "GET /trace/threads/overview - Get thread overview information (supports ?system=xxx and/or ?thread_id=xxx filters, can be combined)",
             trace_search:
                 "GET /trace/traces/search - Search runs by conditions (supports run_type, system, model_name, thread_id, user_id filters, no longer requires conditions)",
             traces_advanced_search:

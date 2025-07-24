@@ -41,26 +41,21 @@ export function createTraceRouter(db: TraceDatabase) {
             const system = c.req.query("system");
             const threadId = c.req.query("thread_id");
 
-            let threadOverviews;
-            if (threadId) {
-                // 按 thread_id 搜索
-                threadOverviews = await db.getThreadOverviewsByThreadId(
-                    threadId,
-                );
-            } else if (system) {
-                // 按系统过滤
-                threadOverviews = await db.getThreadOverviewsBySystem(system);
-            } else {
-                // 获取所有
-                threadOverviews = await db.getThreadOverviews();
-            }
+            // 构建过滤条件
+            const filters: { system?: string; thread_id?: string } = {};
+            if (system) filters.system = system;
+            if (threadId) filters.thread_id = threadId;
+
+            // 使用统一的查询方法
+            const threadOverviews = await db.getThreadOverviews(
+                Object.keys(filters).length > 0 ? filters : undefined,
+            );
 
             return c.json({
                 success: true,
                 total: threadOverviews.length,
                 threads: threadOverviews,
-                system: system || null,
-                thread_id: threadId || null,
+                filters: filters,
             });
         } catch (error) {
             console.error("Error fetching thread overviews:", error);
