@@ -165,7 +165,6 @@ app.get("/info", (c) => {
                 "GET /trace/search/{type} - Search by type (traces|runs) with conditions (supports system, thread_id, user_id, run_type, model_name filters)",
             trace_by_system:
                 "GET /trace/system/{system} - Get traces by system",
-            // traces_by_thread: "GET /trace/thread/{threadId}/traces - Get traces by thread ID [DEPRECATED: Use /trace/search/traces?thread_id=xxx instead]",
             thread_runs:
                 "GET /trace/thread/{threadId}/runs - Get runs by thread ID",
             trace_info: "GET /trace/{traceId} - Get complete trace info",

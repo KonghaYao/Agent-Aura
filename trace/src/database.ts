@@ -1521,13 +1521,23 @@ export class TraceDatabase {
                     first_run_time: trace.first_run_time,
                     last_run_time: trace.last_run_time,
                     run_types: trace.run_types
-                        ? trace.run_types.split(",").filter(Boolean)
+                        ? Array.from(
+                              new Set(
+                                  trace.run_types.split(",").filter(Boolean),
+                              ),
+                          )
                         : [],
                     systems: trace.systems
-                        ? trace.systems.split(",").filter(Boolean)
+                        ? Array.from(
+                              new Set(trace.systems.split(",").filter(Boolean)),
+                          )
                         : [],
                     user_ids: trace.user_ids
-                        ? trace.user_ids.split(",").filter(Boolean)
+                        ? Array.from(
+                              new Set(
+                                  trace.user_ids.split(",").filter(Boolean),
+                              ),
+                          )
                         : [],
                     total_tokens_sum: trace.total_tokens_sum || 0,
                 };

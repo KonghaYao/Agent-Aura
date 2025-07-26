@@ -41,7 +41,11 @@ export const RunItem = (props) => {
                 <div class=" text-gray-400 text-left">
                     ${icon[getRunType(props.run)]}
                 </div>
-                <div class="px-2  font-medium text-gray-900">
+                <div
+                    class=${`px-2  font-medium ${
+                        props.run.error ? "text-red-500" : "text-gray-900"
+                    }`}
+                >
                     ${props.run.name}
                 </div>
                 <div class="flex space-x-2 flex-wrap">

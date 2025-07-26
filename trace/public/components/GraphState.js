@@ -62,7 +62,7 @@ export const GraphStateMessage = (props) => {
         },
     );
     createEffect(() => {
-        if (props.state.messages.length) {
+        if (props.state.messages?.length) {
             refetch();
         }
     });

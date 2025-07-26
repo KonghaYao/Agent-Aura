@@ -90,6 +90,23 @@ const OutputsSection = (props) => {
                     ${outputReverse() ? "倒序" : "正序"}
                 </button>
             </h4>
+            ${props.run.error
+                ? () => {
+                      let error = props.run.error;
+                      try {
+                          error = JSON.parse(props.run.error);
+                      } catch (e) {}
+                      return html`
+                          <div class="overflow-x-auto">
+                              <p
+                                  class="text-red-500 text-sm whitespace-pre-wrap break-all"
+                              >
+                                  ${error}
+                              </p>
+                          </div>
+                      `;
+                  }
+                : ""}
             <div class="bg-gray-50 rounded-lg p-4">
                 ${props.outputs()
                     ? GraphStatePanel({ state: props.outputs() })
