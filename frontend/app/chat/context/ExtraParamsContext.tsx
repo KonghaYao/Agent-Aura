@@ -34,6 +34,7 @@ export const ExtraParamsProvider: React.FC<ExtraParamsProviderProps> = ({
         "extraParams",
         {
             main_model: "gpt-4.1-mini",
+            reasoning_model: "o4-mini",
         },
     );
 

@@ -16,9 +16,9 @@
         "@langchain/community": "^0.3.48",
         "@langchain/core": "^0.3.62",
         "@langchain/exa": "^0.1.0",
-        "@langchain/langgraph": "^0.3.7",
-        "@langchain/langgraph-sdk": "^0.0.84",
-        "@langchain/mcp-adapters": "^0.5.3",
+        "@langchain/langgraph": "^0.3.11",
+        "@langchain/langgraph-sdk": "^0.0.102",
+        "@langchain/mcp-adapters": "^0.6.0",
         "@langchain/openai": "^0.5.18",
         "@langchain/tavily": "^0.1.4",
         "@langgraph-js/api": "^1.2.0",
@@ -32,7 +32,7 @@
     "devDependencies": {
         "@langgraph-js/cli": "^3.0.0",
         "@langgraph-js/langgraph-pg": "^2.0.1",
-        "@langgraph-js/open-smith": "^0.5.0",
+        "@langgraph-js/open-smith": "^0.9.5",
         "@types/node": "^22.16.2",
         "tsx": "^4.20.3"
     },

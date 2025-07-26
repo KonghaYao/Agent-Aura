@@ -257,6 +257,29 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select>
+                <Select
+                    value={extraParams.reasoning_model}
+                    onValueChange={(value) => {
+                        setExtraParams({
+                            ...extraParams,
+                            reasoning_model: value,
+                        });
+                    }}
+                >
+                    <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
+                        <Brain></Brain>
+                        <SelectValue placeholder="选择一个模型" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {models.reasoning_model.map((i) => {
+                            return (
+                                <SelectItem value={i} key={i}>
+                                    {i}
+                                </SelectItem>
+                            );
+                        })}
+                    </SelectContent>
+                </Select>
                 <Select value={currentAgent} onValueChange={_setCurrentAgent}>
                     <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <SelectValue placeholder="选择一个 Agent" />

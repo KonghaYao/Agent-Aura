@@ -8,4 +8,5 @@ export const models = {
         "gpt-4o",
         "gemini-2.5-pro",
     ],
+    reasoning_model: ["o4-mini"],
 };

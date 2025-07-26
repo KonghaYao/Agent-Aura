@@ -23,20 +23,6 @@ const createArrayAnnotation = <T>(defaultValue?: T[]) => {
     });
 };
 
-// 总体状态
-// export const OverallState = createState(ModelState).build({
-//     messages: createArrayAnnotation<BaseMessage>(),
-//     search_query: createArrayAnnotation<string>(),
-//     web_research_result: createArrayAnnotation<string>(),
-//     sources_gathered: Annotation<any[]>({
-//         reducer: (x, y) => x.concat(y),
-//         default: () => [],
-//     }),
-//     initial_search_query_count: createDefaultAnnotation(() => 3),
-//     max_research_loops: createDefaultAnnotation(() => 3),
-//     research_loop_count: createDefaultAnnotation(() => 0),
-//     reasoning_model: createDefaultAnnotation(() => ""),
-// });
 // 反思状态
 export const ReflectionState = createState().build({
     is_sufficient: createDefaultAnnotation<boolean>(() => false),
@@ -52,12 +38,14 @@ export const OverallState = createState(
     createReactAgentAnnotation(),
     ReflectionState,
 ).build({
+    lang: createDefaultAnnotation<string>(() => "en-US"),
+    research_topic: createDefaultAnnotation<string>(() => ""),
     search_query: createArrayAnnotation<Query>(),
     web_research_result: createArrayAnnotation<string>(),
-    sources_gathered: Annotation<any[]>({
-        reducer: (x, y) => x.concat(y),
-        default: () => [],
-    }),
+    sources_gathered: createArrayAnnotation<{
+        short_url: string;
+        value: string;
+    }>(),
     initial_search_query_count: createDefaultAnnotation<number>(() => 3),
     max_research_loops: createDefaultAnnotation<number>(() => 3),
     research_loop_count: createDefaultAnnotation<number>(() => 0),
@@ -70,7 +58,10 @@ export const QueryGenerationState = createState().build({
 });
 
 // Web搜索状态
-export const WebSearchState = createState(createReactAgentAnnotation()).build({
+export const WebSearchState = createState(
+    createReactAgentAnnotation(),
+    ModelState,
+).build({
     search_query: Annotation<Query>(),
     id: createDefaultAnnotation<string>(() => ""),
 });

@@ -34,76 +34,10 @@ function getCurrentDate(): string {
     return new Date().toISOString().split("T")[0] || "";
 }
 
-const reflectionInstructions = (params: {
-    current_date: string;
-    research_topic: string;
-    summaries: string;
-}) => `You are an expert research assistant analyzing summaries about "${params.research_topic}".
-
-Instructions:
-- Identify knowledge gaps or areas that need deeper exploration and generate a follow-up query. (1 or multiple).
-- If provided summaries are sufficient to answer the user's question, don't generate a follow-up query.
-- If there is a knowledge gap, generate a follow-up query that would help expand your understanding.
-- Focus on technical details, implementation specifics, or emerging trends that weren't fully covered.
-
-Requirements:
-- Ensure the follow-up query is self-contained and includes necessary context for web search.
-
-Output Format:
-- Format your response as a JSON object with these exact keys:
-   - "is_sufficient": true or false
-   - "knowledge_gap": Describe what information is missing or needs clarification
-   - "follow_up_queries": Write a specific question to address this gap
-
-Example:
-\`\`\`json
-{
-    "is_sufficient": true, // or false
-    "knowledge_gap": "The summary lacks information about performance metrics and benchmarks", // "" if is_sufficient is true
-    "follow_up_queries": ["What are typical performance benchmarks and metrics used to evaluate [specific technology]?"] // [] if is_sufficient is true
-}
-\`\`\`
-
-Reflect carefully on the Summaries to identify knowledge gaps and produce a follow-up query. Then, produce your output.
-
-Summaries:
-${params.summaries}`;
-
-const answerInstructions = (params: {
-    current_date: string;
-    research_topic: string;
-    summaries: string;
-}) => `Generate a high-quality answer to the user's question based on the provided summaries.
-
-Instructions:
-- The current date is ${params.current_date}.
-- You are the final step of a multi-step research process, don't mention that you are the final step. 
-- You have access to all the information gathered from the previous steps.
-- You have access to the user's question.
-- Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
-- Include the sources you used from the Summaries in the answer correctly, use markdown format (e.g. [apnews](https://vertexaisearch.cloud.google.com/id/1-0)). THIS IS A MUST.
-
-User Context:
-- ${params.research_topic}
-
-Summaries:
-${params.summaries}`;
-
 /**
  * 生成搜索查询的节点
  */
 async function generateQuery(state: OverallState, config: RunnableConfig) {
-    const configurable = ConfigurationHelper.fromRunnableConfig(config);
-
-    // 检查自定义初始搜索查询数量
-    if (
-        state.initial_search_query_count === null ||
-        state.initial_search_query_count === undefined
-    ) {
-        state.initial_search_query_count =
-            configurable.number_of_initial_queries;
-    }
-
     // 初始化 LLM
     const llm = await createLLM(state, "main_model");
 
@@ -187,7 +121,8 @@ function continueToWebResearch(state: OverallState) {
             new Send("web_research", {
                 search_query: searchQuery,
                 id: idx.toString(),
-            }),
+                main_model: state.main_model,
+            } as WebSearchState),
     );
 }
 
@@ -198,7 +133,6 @@ async function webResearch(
     state: WebSearchState,
     config: RunnableConfig,
 ): Promise<Partial<OverallState>> {
-    const configurable = ConfigurationHelper.fromRunnableConfig(config);
     const query = state.search_query.query;
     const formattedPrompt = `Conduct targeted Google Searches to gather the most recent, credible information on "${query}" and synthesize it into a verifiable text artifact.
 
@@ -209,20 +143,22 @@ Instructions:
 - The output should be a well-written summary or report based on your search findings. 
 - Only include the information found in the search results, don't make up any information.
 
+
+Response Way: 
+- Use the tavily_search tool to search the web.
+- Use the tavily_crawl tool to crawl the web.
+- Use the save_research_details tool to save the research details to the state.
+- Don't use the save_research_details tool in the first message.
+- Don't directly respond to the user, only use the tools.
+
 Research Topic:
 ${query}
 `;
 
     // 使用 google genai 客户端
-    const llm = await createLLM(
-        {
-            main_model: "gpt-4o",
-        },
-        "main_model",
-        {
-            temperature: 0,
-        },
-    );
+    const llm = await createLLM(state, "main_model", {
+        temperature: 0,
+    });
     const result = {
         sources_gathered: [],
         search_query: [state.search_query],
@@ -266,23 +202,43 @@ async function reflection(
     state: OverallState,
     config: RunnableConfig,
 ): Promise<Partial<ReflectionState>> {
-    const configurable = ConfigurationHelper.fromRunnableConfig(config);
-
     // 增加研究循环计数并获取推理模型
     const researchLoopCount = (state.research_loop_count || 0) + 1;
-    const reasoningModel =
-        state.reasoning_model || configurable.reflection_model;
+    const formattedPrompt = `You are an expert research assistant analyzing summaries about "${
+        state.research_topic
+    }".
 
-    // 格式化提示
-    const currentDate = getCurrentDate();
-    const formattedPrompt = reflectionInstructions({
-        current_date: currentDate,
-        research_topic: getResearchTopic(state.messages),
-        summaries: state.web_research_result.join("\n\n---\n\n"),
-    });
+Instructions:
+- Identify knowledge gaps or areas that need deeper exploration and generate a follow-up query. (1 or multiple).
+- If provided summaries are sufficient to answer the user's question, don't generate a follow-up query.
+- If there is a knowledge gap, generate a follow-up query that would help expand your understanding.
+- Focus on technical details, implementation specifics, or emerging trends that weren't fully covered.
+
+Requirements:
+- Ensure the follow-up query is self-contained and includes necessary context for web search.
+
+Output Format:
+- Format your response as a JSON object with these exact keys:
+   - "is_sufficient": true or false
+   - "knowledge_gap": Describe what information is missing or needs clarification
+   - "follow_up_queries": Write a specific question to address this gap
+
+Example:
+\`\`\`json
+{
+    "is_sufficient": true, // or false
+    "knowledge_gap": "The summary lacks information about performance metrics and benchmarks", // "" if is_sufficient is true
+    "follow_up_queries": ["What are typical performance benchmarks and metrics used to evaluate [specific technology]?"] // [] if is_sufficient is true
+}
+\`\`\`
+
+Reflect carefully on the Summaries to identify knowledge gaps and produce a follow-up query. Then, produce your output.
+
+Summaries:
+${state.web_research_result.join("\n---\n\n")}`;
 
     // 初始化推理模型
-    const llm = await createLLM(state, "main_model");
+    const llm = await createLLM(state, "reasoning_model");
     const result = await llm
         .withStructuredOutput(ReflectionSchema)
         .invoke(formattedPrompt);
@@ -303,12 +259,11 @@ function evaluateResearch(
     state: OverallState,
     config: RunnableConfig,
 ): string | Send[] {
-    const configurable = ConfigurationHelper.fromRunnableConfig(config);
     const maxResearchLoops =
         state.max_research_loops !== null &&
         state.max_research_loops !== undefined
             ? state.max_research_loops
-            : configurable.max_research_loops;
+            : 3;
 
     if (state.is_sufficient || state.research_loop_count >= maxResearchLoops) {
         return "finalize_answer";
@@ -331,16 +286,21 @@ async function finalizeAnswer(
     state: OverallState,
     config: RunnableConfig,
 ): Promise<Partial<OverallState>> {
-    const configurable = ConfigurationHelper.fromRunnableConfig(config);
-    const reasoningModel = state.reasoning_model || configurable.answer_model;
+    const formattedPrompt = `Generate a high-quality answer to the user's question based on the provided summaries.
 
-    // 格式化提示
-    const currentDate = getCurrentDate();
-    const formattedPrompt = answerInstructions({
-        current_date: currentDate,
-        research_topic: getResearchTopic(state.messages),
-        summaries: state.web_research_result.join("\n---\n\n"),
-    });
+Instructions:
+- The current date is ${getCurrentDate()}.
+- You are the final step of a multi-step research process, don't mention that you are the final step. 
+- You have access to all the information gathered from the previous steps.
+- You have access to the user's question.
+- Generate a high-quality answer to the user's question based on the provided summaries and the user's question.
+- Include the sources you used from the Summaries in the answer correctly, use markdown format (e.g. [apnews](https://vertexaisearch.cloud.google.com/id/1-0)). THIS IS A MUST.
+
+User Context:
+- ${state.research_topic}
+
+Summaries:
+${state.web_research_result.join("\n\n---\n\n")}`;
 
     // 初始化推理模型
     const llm = await createLLM(state, "main_model");
