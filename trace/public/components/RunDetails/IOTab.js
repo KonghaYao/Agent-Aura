@@ -97,7 +97,7 @@ const OutputsSection = (props) => {
                           error = JSON.parse(props.run.error);
                       } catch (e) {}
                       return html`
-                          <div class="overflow-x-auto">
+                          <div class="overflow-x-hidden">
                               <p
                                   class="text-red-500 text-sm whitespace-pre-wrap break-all"
                               >

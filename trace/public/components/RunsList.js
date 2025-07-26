@@ -13,7 +13,8 @@ export const RunsList = (props) => {
         const groupList = new Map();
         runs.forEach((i) => {
             const metadata = i.extraData.metadata;
-            const checkpointNs = metadata.langgraph_checkpoint_ns;
+            const checkpointNs =
+                metadata.checkpoint_ns || metadata.langgraph_checkpoint_ns;
             if (groupList.get(checkpointNs)) {
                 groupList.get(checkpointNs).push(i);
             } else {
@@ -27,6 +28,9 @@ export const RunsList = (props) => {
     // const { refresh } = useRefresh(); // 移除 Context 使用
 
     const hasSpentTime = (run) => {
+        if (run.name === "tools") {
+            return false;
+        }
         if (showNoneTime() || run.run_type === "tool") {
             return true;
         }
