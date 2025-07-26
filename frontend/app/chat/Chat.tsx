@@ -118,6 +118,7 @@ const ChatInput: React.FC = () => {
         stopGeneration,
         setCurrentAgent,
         client,
+        currentAgent,
     } = useChat();
     const { extraParams, setExtraParams } = useExtraParams();
     const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -139,6 +140,7 @@ const ChatInput: React.FC = () => {
         };
 
         window.addEventListener("fileUploaded", handleFileUploadedEvent);
+        setCurrentAgent(localStorage.getItem("agent_name") || "");
         return () => {
             window.removeEventListener("fileUploaded", handleFileUploadedEvent);
         };
@@ -205,6 +207,11 @@ const ChatInput: React.FC = () => {
         }
     };
 
+    const _setCurrentAgent = (agent: string) => {
+        localStorage.setItem("agent_name", agent);
+        setCurrentAgent(agent);
+    };
+
     return (
         <div
             className={cn(
@@ -250,7 +257,7 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select>
-                {/* <Select value={currentAgent} onValueChange={_setCurrentAgent}>
+                <Select value={currentAgent} onValueChange={_setCurrentAgent}>
                     <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <SelectValue placeholder="选择一个 Agent" />
                     </SelectTrigger>
@@ -263,7 +270,7 @@ const ChatInput: React.FC = () => {
                             );
                         })}
                     </SelectContent>
-                </Select> */}
+                </Select>
                 <MCPConfigDialog></MCPConfigDialog>
                 {client?.tokenCounter?.output_tokens! > 0 && (
                     <UsageMetadata

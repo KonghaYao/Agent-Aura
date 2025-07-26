@@ -9,26 +9,31 @@
         "dev:deno": "deno run -A ./scripts/deno-dev.js",
         "deploy:serverless": "sh ./scripts/deploy-serverless.sh",
         "build": "langgraph-js build",
+        "smith": "bunx --bun open-smith",
         "start": "bun run dist/start.js"
     },
     "dependencies": {
-        "@langchain/community": "^0.3.47",
-        "@langchain/core": "^0.3.61",
-        "@langchain/langgraph": "^0.3.3",
+        "@langchain/community": "^0.3.48",
+        "@langchain/core": "^0.3.62",
+        "@langchain/exa": "^0.1.0",
+        "@langchain/langgraph": "^0.3.7",
         "@langchain/langgraph-sdk": "^0.0.84",
-        "@langchain/openai": "^0.5.15",
+        "@langchain/mcp-adapters": "^0.5.3",
+        "@langchain/openai": "^0.5.18",
+        "@langchain/tavily": "^0.1.4",
         "@langgraph-js/api": "^1.2.0",
-        "@langgraph-js/pro": "^1.7.2",
+        "@langgraph-js/pro": "^1.7.3",
         "@logto/node": "^3.1.6",
-        "hono": "^4.8.2",
+        "hono": "^4.8.4",
         "ioredis": "^5.6.1",
-        "openai": "^5.6.0",
-        "zod": "^3.25.67"
+        "openai": "^5.8.3",
+        "zod": "^3.25.76"
     },
     "devDependencies": {
         "@langgraph-js/cli": "^3.0.0",
         "@langgraph-js/langgraph-pg": "^2.0.1",
-        "@types/node": "^22.15.32",
+        "@langgraph-js/open-smith": "^0.5.0",
+        "@types/node": "^22.16.2",
         "tsx": "^4.20.3"
     },
     "pnpm": {
@@ -37,6 +42,9 @@
             "better-sqlite3",
             "esbuild",
             "protobufjs"
-        ]
+        ],
+        "overrides": {
+            "@langchain/langgraph": "0.3.7"
+        }
     }
 }

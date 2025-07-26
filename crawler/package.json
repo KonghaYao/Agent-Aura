@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    
     "scripts": {
         "dev": "bun run --hot src/index.ts",
         "build": "bun build src/index.ts --outfile ./dist/index.js"

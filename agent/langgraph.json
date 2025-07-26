@@ -3,7 +3,8 @@
     "node_version": "20",
     "dependencies": ["."],
     "graphs": {
-        "agent": "./src/agent/graph.ts:graph"
+        "agent": "./src/agent/graph.ts:graph",
+        "deep-research": "./src/deep-research/graph.ts:graph"
     },
     "env": ".env",
     "auth": {

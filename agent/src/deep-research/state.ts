@@ -1,0 +1,87 @@
+import { Annotation } from "@langchain/langgraph";
+import { BaseMessage } from "@langchain/core/messages";
+import {
+    createDefaultAnnotation,
+    createModelHelper,
+    createState,
+} from "@langgraph-js/pro";
+import { models } from "../models.js";
+import { createReactAgentAnnotation } from "@langchain/langgraph/prebuilt";
+
+export const { ModelState, createLLM } = createModelHelper(models);
+
+// Query 接口
+export interface Query {
+    query: string;
+    rationale: string;
+}
+
+const createArrayAnnotation = <T>(defaultValue?: T[]) => {
+    return Annotation<T[]>({
+        reducer: (x, y) => x.concat(y),
+        default: () => (defaultValue ? defaultValue : []),
+    });
+};
+
+// 总体状态
+// export const OverallState = createState(ModelState).build({
+//     messages: createArrayAnnotation<BaseMessage>(),
+//     search_query: createArrayAnnotation<string>(),
+//     web_research_result: createArrayAnnotation<string>(),
+//     sources_gathered: Annotation<any[]>({
+//         reducer: (x, y) => x.concat(y),
+//         default: () => [],
+//     }),
+//     initial_search_query_count: createDefaultAnnotation(() => 3),
+//     max_research_loops: createDefaultAnnotation(() => 3),
+//     research_loop_count: createDefaultAnnotation(() => 0),
+//     reasoning_model: createDefaultAnnotation(() => ""),
+// });
+// 反思状态
+export const ReflectionState = createState().build({
+    is_sufficient: createDefaultAnnotation<boolean>(() => false),
+    knowledge_gap: createDefaultAnnotation<string>(() => ""),
+    follow_up_queries: createArrayAnnotation<string>(),
+    research_loop_count: createDefaultAnnotation(() => 0),
+    number_of_ran_queries: createDefaultAnnotation(() => 0),
+    max_research_loops: createDefaultAnnotation(() => 3),
+});
+
+export const OverallState = createState(
+    ModelState,
+    createReactAgentAnnotation(),
+    ReflectionState,
+).build({
+    search_query: createArrayAnnotation<Query>(),
+    web_research_result: createArrayAnnotation<string>(),
+    sources_gathered: Annotation<any[]>({
+        reducer: (x, y) => x.concat(y),
+        default: () => [],
+    }),
+    initial_search_query_count: createDefaultAnnotation<number>(() => 3),
+    max_research_loops: createDefaultAnnotation<number>(() => 3),
+    research_loop_count: createDefaultAnnotation<number>(() => 0),
+    reasoning_model: createDefaultAnnotation<string>(() => ""),
+});
+
+// 查询生成状态
+export const QueryGenerationState = createState().build({
+    search_query: createArrayAnnotation<Query>(),
+});
+
+// Web搜索状态
+export const WebSearchState = createState(createReactAgentAnnotation()).build({
+    search_query: Annotation<Query>(),
+    id: createDefaultAnnotation<string>(() => ""),
+});
+
+// 搜索状态输出类
+export interface SearchStateOutput {
+    running_summary?: string; // Final report
+}
+
+// 导出类型
+export type OverallState = typeof OverallState.State;
+export type ReflectionState = typeof ReflectionState.State;
+export type QueryGenerationState = typeof QueryGenerationState.State;
+export type WebSearchState = typeof WebSearchState.State;
