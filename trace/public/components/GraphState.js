@@ -73,6 +73,7 @@ export const GraphStateMessage = (props) => {
         return LCMessage();
     });
     return html`<div class="space-y-4 p-4">
+        ${() => props?.toPlayground?.({ messages: message() })}
         ${() =>
             LCMessage.loading
                 ? html`<div

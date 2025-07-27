@@ -4,6 +4,9 @@ import { AttachmentItem } from "../AttachmentItem.js";
 import { GraphStateMessage, GraphStatePanel } from "../GraphState.js";
 import { compile } from "json-schema-to-typescript-lite";
 import { createStoreSignal } from "../../utils.js";
+import { setDefaultMessage } from "../../PlayGround.js";
+import { messagesToTemplate } from "../../types.js";
+
 // 输入输出标签页组件
 export const IOTab = ({ run, attachments }) => {
     const tools = createMemo(() => {
@@ -168,6 +171,19 @@ const InputsSection = (props) => {
                     ? GraphStateMessage({
                           state: props.inputs(),
                           reverse: () => inputReverse(),
+                          toPlayground: (props) => {
+                              return html`<button
+                                  onclick=${() => {
+                                      setDefaultMessage(
+                                          messagesToTemplate(props.messages),
+                                      );
+                                      // hash 改为 /playground
+                                      window.location.hash = "/playground";
+                                  }}
+                              >
+                                  设置默认消息
+                              </button>`;
+                          },
                       })
                     : ""}
             </div>

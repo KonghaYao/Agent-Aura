@@ -3,13 +3,21 @@ import { Hono } from "hono";
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { tool } from "@langchain/core/tools";
+import {
+    createChatTemplate,
+    messagesToTemplate,
+} from "../utils/ChatTemplate.js";
 
 const llmRouter = new Hono();
 
-const messageTemplateSchema = z.tuple([
-    z.enum(["system", "human", "ai", "user"]),
-    z.string(),
-]);
+// 更新 messageTemplateSchema 以支持 Template 接口和数组 content
+const messageTemplateSchema = z.object({
+    role: z.enum(["system", "human", "ai", "user", "tool"]),
+    content: z.union([z.string(), z.array(z.any())]),
+    tool_calls: z.array(z.any()).optional().default([]),
+    tool_call_id: z.string().optional().default(""),
+    invalid_tool_calls: z.array(z.any()).optional().default([]),
+});
 
 const modelSchema = z.object({
     model_name: z.string(),
@@ -59,7 +67,9 @@ async function createChain(body: any) {
         },
     });
 
-    const promptTemplate = ChatPromptTemplate.fromMessages(messages as any);
+    // 将 Template 格式转换为 LangChain 期望的格式
+    // 对于包含图片的情况，需要特殊处理
+    const promptTemplate = createChatTemplate(messages);
 
     let finalModel: any = chat;
     if (output_schema) {
@@ -77,17 +87,15 @@ async function createChain(body: any) {
         );
     }
 
-    const chain = promptTemplate.pipe(finalModel);
-
-    return { chain, inputs, chat };
+    return { messages, inputs, chat };
 }
 
 llmRouter.post("/invoke", async (c) => {
     try {
         const body = await c.req.json();
-        const { chain, inputs } = await createChain(body);
+        const { messages, chat } = await createChain(body);
 
-        const result = await chain.invoke(inputs);
+        const result = await chat.invoke(messages);
 
         return c.json(result as any);
     } catch (error) {
@@ -102,12 +110,12 @@ llmRouter.post("/invoke", async (c) => {
 llmRouter.post("/stream", async (c) => {
     try {
         const body = await c.req.json();
-        const { chain, inputs, chat } = await createChain(body);
+        const { messages, chat } = await createChain(body);
 
         // Enable streaming for the chat model
         chat.streaming = true;
 
-        const stream = await chain.stream(inputs);
+        const stream = await chat.stream(messages);
 
         return c.newResponse(
             new ReadableStream({

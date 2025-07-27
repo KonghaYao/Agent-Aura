@@ -5,7 +5,6 @@ import { Layout } from "./Layout.js";
 import { OverviewPage } from "./overview.js";
 import { SystemsPage } from "./SystemsPage.js";
 import { PlayGround } from "./PlayGround.js";
-import html from "solid-js/html"; // 确保导入 html
 
 // 渲染应用
 render(() => {

@@ -12,15 +12,22 @@ import { ModelConfigModal } from "./components/ModelConfigModal.js";
 import { createStoreSignal } from "./utils.js";
 import { GraphStateMessage } from "./components/GraphState.js";
 import { MessageEditor } from "./components/MessageEditor.js";
-// 默认消息
-const defaultMessage = [
-    ["system", "You are a chatbot."],
-    ["human", "{question}"],
-];
+import {
+    createTemplate,
+    extractAllVariables,
+    replaceVariables,
+} from "./types.js";
+
+// 默认消息 - 使用新的 Template 格式
+const [defaultMessage, setDefaultMessage] = createSignal([
+    createTemplate("system", "You are a chatbot."),
+    createTemplate("human", "{{question}}"),
+]);
+export { setDefaultMessage };
 
 export const PlayGround = () => {
     // 状态管理
-    const [messages, setMessages] = createSignal(defaultMessage);
+    const [messages, setMessages] = createSignal(defaultMessage());
     const [inputs, setInputs] = createSignal({});
 
     const [modelConfigs] = createStoreSignal("modelConfigs", []);
@@ -61,97 +68,91 @@ export const PlayGround = () => {
             },
         ];
     });
-    const [responseResource] = createResource(
-        () => requestPayload(),
-        async (payload) => {
-            if (!payload) return null; // No request yet
+    // 创建资源
+    const [response, { refetch }] = createResource(async () => {
+        const payload = requestPayload();
+        if (!payload) return null;
 
-            const { messages, inputs, model, tools, output_schema, type } =
-                payload;
+        // 替换消息中的变量
+        const processedMessages = payload.messages.map((template) => ({
+            ...template,
+            content: replaceVariables(template.content, payload.inputs),
+        }));
 
-            setStreamContent([]); // Clear previous stream content for new request
+        const apiPayload = {
+            ...payload,
+            messages: processedMessages,
+        };
 
-            const endpoint =
-                type === "stream" ? "../llm/stream" : "../llm/invoke";
+        if (payload.type === "stream") {
+            // 流式处理
+            setStreamContent([]);
+            const response = await fetch("../llm/stream", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(apiPayload),
+            });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body
+                .pipeThrough(new TextDecoderStream())
+                .getReader();
+
+            const chunks = [];
             try {
-                const response = await fetch(endpoint, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        messages,
-                        inputs,
-                        model,
-                        tools,
-                        output_schema,
-                    }),
-                });
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.error || `请求失败: ${response.status}`,
-                    );
-                }
-
-                if (type === "stream") {
-                    const decoder = new TextDecoder();
-                    let buffer = "";
-
-                    for await (const chunk of response.body) {
-                        buffer += decoder.decode(chunk, { stream: true });
-                        const lines = buffer.split("\n");
-                        buffer = lines.pop();
-
-                        for (const line of lines) {
-                            if (line.startsWith("data: ")) {
-                                const data = line.slice(6);
-                                if (data === "[DONE]") {
-                                    return {
-                                        finalContent: streamContent(),
-                                        type: "stream",
-                                    };
-                                }
-                                try {
-                                    const parsedChunk = JSON.parse(data);
-                                    setStreamContent((prev) => [
-                                        ...prev,
-                                        parsedChunk,
-                                    ]);
-                                } catch (e) {
-                                    console.error("解析流数据错误:", e);
-                                }
+                    const lines = value.split("\n");
+                    for (const line of lines) {
+                        if (line.trim() && line.startsWith("data: ")) {
+                            if (line.trim() === "data: [DONE]") {
+                                continue;
+                            }
+                            try {
+                                const data = JSON.parse(line.slice(6).trim());
+                                chunks.push(data);
+                                setStreamContent([...chunks]);
+                            } catch (e) {
+                                console.error("Error parsing JSON:", e);
                             }
                         }
                     }
-                    return {
-                        error: "Stream interrupted unexpectedly",
-                        type: "stream",
-                    };
-                } else {
-                    const data = await response.json();
-                    return {
-                        type: "invoke",
-                        data,
-                    };
                 }
-            } catch (error) {
-                console.error("请求错误:", error);
-                throw error; // Propagate error for resource.error
+            } finally {
+                reader.releaseLock();
             }
-        },
-    );
 
-    // 从消息中解析变量
-    const variables = createMemo(() => {
-        const vars = new Set();
-        messages().forEach((msg) => {
-            const matches = msg[1].match(/{(\w+)}/g);
-            if (matches) {
-                matches.forEach((match) => vars.add(match.slice(1, -1)));
+            return { type: "stream", chunks };
+        } else {
+            // 普通调用
+            const response = await fetch("../llm/invoke", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(apiPayload),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    `HTTP error! status: ${response.status}, body: ${errorText}`,
+                );
             }
-        });
-        return Array.from(vars);
+
+            return { type: "invoke", data: await response.json() };
+        }
+    });
+
+    const variables = createMemo(() => {
+        return extractAllVariables(messages());
     });
 
     // 更新输入变量的值
@@ -161,7 +162,7 @@ export const PlayGround = () => {
 
     // 添加消息
     const addMessage = () => {
-        setMessages((prev) => [...prev, ["user", ""]]);
+        setMessages((prev) => [...prev, createTemplate("user", "")]);
     };
 
     // 删除消息
@@ -170,9 +171,9 @@ export const PlayGround = () => {
     };
 
     // 更新消息
-    const updateMessage = (index, type, content) => {
+    const updateMessage = (index, newTemplate) => {
         setMessages((prev) =>
-            prev.map((msg, i) => (i === index ? [type, content] : msg)),
+            prev.map((template, i) => (i === index ? newTemplate : template)),
         );
     };
 
@@ -193,6 +194,7 @@ export const PlayGround = () => {
                 : undefined,
             type: type,
         });
+        refetch();
     };
 
     return html`
@@ -213,7 +215,7 @@ export const PlayGround = () => {
                             onclick=${() => {
                                 commitTestRun("invoke");
                             }}
-                            disabled=${responseResource.loading}
+                            disabled=${() => response.loading}
                             class="px-5 py-2 bg-green-600 text-white rounded-l-lg flex items-center font-medium shadow-sm transition-colors duration-150 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed border-r border-green-700"
                         >
                             运行
@@ -222,7 +224,7 @@ export const PlayGround = () => {
                             onclick=${() => {
                                 commitTestRun("stream");
                             }}
-                            disabled=${responseResource.loading}
+                            disabled=${() => response.loading}
                             class="px-3 py-2 bg-green-600 text-white rounded-r-lg flex items-center font-medium shadow-sm transition-colors duration-150 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                             title="流式运行"
                         >
@@ -465,24 +467,24 @@ export const PlayGround = () => {
                         >
                             ${() =>
                                 Show({
-                                    when: responseResource.loading,
+                                    when: response.loading,
                                     children: html`<p class="text-gray-500">
                                         Generating...
                                     </p>`,
                                 })}
                             ${() =>
                                 Show({
-                                    when: responseResource.error,
+                                    when: response.error,
                                     children: () => html`<p
                                         class="text-red-500"
                                     >
-                                        Error: ${responseResource.error.message}
+                                        Error: ${response.error.message}
                                     </p>`,
                                 })}
                             ${() =>
-                                !responseResource.loading &&
-                                responseResource() &&
-                                responseResource().type === "stream" &&
+                                !response.loading &&
+                                response() &&
+                                response().type === "stream" &&
                                 GraphStateMessage({
                                     state: {
                                         messages: composedStreamContent(),
@@ -492,15 +494,13 @@ export const PlayGround = () => {
                             ${() =>
                                 Show({
                                     when:
-                                        !responseResource.loading &&
-                                        responseResource() &&
-                                        responseResource().type === "invoke",
+                                        !response.loading &&
+                                        response() &&
+                                        response().type === "invoke",
                                     children: () =>
                                         GraphStateMessage({
                                             state: {
-                                                messages: [
-                                                    responseResource().data,
-                                                ],
+                                                messages: [response().data],
                                             },
                                             reverse: () => false,
                                         }),
@@ -508,8 +508,8 @@ export const PlayGround = () => {
                             ${() =>
                                 Show({
                                     when:
-                                        !responseResource.loading &&
-                                        !responseResource() &&
+                                        !response.loading &&
+                                        !response() &&
                                         !streamContent(),
                                     children: html`<p class="text-gray-500">
                                         Click Start to run generation...
