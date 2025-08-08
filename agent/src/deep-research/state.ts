@@ -1,6 +1,6 @@
 import { Annotation } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
 import {
+    createArrayAnnotation,
     createDefaultAnnotation,
     createModelHelper,
     createState,
@@ -15,13 +15,6 @@ export interface Query {
     query: string;
     rationale: string;
 }
-
-const createArrayAnnotation = <T>(defaultValue?: T[]) => {
-    return Annotation<T[]>({
-        reducer: (x, y) => x.concat(y),
-        default: () => (defaultValue ? defaultValue : []),
-    });
-};
 
 // 反思状态
 export const ReflectionState = createState().build({

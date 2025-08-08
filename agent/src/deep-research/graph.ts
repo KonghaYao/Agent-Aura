@@ -1,12 +1,5 @@
-import {
-    StateGraph,
-    START,
-    END,
-    Send,
-    Command,
-    getCurrentTaskInput,
-} from "@langchain/langgraph";
-import { AIMessage, HumanMessage } from "@langchain/core/messages";
+import { StateGraph, START, END, Send, Command } from "@langchain/langgraph";
+import { AIMessage } from "@langchain/core/messages";
 import type { RunnableConfig } from "@langchain/core/runnables";
 
 import {
@@ -16,9 +9,6 @@ import {
     WebSearchState,
 } from "./state";
 import { ReflectionSchema, QuerySchema } from "./tools_and_schemas";
-import { ConfigurationHelper } from "./configuration";
-// 移除 prompts 导入，直接在文件中定义模板字符串
-import { getResearchTopic } from "./utils";
 import { z } from "zod";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { tool } from "@langchain/core/tools";
