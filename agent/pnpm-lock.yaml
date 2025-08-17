@@ -30,8 +30,8 @@ dependencies:
     specifier: ^0.6.0
     version: 0.6.0(@langchain/core@0.3.68)
   '@langchain/openai':
-    specifier: ^0.5.18
-    version: 0.5.18(@langchain/core@0.3.68)
+    specifier: ^0.6.7
+    version: 0.6.7(@langchain/core@0.3.68)
   '@langchain/tavily':
     specifier: ^0.1.5
     version: 0.1.5(@langchain/core@0.3.68)
@@ -792,7 +792,7 @@ packages:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.54.2)(deepmerge@4.3.1)(dotenv@16.6.1)(openai@5.12.1)(zod@3.25.76)
       '@ibm-cloud/watsonx-ai': 1.6.10
       '@langchain/core': 0.3.68(openai@5.12.1)
-      '@langchain/openai': 0.5.18(@langchain/core@0.3.68)
+      '@langchain/openai': 0.6.7(@langchain/core@0.3.68)
       '@langchain/weaviate': 0.2.1(@langchain/core@0.3.68)
       binary-extensions: 2.3.0
       expr-eval: 2.0.2
@@ -2623,7 +2623,7 @@ packages:
         optional: true
     dependencies:
       '@langchain/core': 0.3.68(openai@5.12.1)
-      '@langchain/openai': 0.5.18(@langchain/core@0.3.68)
+      '@langchain/openai': 0.6.7(@langchain/core@0.3.68)
       '@langchain/textsplitters': 0.1.0(@langchain/core@0.3.68)
       axios: 1.11.0(debug@4.4.1)
       js-tiktoken: 1.0.20

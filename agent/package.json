@@ -19,7 +19,7 @@
         "@langchain/langgraph": "^0.4.3",
         "@langchain/langgraph-sdk": "^0.0.105",
         "@langchain/mcp-adapters": "^0.6.0",
-        "@langchain/openai": "^0.5.18",
+        "@langchain/openai": "^0.6.7",
         "@langchain/tavily": "^0.1.5",
         "@langgraph-js/api": "^1.2.2",
         "@langgraph-js/open-smith": "^1.2.7",
