@@ -108,6 +108,71 @@ const createLLMRouter = (
             return c.json({ error: "Internal server error" }, 500);
         }
     });
+
+    /**
+     * @api {post} /llm/response-with-messages LLM流式对话（支持消息数组）接口
+     * @apiName LLMResponseWithMessages
+     * @apiGroup LLM
+     *
+     * @apiParam {String} model 模型名称，例如 "gpt-4o-mini"
+     * @apiParam {Array} messages 消息数组，每个元素包含 { type: 'human' | 'system', content: string }
+     *
+     * @apiSuccess (200) {Stream} response LLM的流式回复内容
+     * @apiError (400) {Object} error 缺少必要的参数（model或messages）或messages格式不正确
+     * @apiError (500) {Object} error 内部服务器错误
+     */
+    app.post("/response-with-messages", async (c) => {
+        try {
+            const { model, messages } = await c.req.json();
+
+            if (!model || !Array.isArray(messages) || messages.length === 0) {
+                return c.json(
+                    {
+                        error: "model and a non-empty messages array are required",
+                    },
+                    400,
+                );
+            }
+
+            const llm = await createModel(model);
+            const langChainMessages = messages.map((msg: any) => {
+                if (msg.type === "human") {
+                    // 检查 content 是否为数组
+                    if (Array.isArray(msg.content)) {
+                        // 如果是数组，直接传递
+                        return new HumanMessage({
+                            content: msg.content,
+                        });
+                    } else {
+                        // 否则按字符串处理
+                        return new HumanMessage(msg.content);
+                    }
+                } else if (msg.type === "system") {
+                    return new SystemMessage(
+                        msg.content ||
+                            "You are a helpful assistant that can answer questions and help with tasks.",
+                    );
+                } else {
+                    throw new Error(`Unsupported message type: ${msg.type}`);
+                }
+            });
+            return streamText(c, async (stream) => {
+                const response = await llm.stream(langChainMessages);
+
+                for await (const chunk of response) {
+                    const content =
+                        typeof chunk.content === "string"
+                            ? chunk.content
+                            : JSON.stringify(chunk.content);
+                    await stream.write(content);
+                }
+            });
+        } catch (error) {
+            console.error("Error in llm/response-with-messages:", error);
+            return c.json({ error: "Internal server error" }, 500);
+        }
+    });
+
     return app;
 };
 
