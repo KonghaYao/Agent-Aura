@@ -39,8 +39,8 @@ dependencies:
     specifier: ^1.2.2
     version: 1.2.2(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2)
   '@langgraph-js/open-smith':
-    specifier: ^1.2.7
-    version: 1.2.7(openai@5.12.1)
+    specifier: ^1.3.1
+    version: 1.3.1(openai@5.12.1)
   '@langgraph-js/pro':
     specifier: ^1.8.1
     version: 1.8.1(openai@5.12.1)(zod-to-json-schema@3.24.6)
@@ -1114,8 +1114,8 @@ packages:
       - '@langchain/core'
       - pg-native
 
-  /@langgraph-js/open-smith@1.2.7(openai@5.12.1):
-    resolution: {integrity: sha512-cYUhcd/C3uNxLpoheTS8qMTZh29L0P+RwkI9C2iiVuYlMvbJhAv9FXjc54r/g2cVLZt0t+TVYpbgSmcmXTClHQ==}
+  /@langgraph-js/open-smith@1.3.1(openai@5.12.1):
+    resolution: {integrity: sha512-rxpMtudHjH6JdrY+IIX7TKt2i1yfi7pbsCgL3q5lK43y18YguVe/UvjCbZrzHegavB1q+b5h0wUkCS/8ZEIsPQ==}
     hasBin: true
     dependencies:
       '@hono/node-server': 1.18.1(hono@4.9.0)
