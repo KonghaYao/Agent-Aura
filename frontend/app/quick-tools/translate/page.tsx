@@ -66,7 +66,7 @@ export default function TranslatePage() {
         <div className="flex flex-col gap-4 w-full h-full p-4">
             <h2 className="text-2xl font-bold text-center mb-4">翻译工具</h2>
 
-            <div className="flex gap-4 flex-1">
+            <div className="flex gap-4 flex-1 overflow-auto">
                 {/* 左侧：源语言选择 + 输入文本框 */}
                 <div className="flex-1 flex flex-col gap-2">
                     <Select value={sourceLang} onValueChange={setSourceLang}>
@@ -91,7 +91,7 @@ export default function TranslatePage() {
                                 handleTranslate();
                             }
                         }}
-                        className="flex-1 min-h-[200px]"
+                        className="flex-1 min-h-[200px] "
                     />
                 </div>
 

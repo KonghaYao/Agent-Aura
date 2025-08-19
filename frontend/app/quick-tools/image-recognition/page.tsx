@@ -169,7 +169,7 @@ export default function ImageRecognitionPage() {
             <h2 className="text-2xl font-bold text-center mb-4">
                 图片识别与数据提取
             </h2>
-            <div className="flex gap-4 flex-1">
+            <div className="flex gap-4 flex-1 overflow-auto">
                 {/* 左侧：图片展示与附加文本 */}
                 <div className="flex-1 flex flex-col gap-2 relative bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
                     <div className="grid grid-cols-2 gap-2 mb-4 overflow-y-auto max-h-[50%]">
