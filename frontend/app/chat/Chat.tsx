@@ -257,7 +257,7 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select>
-                <Select
+                {/* <Select
                     value={extraParams.reasoning_model}
                     onValueChange={(value) => {
                         setExtraParams({
@@ -279,7 +279,7 @@ const ChatInput: React.FC = () => {
                             );
                         })}
                     </SelectContent>
-                </Select>
+                </Select> */}
                 <Select value={currentAgent} onValueChange={_setCurrentAgent}>
                     <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <SelectValue placeholder="选择一个 Agent" />

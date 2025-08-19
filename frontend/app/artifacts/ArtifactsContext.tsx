@@ -7,7 +7,7 @@ import React, {
     useMemo,
 } from "react";
 import { useChat } from "../chat/context/ChatContext";
-import { Message, ToolRenderData } from "@langgraph-js/sdk";
+import { ToolRenderData } from "@langgraph-js/sdk";
 import { useDebounceCallback } from "usehooks-ts";
 
 export interface Artifact {
