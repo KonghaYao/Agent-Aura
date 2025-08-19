@@ -59,6 +59,11 @@ export default function AppLayout({
             icon: "Globe",
             url: "/web-search",
         },
+        {
+            title: "小工具",
+            icon: "Wrench",
+            url: "/quick-tools",
+        },
     ];
 
     const handleItemClick = (item: (typeof menuItems)[0]) => {

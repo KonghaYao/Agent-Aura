@@ -20,5 +20,8 @@
             ],
             "allow_credentials": true
         }
+    },
+    "bundler": {
+        "externals": ["bun:sqlite"]
     }
 }
