@@ -211,7 +211,14 @@ const ChatInput: React.FC = () => {
         localStorage.setItem("agent_name", agent);
         setCurrentAgent(agent);
     };
-
+    const allowAgents = () => {
+        const allow = ["agent", "deep-research", "deep-wiki"];
+        return (
+            client?.availableAssistants.filter((i) =>
+                allow.includes(i.graph_id),
+            ) || []
+        );
+    };
     return (
         <div
             className={cn(
@@ -285,7 +292,7 @@ const ChatInput: React.FC = () => {
                         <SelectValue placeholder="选择一个 Agent" />
                     </SelectTrigger>
                     <SelectContent>
-                        {client?.availableAssistants.map((i) => {
+                        {allowAgents().map((i) => {
                             return (
                                 <SelectItem value={i.graph_id} key={i.graph_id}>
                                     {i.name}
