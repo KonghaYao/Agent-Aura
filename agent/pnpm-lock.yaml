@@ -36,8 +36,8 @@ dependencies:
     specifier: ^0.1.5
     version: 0.1.5(@langchain/core@0.3.68)
   '@langgraph-js/api':
-    specifier: ^1.2.2
-    version: 1.2.2(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2)
+    specifier: ^1.3.0
+    version: 1.3.0(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2)
   '@langgraph-js/open-smith':
     specifier: ^1.3.1
     version: 1.3.1(openai@5.12.1)
@@ -63,7 +63,7 @@ dependencies:
 devDependencies:
   '@langgraph-js/cli':
     specifier: ^3.0.0
-    version: 3.0.0(@langgraph-js/api@1.2.2)(@types/node@22.17.0)(rollup@4.46.2)
+    version: 3.0.0(@langgraph-js/api@1.3.0)(@types/node@22.17.0)(rollup@4.46.2)
   '@langgraph-js/langgraph-pg':
     specifier: ^2.0.2
     version: 2.0.2(@langchain/core@0.3.68)
@@ -1025,8 +1025,8 @@ packages:
       - encoding
     dev: false
 
-  /@langgraph-js/api@1.2.2(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2):
-    resolution: {integrity: sha512-7PXfXssUtMuEQN6g4+ZZ0lMzm2j8RVefW+OAcKkQ5urWnJF9WjKSiH92Vr454lcfuOz4Bg/XokDPxEkEhz3Lkw==}
+  /@langgraph-js/api@1.3.0(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2):
+    resolution: {integrity: sha512-X7Gysfe/FY8U/x7rz0opkZItj6qNR/nk90q2TV/Ih/oojnMyjktZ8rIIXt22nKlP9lz4nVeej3R9uZr1CpIgww==}
     engines: {node: ^18.19.0 || >=20.0.0}
     peerDependencies:
       '@langchain/core': ^0.3.42
@@ -1076,14 +1076,14 @@ packages:
       - pg-native
       - supports-color
 
-  /@langgraph-js/cli@3.0.0(@langgraph-js/api@1.2.2)(@types/node@22.17.0)(rollup@4.46.2):
+  /@langgraph-js/cli@3.0.0(@langgraph-js/api@1.3.0)(@types/node@22.17.0)(rollup@4.46.2):
     resolution: {integrity: sha512-T8EFHfZ0Qk7zZYVRrefL0bAxF+S35m0I2/RKSBjNaW7fOx8m02Fo9aGqOdo+GCuIDxWoiIbcb5SspTO7jkw6ig==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
       '@langgraph-js/api': ^1.0.0
     dependencies:
-      '@langgraph-js/api': 1.2.2(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2)
+      '@langgraph-js/api': 1.3.0(@langchain/core@0.3.68)(@langchain/langgraph-checkpoint@0.1.0)(@langchain/langgraph-sdk@0.0.105)(@langchain/langgraph@0.4.3)(@types/pg@8.15.5)(openai@5.12.1)(typescript@5.9.2)
       rollup-plugin-node-externals: 8.0.1(rollup@4.46.2)
       vite: 6.3.5(@types/node@22.17.0)(tsx@4.20.3)
     optionalDependencies:

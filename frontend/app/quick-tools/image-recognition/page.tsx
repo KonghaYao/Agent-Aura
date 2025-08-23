@@ -164,7 +164,6 @@ export default function ImageRecognitionPage() {
 
     return (
         <div className="flex flex-col gap-4 w-full h-full p-4 overflow-y-auto">
-            {" "}
             {/* 添加 overflow-y-auto */}
             <h2 className="text-2xl font-bold text-center mb-4">
                 图片识别与数据提取

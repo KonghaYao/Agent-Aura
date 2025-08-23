@@ -5,7 +5,7 @@
     "graphs": {
         "agent": "./src/agent/graph.ts:graph",
         "deep-research": "./src/deep-research/graph.ts:graph",
-        "memory": "./src/memory/graph.ts:graph"
+        "deep-wiki": "./src/deep-wiki/graph.ts:graph"
     },
     "env": ".env",
     "auth": {
@@ -15,6 +15,8 @@
         "app": "./src/app.ts",
         "cors": {
             "allow_origins": [
+                "http://localhost:1111",
+                "http://localhost:4173",
                 "http://localhost:3000",
                 "https://agent-aura.netlify.app"
             ],
