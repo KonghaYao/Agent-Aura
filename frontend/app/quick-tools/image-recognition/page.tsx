@@ -82,19 +82,9 @@ export default function ImageRecognitionPage() {
             if (attachedText.trim()) {
                 contentParts.push({
                     type: "text",
-                    text: `附加文本：\n${attachedText.trim()}`,
+                    text: attachedText.trim(),
                 });
             }
-
-            // 添加主要指令
-            const finalPrompt =
-                selectedPromptTemplate.value === "custom" && attachedText.trim()
-                    ? attachedText.trim()
-                    : selectedPromptTemplate.prompt +
-                      (attachedText.trim()
-                          ? `\n\n用户附加文本：\n${attachedText.trim()}`
-                          : "");
-            contentParts.push({ type: "text", text: finalPrompt });
 
             const messages: Message[] = [
                 { type: "human", content: contentParts }, // 明确指定 type 为 'human'
