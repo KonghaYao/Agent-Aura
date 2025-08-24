@@ -47,7 +47,7 @@ resources:
                 enableCustomExtraLog: true
                 logstore: default-logs
             functionName: agent-aura-api
-            runtime: custom.debian10
+            runtime: custom.debian12
             cpu: 0.5
             instanceConcurrency: 10
             memorySize: 512
@@ -58,7 +58,6 @@ resources:
                 OPENAI_BASE_URL: ${env(OPENAI_BASE_URL)}
                 SEARCH_SERVER_URL: ${env(SEARCH_SERVER_URL)}
                 OPENAI_API_KEY: ${env(OPENAI_API_KEY)}
-                MILVUS_URL: ${env(MILVUS_URL)}
                 LANGGRAPH_REDIS_URL: ${env(LANGGRAPH_REDIS_URL)}
                 DASHSCOPE_API_KEY: ${env(DASHSCOPE_API_KEY)}
 
@@ -73,7 +72,7 @@ resources:
                 TAVILY_API_KEY: ${env(TAVILY_API_KEY)}
                 DISABLE_AGENT_INIT: "true"
                 PATH: >-
-                    /var/fc/lang/nodejs20/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin
+                    /var/fc/lang/nodejs22/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin
                 LD_LIBRARY_PATH: >-
                     /code:/code/lib:/usr/local/lib:/opt/lib:/opt/php8.1/lib:/opt/php8.0/lib:/opt/php7.2/lib
                 TZ: Asia/Shanghai

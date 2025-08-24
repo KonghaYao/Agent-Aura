@@ -9,10 +9,11 @@ import { tool } from "@langchain/core/tools";
 import { type ToolRunnableConfig } from "@langchain/core/tools";
 import z from "zod";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { crawler_tool, web_search_tool } from "@langgraph-js/pro";
+
 import { create_artifacts } from "../tools/create_artifacts.js";
 import { getPrompt } from "./getPrompt.ts";
 import { image_generation } from "../tools/image_generation.ts";
+import { tavilyCrawlTool, tavilySearchTool } from "../tools/tavily.ts";
 // import { add_memories, search_memory } from "../memory/tools.ts";
 // import { image_generation } from "../tools/image_generation.ts";
 const ask_user_for_approve = tool(
@@ -42,8 +43,8 @@ const AuraMainAgent = entrypoint(
         const stylePrompt = await getPrompt("style", false);
         const tools = [
             ask_user_for_approve,
-            web_search_tool,
-            crawler_tool,
+            tavilySearchTool,
+            tavilyCrawlTool,
             SequentialThinkingTool,
             create_artifacts,
             image_generation,
