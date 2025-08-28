@@ -9,6 +9,10 @@ export const models = {
         "qwen-plus",
         "qwen-turbo",
         "claude-sonnet-4",
+        "gpt-4.1",
+        "gpt-4.1-mini",
+        "gpt-4.1-nano",
+        "gpt-4o-mini",
     ],
     reasoning_model: ["o4-mini"],
 };

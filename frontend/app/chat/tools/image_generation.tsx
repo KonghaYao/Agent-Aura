@@ -27,7 +27,7 @@ interface ImageArtifact {
 }
 
 export const image_generation = createUITool({
-    name: "image_generation",
+    name: "image_tool",
     description: " ",
     parameters: {
         prompt: z.string(),

@@ -1,118 +1,96 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-interface TaskResponse {
-    output: {
-        task_id: string;
-        task_status: "PENDING" | "RUNNING" | "SUCCEEDED" | "FAILED";
-        results?: Array<{ url: string }>;
-        task_metrics?: {
-            TOTAL: number;
-            SUCCEEDED: number;
-            FAILED: number;
-        };
-    };
-    request_id: string;
-    usage?: {
-        image_count: number;
-    };
-}
-const apiKey = process.env.DASHSCOPE_API_KEY;
-async function submitImageGenerationTask(
-    prompt: string,
-    size: string = "1024*1024",
-    seed?: number,
-    steps: number = 4,
-): Promise<string> {
-    if (!apiKey) {
-        throw new Error("DASHSCOPE_API_KEY environment variable is required");
-    }
-
-    const response = await fetch(
-        "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis",
-        {
-            method: "POST",
-            headers: {
-                "X-DashScope-Async": "enable",
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                model: "flux-schnell",
-                input: {
-                    prompt: prompt,
-                },
-                parameters: {
-                    size: size,
-                    seed: seed,
-                    steps: steps,
-                },
-            }),
-        },
-    );
-
-    if (!response.ok) {
-        throw new Error(
-            `Failed to submit image generation task: ${response.status} ${response.statusText}`,
-        );
-    }
-
-    const data = (await response.json()) as TaskResponse;
-    return data.output.task_id;
-}
-
-async function pollTaskStatus(taskId: string): Promise<TaskResponse> {
-    if (!apiKey) {
-        throw new Error("DASHSCOPE_API_KEY environment variable is required");
-    }
-
-    while (true) {
-        const response = await fetch(
-            `https://dashscope.aliyuncs.com/api/v1/tasks/${taskId}`,
-            {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                },
-            },
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Failed to poll task status: ${response.status} ${response.statusText}`,
-            );
-        }
-
-        const data = (await response.json()) as TaskResponse;
-
-        if (data.output.task_status === "SUCCEEDED") {
-            return data;
-        } else if (data.output.task_status === "FAILED") {
-            throw new Error("Image generation task failed");
-        }
-
-        // Wait 2 seconds before polling again
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-}
-
 export const image_generation = tool(
     async (input) => {
         try {
-            // Submit the image generation task
-            const taskId = await submitImageGenerationTask(
-                input.prompt,
-                input.size ?? "1024*1024",
-                input.seed,
-                input.steps ?? 4,
+            if (input.image) {
+                // Image Edit
+                const response = await fetch(
+                    "https://ark.cn-beijing.volces.com/api/v3/images/generations",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${process.env.VOL_API_KEY}`,
+                        },
+                        body: JSON.stringify({
+                            model: "doubao-seededit-3-0-i2i-250628",
+                            prompt: input.prompt,
+                            image: input.image,
+                            response_format: "url",
+                            size: "adaptive", // Set to adaptive for editing
+                            seed: input.seed,
+                            guidance_scale: input.guidance_scale,
+                            watermark: false, // Set to false for editing
+                        }),
+                    },
+                );
+                const json = (await response.json()) as {
+                    model: string;
+                    created: number;
+                    data: {
+                        url: string;
+                    }[];
+                    usage: {
+                        generated_images: number;
+                        output_tokens: number;
+                        total_tokens: number;
+                    };
+                };
+
+                const imageUrl = json.data?.[0]?.url;
+                if (imageUrl) {
+                    return [
+                        JSON.stringify({
+                            image_url: imageUrl,
+                            hint: "The image is edited and shown to the user. You don't need to show the image url to the user in your response.",
+                        }),
+                        {
+                            type: "image",
+                            url: imageUrl,
+                            prompt: input.prompt,
+                        },
+                    ];
+                }
+                throw new Error(
+                    "No image results returned from the API for editing",
+                );
+            }
+
+            const response = await fetch(
+                "https://ark.cn-beijing.volces.com/api/v3/images/generations",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.VOL_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: "doubao-seedream-3-0-t2i-250415",
+                        prompt: input.prompt,
+                        response_format: "url",
+                        size: input.size,
+                        guidance_scale: input.guidance_scale,
+                        watermark: false,
+                    }),
+                },
             );
+            const json = (await response.json()) as {
+                model: string;
+                created: number;
+                data: {
+                    url: string;
+                }[];
+                usage: {
+                    generated_images: number;
+                    output_tokens: number;
+                    total_tokens: number;
+                };
+            };
 
-            // Poll for task completion
-            const result = await pollTaskStatus(taskId);
-
-            if (result.output.results && result.output.results.length > 0) {
-                const imageUrl = result.output.results[0]!.url;
-
+            if (json.data) {
+                const imageUrl = json.data[0]?.url;
                 return [
                     JSON.stringify({
                         image_url: imageUrl,
@@ -122,16 +100,17 @@ export const image_generation = tool(
                         type: "image",
                         url: imageUrl,
                         prompt: input.prompt,
-                        task_id: taskId,
                     },
                 ];
             } else {
-                throw new Error("No image results returned from the API");
+                throw new Error(
+                    "No image results returned from the API for generation",
+                );
             }
         } catch (error) {
-            console.error("Image generation error:", error);
+            console.error("Image generation/editing error:", error);
             return [
-                `Failed to generate image: ${
+                `Failed to generate or edit image: ${
                     error instanceof Error ? error.message : "Unknown error"
                 }`,
                 null,
@@ -139,27 +118,64 @@ export const image_generation = tool(
         }
     },
     {
-        name: "image_generation",
-        description:
-            "Generate an image by Stable Diffusion like prompt. The image will be generated and shown to the user by this tool. You don't need to show the image url to the user in your response.",
+        name: "image_tool",
+        description: `Generate or edit an image. To generate, provide a 'prompt'. To edit, provide a 'prompt' and an 'image'. The image will be shown to the user by this tool. You don't need to show the image url to the user in your response.
+            
+When to use Generate
+
+- The user asks to create an image from scratch based on a description.
+- The user's prompt is a creative request for a new visual.
+- No initial image is provided by the user.
+For example: "draw a cat", "draw a logo for my company", "draw a picture of a future city"
+
+When to use Edit
+
+- The user provides an image and asks to modify it.
+- The user wants to change, add, or remove elements from an existing image.
+- An 'image' is available in the input.
+For example: "remove the background of this photo", "change the color of the car in the picture to red", "add a hat to the person in the picture"
+
+
+`,
         schema: z.object({
             prompt: z
                 .string()
-                .describe("The text prompt describing the image to generate"),
-            size: z
-                .string()
-                .default("1024*1024")
                 .describe(
-                    "The size of the image to generate. The allowed size are ['1024*1024', '720*1280', '1280*720']",
+                    "The text prompt describing the image to generate or the edit to apply.",
                 ),
+            image: z
+                .string()
+                .optional()
+                .describe(
+                    "The image to edit, as a URL or base64 encoded string. If provided, the tool will edit the image. Otherwise, it will generate a new image.",
+                ),
+            size: z
+                .enum([
+                    "1024x1024",
+                    "864x1152",
+                    "1152x864",
+                    "1280x720",
+                    "720x1280",
+                    "832x1248",
+                    "1248x832",
+                    "1512x648",
+                    "512x512",
+                    "2048x2048",
+                    "adaptive",
+                ])
+                .default("512x512")
+                .describe("The size of the image to generate. "),
             seed: z
                 .number()
                 .optional()
                 .describe("Random seed for reproducible results"),
-            steps: z
+            guidance_scale: z
                 .number()
-                .default(4)
-                .describe("Number of generation steps (default: 4)"),
+                .optional()
+                .describe(
+                    "Guidance scale for image editing, used when an image is provided.",
+                ),
+            // Removed watermark from schema as per user's diff
         }),
         responseFormat: "content_and_artifact",
     },
