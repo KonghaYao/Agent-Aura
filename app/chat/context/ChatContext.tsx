@@ -21,27 +21,12 @@ export const getUserToken = () => {
 };
 // 创建 store 工厂函数
 const createGlobalChatStore = () =>
-    createChatStore(
-        "agent",
-        {
-            apiUrl: "http://localhost:3000" + "/api/langgraph/",
-            defaultHeaders: {},
-            callerOptions: {
-                // 携带 cookie 的写法
-                fetch: (url: string, options: RequestInit) => {
-                    options.headers = {
-                        ...(options.headers || {}),
-                        Authorization: `Bearer ${getUserToken()}`,
-                    };
-                    options.credentials = "include";
-                    return fetch(url, options);
-                },
-            },
-        },
-        {
-            async onInit(client) {},
-        },
-    );
+    createChatStore("agent", {
+        apiUrl:
+            (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000") +
+            "/api/langgraph/",
+        defaultHeaders: {},
+    });
 
 type ChatContextType = UnionStore<ReturnType<typeof createGlobalChatStore>>;
 
