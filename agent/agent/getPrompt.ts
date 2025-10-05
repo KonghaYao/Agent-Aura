@@ -8,7 +8,7 @@ const promptFiles = {
 };
 export const getPrompt = async (
     name: keyof typeof promptFiles,
-    addPrefix = true
+    addPrefix = true,
 ): Promise<string> => {
     return promptFiles[name];
 };

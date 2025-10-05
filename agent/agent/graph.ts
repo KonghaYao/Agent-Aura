@@ -1,12 +1,12 @@
 import { entrypoint } from "@langchain/langgraph";
-import { GraphState, createLLM } from "./state.js";
+import { GraphState, createLLM } from "./state";
 import { createFeTools, createSwarm } from "@langgraph-js/pro";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
-import { create_artifacts } from "../tools/create_artifacts.js";
-import { getPrompt } from "./getPrompt.js";
-import { image_generation } from "../tools/image_generation.js";
-import { tavilyCrawlTool, tavilySearchTool } from "../tools/tavily.js";
+import { create_artifacts } from "../tools/create_artifacts";
+import { getPrompt } from "./getPrompt";
+// import { image_generation } from "../tools/image_generation";
+// import { tavilyCrawlTool, tavilySearchTool } from "../tools/tavily";
 
 const AuraMainAgent = entrypoint(
     "main",
@@ -16,10 +16,10 @@ const AuraMainAgent = entrypoint(
         const artifactsPrompt = await getPrompt("artifacts-usage", false);
         const stylePrompt = await getPrompt("style", false);
         const tools = [
-            tavilySearchTool,
-            tavilyCrawlTool,
+            // tavilySearchTool,
+            // tavilyCrawlTool,
             create_artifacts,
-            image_generation,
+            // image_generation,
             ...feTools,
         ];
         const llm = await createLLM(state, "main_model");

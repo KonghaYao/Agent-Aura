@@ -22,9 +22,9 @@ export const getUserToken = () => {
 // 创建 store 工厂函数
 const createGlobalChatStore = () =>
     createChatStore(
-        process.env.NEXT_PUBLIC_AGENT_NAME || "",
+        "agent",
         {
-            apiUrl: process.env.NEXT_PUBLIC_LANGGRAPH_API_URL,
+            apiUrl: "http://localhost:3000" + "/api/langgraph/",
             defaultHeaders: {},
             callerOptions: {
                 // 携带 cookie 的写法

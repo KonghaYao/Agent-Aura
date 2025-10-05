@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/context/AuthContext";
-import Link from "next/link";
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "Agent Aura",
@@ -17,7 +14,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="zh-CN">
-            <body className={inter.className}>
+            <body>
                 <AuthProvider>{children}</AuthProvider>
             </body>
         </html>
