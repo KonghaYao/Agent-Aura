@@ -4,9 +4,9 @@ import { createFeTools, createSwarm } from "@langgraph-js/pro";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 
 import { create_artifacts } from "../tools/create_artifacts.js";
-import { getPrompt } from "./getPrompt.ts";
-import { image_generation } from "../tools/image_generation.ts";
-import { tavilyCrawlTool, tavilySearchTool } from "../tools/tavily.ts";
+import { getPrompt } from "./getPrompt.js";
+import { image_generation } from "../tools/image_generation.js";
+import { tavilyCrawlTool, tavilySearchTool } from "../tools/tavily.js";
 
 const AuraMainAgent = entrypoint(
     "main",
