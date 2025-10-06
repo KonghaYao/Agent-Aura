@@ -9,7 +9,6 @@
         "lint": "next lint"
     },
     "dependencies": {
-        "@langchain/community": "^0.3.50",
         "@langchain/core": "^0.3.68",
         "@langchain/langgraph": "^0.4.3",
         "@langchain/langgraph-sdk": "^0.0.105",
