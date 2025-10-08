@@ -9,18 +9,14 @@ import remarkGfm from "remark-gfm";
 
 interface MessageToolProps {
     message: ToolMessage & RenderMessage;
-    client: LangGraphClient;
     getMessageContent: (content: any) => string;
-    formatTokens: (tokens: number) => string;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
 }
 
 const MessageTool: React.FC<MessageToolProps> = ({
     message,
-    client,
     getMessageContent,
-    formatTokens,
     isCollapsed,
     onToggleCollapse,
 }) => {
