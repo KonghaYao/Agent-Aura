@@ -9,7 +9,6 @@ import {
 } from "./context/ExtraParamsContext";
 import { UsageMetadata } from "./components/UsageMetadata";
 import { Message } from "@langgraph-js/sdk";
-import FileList from "./components/FileList";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
 import "../markdown.css";
 import { ArtifactsProvider, useArtifacts } from "../artifacts/ArtifactsContext";
@@ -24,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Brain, Send, StopCircle } from "lucide-react";
-import { models } from "./config/models";
+import { models } from "@/agent/models";
 import {
     ResizablePanelGroup,
     ResizablePanel,
@@ -71,10 +70,6 @@ const ChatMessages: React.FC = () => {
         if (renderMessages.length > 0 && MessageContainer.current) {
             // 切换消息时，自动滚动到底部
             if (!loading) {
-                scrollToBottom();
-            }
-            // 只有当用户已经滚动到接近底部时，才自动滚动到底部
-            if (loading && isNearBottom()) {
                 scrollToBottom();
             }
         }
@@ -240,6 +235,7 @@ const ChatInput: React.FC = () => {
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 onPaste={handlePaste}
+                autoFocus
                 placeholder="你好，我是Aura，有什么可以帮你的吗？"
                 disabled={loading}
             />

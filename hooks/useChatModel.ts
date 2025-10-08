@@ -1,6 +1,6 @@
 import { useState } from "react";
 // import { ChatResponse } from "@/hooks/api"; // 不再直接使用 ChatResponse
-import { models } from "@/app/chat/config/models";
+import { models } from "@/agent/models";
 
 export interface Message {
     type: "human" | "system";

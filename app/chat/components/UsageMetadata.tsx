@@ -33,7 +33,7 @@ export const UsageMetadata: React.FC<UsageMetadataProps> = ({
         ? ((usage_metadata.output_tokens || 0) * 1000) / (spend_time || 1)
         : 0;
     return (
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-gray-500 ">
             <div className="flex items-center gap-3">
                 {spend_time !== 0 && (
                     <span className="text-gray-500">
@@ -65,10 +65,10 @@ export const UsageMetadata: React.FC<UsageMetadataProps> = ({
 export const TokenPanel = ({ usage_metadata }: any) => {
     return (
         <div className="flex items-center gap-1">
-            <span className="flex items-center gap-1 group relative">
+            <span className="flex items-center gap-1 group/token relative">
                 <span>📊</span>
                 {formatTokens(usage_metadata.total_tokens || 0)}
-                <div className="hidden group-hover:block absolute bottom-full ml-2 bg-gray-100 p-2 rounded text-xs shadow border">
+                <div className="hidden group-hover/token:block absolute bottom-full ml-2 bg-gray-100 p-2 rounded text-xs shadow border">
                     <div className="flex flex-col gap-1">
                         <div className="flex flex-col gap-1">
                             <span className="flex items-center gap-1">
