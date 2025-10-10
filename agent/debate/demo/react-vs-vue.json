@@ -1,0 +1,12 @@
+{
+    "debate_title": "React vs Vue：哪个前端框架更适合现代Web开发？",
+    "debate_description": "随着前端技术的发展，React和Vue.js已成为最受欢迎的两个前端框架。本次辩论将探讨这两个框架在性能、学习曲线、生态系统、开发体验等方面的优劣，帮助开发者做出更明智的技术选型决策。",
+    "pro_standpoint": "React 是前端开发的最佳选择",
+    "con_standpoint": "Vue.js 比 React 更适合大多数开发场景",
+    "debate_rules": "1. 辩论双方必须基于事实和实际开发经验发言\n2. 禁止人身攻击，保持专业和尊重\n3. 可以使用具体的数据、案例和性能指标来支持观点\n4. 每次发言应包含建设性意见，避免情绪化表达\n5. 辩论应聚焦于技术优势而非个人偏好",
+    "debate_format": "1. 正方（React支持者）开篇陈述框架优势\n2. 反方（Vue支持者）进行反驳并阐述Vue优势\n3. 正方反驳反方观点并深化React优势\n4. 反方总结并强调Vue的核心竞争力\n5. 评判者基于双方论证给出客观评判",
+    "pro_model": "gpt-4o-mini",
+    "con_model": "qwen-plus",
+    "judge_model": "gpt-4.1-mini",
+    "max_debate_round": 3
+}

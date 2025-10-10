@@ -1,0 +1,12 @@
+{
+    "debate_title": "TypeScript vs JavaScript：大型项目开发应该选择哪种语言？",
+    "debate_description": "在现代Web开发中，JavaScript是基础语言，而TypeScript作为其超集提供了类型安全。本次辩论探讨在大型项目开发中，是否应该使用TypeScript而不是纯JavaScript，分析两者的优缺点和适用场景。",
+    "pro_standpoint": "大型项目应该使用TypeScript以获得更好的类型安全和可维护性",
+    "con_standpoint": "JavaScript的灵活性和简单性在大型项目中同样重要",
+    "debate_rules": "1. 基于实际项目经验和数据进行论证\n2. 讨论类型安全、开发效率、学习成本等方面的实际影响\n3. 考虑项目规模、团队经验等现实因素\n4. 避免过度理想化，承认两种方案都有适用场景\n5. 重点讨论大型项目的长期维护成本",
+    "debate_format": "1. 正方阐述TypeScript在大型项目中的优势\n2. 反方分析JavaScript的灵活性和优势\n3. 正方反驳并强调类型系统的长期价值\n4. 反方总结JavaScript的实用性和适用场景\n5. 评判者综合考虑项目规模和团队因素给出建议",
+    "pro_model": "gpt-4o-mini",
+    "con_model": "qwen-plus",
+    "judge_model": "gpt-4.1-mini",
+    "max_debate_round": 3
+}
