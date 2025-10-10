@@ -7,7 +7,8 @@ import { create_artifacts } from "../tools/create_artifacts";
 import { getPrompt } from "./getPrompt";
 // import { image_generation } from "../tools/image_generation";
 import { tavily_extract, tavily_search } from "../tools/tavily";
-import { saveMemory, wrapMemoryMessages } from "../memory";
+import { getBackgroundMemory, saveMemory, wrapMemoryMessages } from "../memory";
+import { RunnableConfig } from "@langchain/core/runnables";
 
 const AuraMainAgent = entrypoint(
     "main",
@@ -26,19 +27,26 @@ const AuraMainAgent = entrypoint(
         ];
         const llm = await createLLM(state, "main_model");
 
+        const memoryPrompt =
+            state.memory_prompt || (await getBackgroundMemory(config));
         const agent = createReactAgent({
             llm,
             tools,
             prompt:
-                executorPrompt + "\n" + artifactsPrompt + "\n" + stylePrompt,
+                executorPrompt +
+                "\n" +
+                artifactsPrompt +
+                "\n" +
+                stylePrompt +
+                "\n" +
+                memoryPrompt,
         });
-        const userId = config.configurable?.userId || "default";
         const response = await agent.invoke({
-            messages: await wrapMemoryMessages(state.messages, userId),
+            messages: await wrapMemoryMessages(state.messages, config),
         });
 
         return {
-            messages: await saveMemory(response.messages, userId),
+            messages: await saveMemory(response.messages, config),
         };
     },
 );

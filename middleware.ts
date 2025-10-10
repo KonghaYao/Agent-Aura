@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     // Add custom context to x-langgraph-context header for langgraph routes
     if (request.nextUrl.pathname.startsWith("/api/langgraph/")) {
         const langgraphContext = {
-            userId: "demo-user-123",
+            userId: "1",
         };
 
         // Set the context header on the cloned request headers

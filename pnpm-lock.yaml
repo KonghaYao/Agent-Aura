@@ -38,8 +38,8 @@ dependencies:
     specifier: ^1.8.1
     version: 1.8.1(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
   '@langgraph-js/pure-graph':
-    specifier: ^1.4.7
-    version: 1.4.7(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
+    specifier: ^1.5.0
+    version: 1.5.0(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
   '@langgraph-js/sdk':
     specifier: ^2.2.0
     version: 2.2.0(@langchain/core@0.3.78)(react@19.2.0)
@@ -1673,8 +1673,8 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/pure-graph@1.4.7(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6):
-    resolution: {integrity: sha512-FfKzWrQG8yxZxwYCdj8UenZpm5jz2u0LucBxL2eI+U9umQK3u1W7HVTLmLkfXK04fUZRg5DOlyrBdTq33/ULjw==}
+  /@langgraph-js/pure-graph@1.5.0(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6):
+    resolution: {integrity: sha512-q3wP+N/qCUY+IH4IOWXYGlMWTvDA0FPacrn9xMntY8orpAbrN/NPBlaPgFhGWXUoIk2XZ4ww3Bje9OWT/8igLg==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@langchain/core': 0.3.78
