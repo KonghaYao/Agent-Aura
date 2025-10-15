@@ -7,32 +7,38 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Artifact } from "../ArtifactsContext";
+import { useArtifacts } from "../ArtifactsContext";
 
 interface ArtifactHeaderProps {
-    currentArtifact: Artifact;
     viewMode: "preview" | "source";
     setViewMode: (mode: "preview" | "source") => void;
-    uniqueFilenames: string[];
-    getArtifactVersions: (filename: string) => Artifact[];
-    setCurrentArtifactById: (id: string) => void;
-    setShowArtifact: (show: boolean) => void;
     refresh: () => void;
     isLoading: boolean;
 }
 
 export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
-    currentArtifact,
     viewMode,
     setViewMode,
-    uniqueFilenames,
-    getArtifactVersions,
-    setCurrentArtifactById,
-    setShowArtifact,
     refresh,
     isLoading,
 }) => {
     const [isFileSelectOpen, setIsFileSelectOpen] = useState(false);
+    const {
+        currentArtifact,
+        artifacts,
+        setCurrentArtifactById,
+        setShowArtifact,
+    } = useArtifacts();
+
+    // 如果没有当前 artifact，不渲染
+    if (!currentArtifact) {
+        return null;
+    }
+
+    // 获取所有唯一的文件名
+    const uniqueFilenames = Array.from(
+        new Set(artifacts.map((a) => a.filename)),
+    );
 
     return (
         <div className="flex items-center justify-between p-2 border-b">
@@ -47,7 +53,7 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                             className="flex items-center justify-between gap-2 border-none"
                         >
                             <span className="truncate max-w-[200px]">
-                                {currentArtifact.filename}
+                                {currentArtifact?.filename}
                             </span>
                             <ChevronDown className="h-4 w-4 opacity-50" />
                         </Button>
@@ -55,19 +61,28 @@ export const ArtifactHeader: React.FC<ArtifactHeaderProps> = ({
                     <PopoverContent className="w-[200px] p-0">
                         <div className="max-h-[300px] overflow-auto">
                             {uniqueFilenames.map((filename) => {
-                                const fileVersions =
-                                    getArtifactVersions(filename);
+                                const composedArtifact = artifacts.find(
+                                    (a) => a.filename === filename,
+                                );
                                 const latestVersion =
-                                    fileVersions[fileVersions.length - 1];
+                                    composedArtifact?.versions[
+                                        composedArtifact.versions.length - 1
+                                    ];
                                 return (
                                     <Button
                                         key={filename}
                                         variant="ghost"
                                         className="w-full justify-start text-left px-3 py-2 rounded-none"
                                         onClick={() => {
-                                            setCurrentArtifactById(
-                                                latestVersion.id,
-                                            );
+                                            if (
+                                                composedArtifact &&
+                                                latestVersion
+                                            ) {
+                                                setCurrentArtifactById(
+                                                    latestVersion.id,
+                                                    latestVersion.tool_id,
+                                                );
+                                            }
                                             setIsFileSelectOpen(false);
                                         }}
                                     >

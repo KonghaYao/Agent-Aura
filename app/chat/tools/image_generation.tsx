@@ -1,4 +1,3 @@
-import { useArtifacts } from "@/app/artifacts/ArtifactsContext";
 import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
 import {
     ImageIcon,

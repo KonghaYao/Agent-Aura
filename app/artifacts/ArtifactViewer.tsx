@@ -6,13 +6,7 @@ import { ViewMode } from "./types";
 
 export const ArtifactViewer: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
-    const {
-        currentArtifact,
-        getArtifactVersions,
-        setCurrentArtifactById,
-        artifacts,
-        setShowArtifact,
-    } = useArtifacts();
+    const { currentArtifact } = useArtifacts();
     const [iframeKey, setIframeKey] = useState(0);
     const [viewMode, setViewMode] = useState<ViewMode>("preview");
 
@@ -34,29 +28,17 @@ export const ArtifactViewer: React.FC = () => {
         );
     }
 
-    const versions = getArtifactVersions(currentArtifact.filename);
-
-    // 获取所有唯一的文件名
-    const uniqueFilenames = Array.from(
-        new Set(artifacts.map((a) => a.filename)),
-    );
-
     return (
         <div className="h-full w-full flex flex-col border rounded-2xl bg-white">
             <ArtifactHeader
-                currentArtifact={currentArtifact}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                uniqueFilenames={uniqueFilenames}
-                getArtifactVersions={getArtifactVersions}
-                setCurrentArtifactById={setCurrentArtifactById}
-                setShowArtifact={setShowArtifact}
                 refresh={refresh}
                 isLoading={isLoading}
             />
 
             <div className="flex-1 overflow-hidden relative">
-                {viewMode === "preview" && !currentArtifact.isLoading ? (
+                {viewMode === "preview" ? (
                     <ArtifactPreview
                         key={currentArtifact.code}
                         currentArtifact={currentArtifact}
@@ -69,11 +51,7 @@ export const ArtifactViewer: React.FC = () => {
                 )}
             </div>
 
-            <ArtifactFooter
-                currentArtifact={currentArtifact}
-                versions={versions}
-                setCurrentArtifactById={setCurrentArtifactById}
-            />
+            <ArtifactFooter />
         </div>
     );
 };

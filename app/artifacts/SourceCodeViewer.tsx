@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from "react";
 import { useArtifacts } from "./ArtifactsContext";
 import ShikiHighlighter from "react-shiki";
@@ -32,19 +33,31 @@ const fileExtensionToLanguage: Record<string, string> = {
 };
 
 // 根据文件名获取语言
-const getLanguageFromFilename = (filename: string): string => {
+const getLanguageFromFilename = (filename: string): string | undefined => {
     const extension = filename.split(".").pop()?.toLowerCase() || "";
-    return fileExtensionToLanguage[extension] || "text";
+    return fileExtensionToLanguage[extension];
+};
+
+const filetypeToLanguage: Record<string, string> = {
+    "application/javascript": "javascript",
+    "application/typescript": "typescript",
+    "application/json": "json",
+    "application/xml": "xml",
+    "application/yaml": "yaml",
+    "application/vnd.ant.react": "tsx",
+    "application/vnd.ant.mermaid": "mermaid",
+    "application/vnd.ant.html": "html",
+    "application/vnd.ant.css": "css",
+    "application/vnd.ant.md": "markdown",
+    "application/vnd.ant.sh": "bash",
+};
+
+const getLanguageFromFiletype = (filetype: string): string | undefined => {
+    return filetypeToLanguage[filetype];
 };
 
 export const SourceCodeViewer: React.FC = () => {
     const { currentArtifact } = useArtifacts();
-    const [mounted, setMounted] = useState(false);
-
-    // 在客户端挂载后再渲染，避免服务端渲染不匹配
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     if (!currentArtifact) {
         return (
@@ -53,17 +66,11 @@ export const SourceCodeViewer: React.FC = () => {
             </div>
         );
     }
-
     // 获取代码语言
-    const language = getLanguageFromFilename(
-        currentArtifact.filename || "test.tsx",
-    );
-
-    // 客户端渲染
-    if (!mounted) {
-        return <div className="h-full w-full overflow-auto p-4">加载中...</div>;
-    }
-
+    const language =
+        getLanguageFromFilename(currentArtifact.filename) ||
+        getLanguageFromFiletype(currentArtifact.filetype) ||
+        currentArtifact.filetype;
     return (
         <div className="h-full w-full overflow-auto p-4">
             <ShikiHighlighter

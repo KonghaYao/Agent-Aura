@@ -13,7 +13,6 @@ import React, {
 import { UnionTool } from "@langgraph-js/sdk";
 import { useChat } from "@langgraph-js/sdk/react";
 import {
-    ask_user_for_approve,
     update_plan,
     web_search_tool,
     read_web_page_tool,
@@ -27,7 +26,6 @@ import { MCPServerConfig } from "@/app/api/mcp/route";
 const BUILTIN_TOOLS = [
     create_artifacts,
     web_search_tool,
-    ask_user_for_approve,
     update_plan,
     read_web_page_tool,
     image_generation,

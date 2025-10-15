@@ -21,7 +21,7 @@ const AuraMainAgent = entrypoint(
         const tools = [
             tavily_extract,
             tavily_search,
-            // create_artifacts,
+            create_artifacts,
             // image_generation,
             ...feTools,
         ];

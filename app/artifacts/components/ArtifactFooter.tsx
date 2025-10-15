@@ -14,20 +14,24 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Artifact } from "../types";
+import { useArtifacts } from "../ArtifactsContext";
 
-interface ArtifactFooterProps {
-    currentArtifact: Artifact;
-    versions: Artifact[];
-    setCurrentArtifactById: (id: string) => void;
-}
+interface ArtifactFooterProps {}
 
-export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
-    currentArtifact,
-    versions,
-    setCurrentArtifactById,
-}) => {
+export const ArtifactFooter: React.FC<ArtifactFooterProps> = () => {
     const [isCopied, setIsCopied] = useState(false);
+    const { currentArtifact, artifacts, setCurrentArtifactById } =
+        useArtifacts();
+
+    // 如果没有当前 artifact，不渲染
+    if (!currentArtifact) {
+        return null;
+    }
+
+    // 获取当前 artifact 的所有版本
+    const currentComposedArtifact = artifacts.find(
+        (a) => a.id === currentArtifact.id,
+    );
 
     const handleCopyCode = async () => {
         if (currentArtifact?.code) {
@@ -63,15 +67,29 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
                 <GitBranchPlus className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">版本:</span>
                 <Select
-                    value={currentArtifact.id}
-                    onValueChange={(value) => setCurrentArtifactById(value)}
+                    value={currentArtifact?.version.toString()}
+                    onValueChange={(value) => {
+                        const selectedVersion =
+                            currentComposedArtifact?.versions.find(
+                                (v) => v.version === parseInt(value),
+                            );
+                        if (selectedVersion) {
+                            setCurrentArtifactById(
+                                selectedVersion.id,
+                                selectedVersion.tool_id,
+                            );
+                        }
+                    }}
                 >
                     <SelectTrigger className="w-[100px] h-8">
                         <SelectValue placeholder="选择版本" />
                     </SelectTrigger>
                     <SelectContent>
-                        {versions.map((version) => (
-                            <SelectItem key={version.id} value={version.id}>
+                        {currentComposedArtifact?.versions.map((version) => (
+                            <SelectItem
+                                key={version.id}
+                                value={version.version.toString()}
+                            >
                                 v{version.version}
                             </SelectItem>
                         ))}
@@ -80,7 +98,7 @@ export const ArtifactFooter: React.FC<ArtifactFooterProps> = ({
             </div>
             <div className="flex items-center gap-2">
                 <div className="text-xs text-muted-foreground mr-2">
-                    {currentArtifact.filetype?.toUpperCase()}
+                    {currentArtifact?.filetype?.toUpperCase()}
                 </div>
                 <TooltipProvider>
                     <Tooltip>

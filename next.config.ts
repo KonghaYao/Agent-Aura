@@ -20,6 +20,14 @@ const nextConfig: NextConfig = {
                         key: "Access-Control-Allow-Headers",
                         value: "*",
                     },
+                    {
+                        key: "Cross-Origin-Embedder-Policy",
+                        value: "require-corp",
+                    },
+                    {
+                        key: "Cross-Origin-Opener-Policy",
+                        value: "same-origin",
+                    },
                 ],
             },
         ];

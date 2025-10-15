@@ -22,17 +22,16 @@ export const read_web_page_tool = createUITool({
     },
     onlyRender: true,
     render(tool: ToolRenderData<ReadWebPageInput, ReadWebPageResponse>) {
-        const { createTmpArtifact } = useArtifacts();
         const data = tool.getInputRepaired();
         const response = tool.output;
 
         const openWebPageContent = () => {
             if (response) {
-                const filename = response
-                    ? `${data.url!}.md`
-                    : `webpage_${new Date().getTime()}.md`;
-
-                createTmpArtifact(response, filename, "text/markdown");
+                // 由于临时 artifact 功能被移除，这里暂时只在新标签页打开
+                // 后续可以考虑其他方式展示内容
+                const blob = new Blob([response], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                window.open(url, "_blank");
             }
         };
 
