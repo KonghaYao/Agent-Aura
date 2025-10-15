@@ -6,7 +6,7 @@ import React, {
     useEffect,
     useMemo,
 } from "react";
-import { useChat } from "../chat/context/ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import { ToolRenderData } from "@langgraph-js/sdk";
 import { useDebounceCallback } from "usehooks-ts";
 

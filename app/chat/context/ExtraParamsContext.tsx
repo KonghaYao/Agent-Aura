@@ -7,7 +7,7 @@ import React, {
     useContext,
     ReactNode,
 } from "react";
-import { useChat } from "./ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import { useLocalStorage } from "usehooks-ts";
 
 interface ExtraParamsContextType {

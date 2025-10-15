@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useChat } from "../context/ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import { getHistoryContent, formatTime } from "@langgraph-js/sdk";
 import { History, RotateCcw, Trash2, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";

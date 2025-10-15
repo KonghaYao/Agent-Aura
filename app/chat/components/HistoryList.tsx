@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useChat } from "../context/ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import { getHistoryContent } from "@langgraph-js/sdk";
 import { RefreshCw, X, RotateCcw, Trash2 } from "lucide-react";
 

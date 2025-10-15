@@ -11,7 +11,7 @@ import {
     RenderMessage,
 } from "@langgraph-js/sdk";
 import { motion } from "motion/react";
-import { useChat } from "../context/ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

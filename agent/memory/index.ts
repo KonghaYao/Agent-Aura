@@ -1,21 +1,17 @@
-import {
-    AIMessage,
-    HumanMessage,
-    BaseMessage as Message,
-    ToolMessage,
-} from "@langchain/core/messages";
-
+import { AIMessage, BaseMessage as Message } from "@langchain/core/messages";
+import { RemoteMemoryDatabase } from "@langgraph-js/memory/client";
 import { getMessageContent } from "@langgraph-js/sdk";
-import MemoryClient, { Message as MemoryMessage } from "mem0ai";
 
+const memoryDB = new RemoteMemoryDatabase(
+    "https://langgraph-memory.konghayao.deno.net/",
+    process.env.MEMORY_MASTER_KEY,
+);
 const getCurrentDate = () => new Date().toISOString().split("T")[0];
 const getDateDaysAgo = (days: number) => {
     const date = new Date();
     date.setDate(date.getDate() - days);
     return date.toISOString().split("T")[0];
 };
-
-export const memClient = new MemoryClient({ apiKey: process.env.MEM_TOKEN! });
 
 export const memoryToXML = (memory: any[]): string => {
     const xmlContent = `<memory_data>
@@ -45,17 +41,12 @@ export const getRelativeMemory = async (history: Message[], context: any) => {
     );
     if (!lastHumanMessageContent) return [];
 
-    const memory = await memClient.search(lastHumanMessageContent, {
-        user_id: context?.configurable?.userId,
-        keyword_search: true,
-        top_k: 5,
-        limit: 5,
-        // agent_id: context?.metadata?.graph_id,
-        enable_graph: true,
+    const memory = await memoryDB.search(lastHumanMessageContent, {
+        userId: context?.configurable?.userId,
     });
 
     // 将 memory 数据格式化为 XML 格式
-    const xmlContent = memoryToXML(memory);
+    const xmlContent = memoryToXML(memory.results);
 
     return [
         new AIMessage({
@@ -65,49 +56,6 @@ export const getRelativeMemory = async (history: Message[], context: any) => {
     ];
 };
 
-export const LCMessagesToMemoryMessages = (
-    messages: Message[],
-): MemoryMessage[] => {
-    const result: MemoryMessage[] = [];
-    for (const message of excludeMemoryMessages(messages)) {
-        if (message.getType() === "human") {
-            result.push({
-                role: "user",
-                content: getMessageContent(message.content),
-            });
-        } else if (message.getType() === "ai") {
-            const content = getMessageContent(message.content);
-            if (content) {
-                result.push({
-                    role: "assistant",
-                    content: content,
-                });
-            } else {
-                // 处理工具调用
-                if (
-                    message instanceof AIMessage &&
-                    message.tool_calls &&
-                    message.tool_calls.length > 0
-                ) {
-                    result.push({
-                        role: "assistant",
-                        content: `input of tools: ${JSON.stringify(
-                            message.tool_calls,
-                        )}`,
-                    });
-                }
-            }
-        } else if (message.getType() === "tool") {
-            result.push({
-                role: "assistant",
-                content: `output of ${
-                    (message as ToolMessage).name || ""
-                }: ${getMessageContent(message.content)}`,
-            });
-        }
-    }
-    return result;
-};
 export const excludeMemoryMessages = (history: Message[]) => {
     return history.filter((message) => !message.additional_kwargs?.is_memory);
 };
@@ -116,17 +64,14 @@ export const saveMemory = async (
     context: any,
     options?: { waitForResponse: boolean },
 ) => {
-    const memoryHistory = LCMessagesToMemoryMessages(history);
-    if (memoryHistory.length) {
-        const response = memClient
-            .add(memoryHistory, {
-                user_id: context?.configurable?.userId,
-                agent_id: context?.configurable?.graph_id,
-                // run_id: context?.metadata?.run_id,
-                enable_graph: true,
+    if (history.length) {
+        const response = memoryDB
+            .add(history, {
+                userId: context?.configurable?.userId,
+                agentId: context?.configurable?.graph_id,
             })
             .then((response) => {
-                console.log(`save memory ${response.length}`);
+                console.log(`save memory ${response.results.length}`);
             });
         if (options?.waitForResponse) {
             await response;
@@ -153,33 +98,16 @@ export const getBackgroundMemory = async (context: any): Promise<Message[]> => {
 export const getUserPreferenceMemory = async (
     context: any,
 ): Promise<Message[]> => {
-    const endTime = getCurrentDate();
-    const createTime = getDateDaysAgo(3);
-    const filters = {
-        user_id: context?.configurable?.userId,
-        AND: [
-            {
-                created_at: {
-                    gte: createTime,
-                    lte: endTime,
-                },
-            },
-            {
-                categories: {
-                    in: ["user_preferences"],
-                },
-            },
-        ],
-    };
-    const result = await memClient.getAll({
-        page_size: 5,
-        version: "v2",
-        filters,
-        user_id: context?.configurable?.userId,
+    const result = await memoryDB.getAll({
+        limit: 5,
+        filters: {
+            categories: ["user_preferences"],
+        },
+        userId: context?.configurable?.userId,
     });
     return [
         new AIMessage({
-            content: memoryToXML(result),
+            content: memoryToXML(result.results),
             additional_kwargs: { is_memory: true },
         }),
     ];
@@ -188,33 +116,18 @@ export const getUserPreferenceMemory = async (
 export const getWorkingMemory = async (context: any): Promise<Message[]> => {
     const endTime = getCurrentDate();
     const createTime = getDateDaysAgo(3);
-    const filters = {
-        user_id: context?.configurable?.userId,
-        agent_id: context?.configurable?.graph_id,
-        AND: [
-            {
-                created_at: {
-                    gte: createTime,
-                    lte: endTime,
-                },
-            },
-            // {
-            //     categories: {
-            //         in: ["user_preferences"],
-            //     },
-            // },
-        ],
-    };
-    const result = await memClient.getAll({
-        page_size: 5,
-        version: "v2",
-        user_id: context?.configurable?.userId,
-        agent_id: context?.configurable?.graph_id,
-        filters,
+    const result = await memoryDB.getAll({
+        limit: 5,
+        userId: context?.configurable?.userId,
+        agentId: context?.configurable?.graph_id,
+        filters: {
+            updatedAtBefore: endTime,
+            updatedAtAfter: createTime,
+        },
     });
     return [
         new AIMessage({
-            content: memoryToXML(result),
+            content: memoryToXML(result.results),
             additional_kwargs: { is_memory: true },
         }),
     ];

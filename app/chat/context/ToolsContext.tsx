@@ -11,7 +11,7 @@ import React, {
     useCallback,
 } from "react";
 import { UnionTool } from "@langgraph-js/sdk";
-import { useChat } from "./ChatContext";
+import { useChat } from "@langgraph-js/sdk/react";
 import {
     ask_user_for_approve,
     update_plan,

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from "react";
 import { MessagesBox } from "./components/MessageBox";
-import { ChatProvider, useChat } from "./context/ChatContext";
+import { ChatProvider, useChat } from "@langgraph-js/sdk/react";
 import {
     ExtraParamsProvider,
     useExtraParams,
@@ -421,8 +421,23 @@ const Chat: React.FC = () => {
 };
 
 const ChatWrapper: React.FC = () => {
+    const apiUrl =
+        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000") +
+        "/api/langgraph/";
+
     return (
-        <ChatProvider>
+        <ChatProvider
+            defaultAgent="agent"
+            apiUrl={apiUrl}
+            defaultHeaders={{}}
+            withCredentials={false}
+            showHistory={false}
+            showGraph={false}
+            onInitError={(error, currentAgent) => {
+                console.error(`Failed to initialize ${currentAgent}:`, error);
+            }}
+        >
+            <ChatInitializer />
             <ToolsProvider>
                 <ExtraParamsProvider>
                     <ArtifactsProvider>
@@ -432,6 +447,19 @@ const ChatWrapper: React.FC = () => {
             </ToolsProvider>
         </ChatProvider>
     );
+};
+
+// 初始化组件，用于处理历史记录刷新
+const ChatInitializer: React.FC = () => {
+    const { refreshHistoryList } = useChat();
+
+    useEffect(() => {
+        // 初始化完成，刷新历史记录
+        console.log("ChatProvider: 初始化完成，刷新历史记录");
+        refreshHistoryList();
+    }, [refreshHistoryList]);
+
+    return null;
 };
 
 export default ChatWrapper;
