@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { useArtifacts } from "./ArtifactsContext";
 import ShikiHighlighter from "react-shiki";
 import "react-shiki/css"; // 导入默认样式，包括行号支持
+import {
+    CodeBlock,
+    CodeBlockCopyButton,
+} from "@/components/ai-elements/code-block";
 
 // 文件扩展名到语言映射
 const fileExtensionToLanguage: Record<string, string> = {
@@ -73,21 +77,14 @@ export const SourceCodeViewer: React.FC = () => {
         currentArtifact.filetype;
     return (
         <div className="h-full w-full overflow-auto p-4">
-            <ShikiHighlighter
-                language={language}
-                theme="github-light"
-                showLineNumbers
-                style={{
-                    // @ts-ignore - CSS 变量
-                    "--line-numbers-foreground": "rgba(107, 114, 128, 0.6)",
-                    "--line-numbers-width": "3ch",
-                    fontSize: "0.9rem",
-                    lineHeight: "1.5",
-                    borderRadius: "0.5rem",
-                }}
-            >
-                {currentArtifact.code || ""}
-            </ShikiHighlighter>
+            <CodeBlock language={language} code={currentArtifact.code || ""}>
+                <CodeBlockCopyButton
+                    onCopy={() => console.log("Copied code to clipboard")}
+                    onError={() =>
+                        console.error("Failed to copy code to clipboard")
+                    }
+                />
+            </CodeBlock>
         </div>
     );
 };

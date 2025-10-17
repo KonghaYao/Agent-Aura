@@ -4,7 +4,7 @@ import React from "react";
 import { RenderMessage } from "@langgraph-js/sdk";
 import { UsageMetadata } from "./UsageMetadata";
 import { getMessageContent } from "@langgraph-js/sdk";
-import { MarkdownRenderer } from "../../components/shared/MarkdownRenderer";
+import { Response } from "@/components/ai-elements/response";
 
 interface MessageAIProps {
     message: RenderMessage;
@@ -17,9 +17,7 @@ const MessageAI: React.FC<MessageAIProps> = ({ message }) => {
                 <div className="text-sm font-medium text-gray-700">
                     {message.name}
                 </div>
-                <MarkdownRenderer
-                    content={getMessageContent(message.content)}
-                />
+                <Response children={getMessageContent(message.content)} />
                 <UsageMetadata
                     response_metadata={message.response_metadata as any}
                     usage_metadata={message.usage_metadata || {}}

@@ -36,6 +36,7 @@ import ImageUploader from "./components/ImageUploader";
 import { ToolsProvider } from "./context/ToolsContext";
 import { MCPConfigDialog } from "./components/MCPConfigDialog";
 import HistoryButton from "./components/HistoryButton";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -89,8 +90,7 @@ const ChatMessages: React.FC = () => {
             <div className="flex items-center justify-center py-4 text-gray-500 h-10">
                 {loading && !isFELocking() && (
                     <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent mr-2"></div>
-                        正在思考中...
+                        <Shimmer>正在思考中...</Shimmer>
                     </>
                 )}
             </div>
