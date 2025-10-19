@@ -4,9 +4,7 @@ import React, { JSX, useState } from "react";
 import { LangGraphClient, RenderMessage, ToolMessage } from "@langgraph-js/sdk";
 import { UsageMetadata } from "./UsageMetadata";
 import { useChat } from "@langgraph-js/sdk/react";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
+import { Response } from "@/components/ai-elements/response";
 interface MessageToolProps {
     message: ToolMessage & RenderMessage;
     getMessageContent: (content: any) => string;
@@ -109,9 +107,7 @@ const Previewer = ({ content }: { content: string }) => {
                     </pre>
                 ) : markdownMode && isMarkdown ? (
                     <div className="markdown-body">
-                        <Markdown remarkPlugins={[remarkGfm]}>
-                            {content}
-                        </Markdown>
+                        <Response>{content}</Response>
                     </div>
                 ) : (
                     <pre className="whitespace-pre-wrap">{content}</pre>

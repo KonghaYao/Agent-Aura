@@ -103,7 +103,7 @@ export default function WebSearchWrapper() {
 
     // 创建用于 UrlMarkdownPreview 的 artifact
     const createArtifact = (url: string): Artifact => ({
-        id: "preview",
+        group_id: "preview",
         code: url,
         filename: "url-preview",
         filetype: "url",

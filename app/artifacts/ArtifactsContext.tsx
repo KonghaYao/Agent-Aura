@@ -19,8 +19,8 @@ export interface ComposedArtifact {
 }
 
 export interface Artifact {
+    group_id: string;
     id: string;
-    tool_id: string;
     code: string;
     filename: string;
     filetype: string;
@@ -30,7 +30,8 @@ export interface Artifact {
 
 interface ArtifactsContextType {
     artifacts: ComposedArtifact[];
-    currentArtifact: Artifact | null;
+
+    currentArtifactId: [string, string] | null;
     setCurrentArtifactById: (id: string, tool_id: string) => void;
     showArtifact: boolean;
     setShowArtifact: (show: boolean) => void;
@@ -38,7 +39,7 @@ interface ArtifactsContextType {
 
 const ArtifactsContext = createContext<ArtifactsContextType>({
     artifacts: [],
-    currentArtifact: null,
+    currentArtifactId: null,
     setCurrentArtifactById: () => {},
     showArtifact: false,
     setShowArtifact: () => {},
@@ -53,93 +54,102 @@ interface ArtifactsProviderProps {
 export const useArtifactsStore = (): ComposedArtifact[] => {
     const { renderMessages, client } = useChat();
 
-    type MiddleArtifactCommand = ArtifactCommand & {
-        tool_id?: string;
-        is_done?: boolean;
-    };
-    const files = new Map<string, MiddleArtifactCommand[]>();
-    for (const message of renderMessages) {
-        if (message.type === "tool" && message.name === "create_artifacts") {
-            const tool = new ToolRenderData<ArtifactCommand, {}>(
-                message,
-                client!,
-            );
-            const command = tool.getInputRepaired() as MiddleArtifactCommand;
-            if (!command.id) continue;
-            command.tool_id = tool.message.id!;
-            command.is_done = tool.state === "done";
-            files.set(command.id, [...(files.get(command.id) || []), command]);
+    return useMemo(() => {
+        type MiddleArtifactCommand = ArtifactCommand & {
+            tool_id?: string;
+            is_done?: boolean;
+        };
+        const files = new Map<string, MiddleArtifactCommand[]>();
+        for (const message of renderMessages) {
+            if (
+                message.type === "tool" &&
+                message.name === "create_artifacts"
+            ) {
+                const tool = new ToolRenderData<ArtifactCommand, {}>(
+                    message,
+                    client!,
+                );
+                const command =
+                    tool.getInputRepaired() as MiddleArtifactCommand;
+                if (!command.id) continue;
+                command.tool_id = tool.message.id!;
+                command.is_done = tool.state === "done";
+                files.set(command.id, [
+                    ...(files.get(command.id) || []),
+                    command,
+                ]);
+            }
         }
-    }
-    const composedFiles = new Map<string, Artifact[]>();
+        const composedFiles = new Map<string, Artifact[]>();
 
-    // 遍历每个 ID 的命令序列，生成对应的 artifact 版本
-    for (const [id, commands] of files) {
-        const artifacts: Artifact[] = [];
-        let currentContent = "";
-        let currentFilename = "";
-        let currentFiletype = "";
-        let version = 1;
+        // 遍历每个 ID 的命令序列，生成对应的 artifact 版本
+        for (const [id, commands] of files) {
+            const artifacts: Artifact[] = [];
+            let currentContent = "";
+            let currentFilename = "";
+            let currentFiletype = "";
+            let version = 1;
 
-        // 按命令顺序处理每个操作
-        for (const command of commands) {
-            switch (command.command) {
-                case "create":
-                    // 创建新 artifact，直接使用 content
-                    currentContent = command.content;
-                    currentFilename = command.title || `artifact-${id}`;
-                    currentFiletype = command.type || command.language;
-                    break;
-
-                case "update":
-                    // 更新现有内容，使用 old_str 和 new_str 进行替换
-                    if (command.old_str && command.new_str) {
-                        currentContent = currentContent.replace(
-                            command.old_str,
-                            command.new_str,
-                        );
-                    } else if (command.content) {
-                        // 如果没有 old_str/new_str，则直接使用 content 覆盖
+            // 按命令顺序处理每个操作
+            for (const command of commands) {
+                switch (command.command) {
+                    case "create":
+                        // 创建新 artifact，直接使用 content
                         currentContent = command.content;
-                    }
-                    break;
+                        currentFilename = command.title || `artifact-${id}`;
+                        currentFiletype = command.type || command.language;
+                        break;
 
-                case "rewrite":
-                    currentContent = command.content;
-                    break;
+                    case "update":
+                        // 更新现有内容，使用 old_str 和 new_str 进行替换
+                        if (command.old_str && command.new_str) {
+                            currentContent = currentContent.replace(
+                                command.old_str,
+                                command.new_str,
+                            );
+                        } else if (command.content) {
+                            // 如果没有 old_str/new_str，则直接使用 content 覆盖
+                            currentContent = command.content;
+                        }
+                        break;
+
+                    case "rewrite":
+                        currentContent = command.content;
+                        break;
+                }
+
+                // 创建当前版本的 artifact
+                const artifact: Artifact = {
+                    group_id: id,
+                    id: command.tool_id!,
+                    code: currentContent,
+                    filename: currentFilename,
+                    filetype: currentFiletype,
+                    version: version,
+                    is_done: command.is_done!,
+                };
+
+                artifacts.push(artifact);
+                version++;
             }
 
-            // 创建当前版本的 artifact
-            const artifact: Artifact = {
-                id: id,
-                tool_id: command.tool_id!,
-                code: currentContent,
-                filename: currentFilename,
-                filetype: currentFiletype,
-                version: version,
-                is_done: command.is_done!,
-            };
-
-            artifacts.push(artifact);
-            version++;
+            composedFiles.set(id, artifacts);
         }
 
-        composedFiles.set(id, artifacts);
-    }
-
-    return [...composedFiles.values()].map((artifacts) => ({
-        id: artifacts[0].id,
-        filename: artifacts[artifacts.length - 1].filename,
-        filetype: artifacts[artifacts.length - 1].filetype,
-        versions: artifacts,
-    }));
+        return [...composedFiles.values()].map((artifacts) => ({
+            id: artifacts[0].group_id,
+            filename: artifacts[artifacts.length - 1].filename,
+            filetype: artifacts[artifacts.length - 1].filetype,
+            versions: artifacts,
+        }));
+    }, [renderMessages, client]);
 };
 
 export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     children,
 }) => {
     const [showArtifact, setShowArtifact] = useState(false);
-    const composedArtifacts = useArtifactsStore();
+    const artifacts = useArtifactsStore();
 
     const [currentArtifactId, setCurrentArtifactId] = useState<
         [string, string] | null
@@ -157,29 +167,12 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         },
         100,
     );
-    const currentArtifact = useMemo(() => {
-        if (!currentArtifactId) return null;
-
-        const [artifactId, toolId] = currentArtifactId;
-
-        // 找到对应的 composed artifact
-        const composedArtifact = composedArtifacts.find(
-            (ca) => ca.id === artifactId,
-        );
-
-        if (!composedArtifact) return null;
-
-        // 返回匹配的版本
-        return (
-            composedArtifact.versions.find((v) => v.tool_id === toolId) || null
-        );
-    }, [composedArtifacts, currentArtifactId]);
 
     return (
         <ArtifactsContext.Provider
             value={{
-                artifacts: composedArtifacts,
-                currentArtifact: currentArtifact || null,
+                artifacts: artifacts,
+                currentArtifactId,
                 setCurrentArtifactById,
                 showArtifact,
                 setShowArtifact,
