@@ -1,12 +1,9 @@
 // 入参 {"query":"Gemini Diffusion vs other diffusion models advantages disadvantages unique features"}
 
-import { useArtifacts } from "@/app/artifacts/ArtifactsContext";
 import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
 import { LinkIcon } from "lucide-react";
 import { FaviconDisplay } from "@/components/shared/FaviconDisplay";
 import { z } from "zod";
-import { PreviewType } from "../../artifacts/config/previewConfig";
-
 interface SearchResult {
     title: string;
     url: string;

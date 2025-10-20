@@ -6,6 +6,7 @@ export const models = {
         "gemini-2.0-flash",
         "gpt-5",
         "gemini-2.5-pro",
+        "glm-4.6",
         "claude-4-5",
         "gpt-4.1",
         "gpt-4.1-mini",

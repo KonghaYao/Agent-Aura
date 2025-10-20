@@ -1,15 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useArtifacts } from "./ArtifactsContext";
-import { setArtifactStore, artifactStore } from "ai-artifacts";
 
+if (typeof window !== "undefined") {
+    await import("ai-artifacts");
+}
 export const ArtifactViewer: React.FC = () => {
     const { artifacts, currentArtifactId } = useArtifacts();
     useEffect(() => {
-        console.log(artifactStore);
-        setArtifactStore({
-            artifacts: { default: artifacts },
-        });
+        (async () => {
+            const { setArtifactStore } = await import("ai-artifacts");
+            setArtifactStore({
+                artifacts: { default: artifacts },
+            });
+        })();
     }, [artifacts]);
     return (
         <ai-artifacts

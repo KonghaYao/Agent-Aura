@@ -74,8 +74,8 @@ dependencies:
     specifier: ^1.2.7
     version: 1.2.8(@types/react-dom@19.2.0)(@types/react@19.2.0)(react-dom@19.2.0)(react@19.2.0)
   ai-artifacts:
-    specifier: ^1.2.0
-    version: 1.2.0
+    specifier: ^1.2.1
+    version: 1.2.1
   ajv:
     specifier: ^8.17.1
     version: 8.17.1
@@ -3489,8 +3489,8 @@ packages:
     hasBin: true
     dev: false
 
-  /ai-artifacts@1.2.0:
-    resolution: {integrity: sha512-rrqU0dcrYik+CqRbDDfGezRsRqxJFLFbRY5aAL5DpvEa2T2xrRoPgSYhN12NfY4qIkN75tE1/szuDqeCB1wj6w==}
+  /ai-artifacts@1.2.1:
+    resolution: {integrity: sha512-So0TJY0yk5Ce+zEcnHClOxk5LvbGoIje+KUG87fFUR+W3d+cawKqX07fKaAaYhhIxT8klK+j6Q0oZ7r/jfP9Ng==}
     dependencies:
       comlink: 4.4.2
       prismjs: 1.30.0

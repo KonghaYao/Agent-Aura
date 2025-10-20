@@ -1,5 +1,3 @@
-"use client";
-
 import ChatWrapper from "./Chat";
 
 export default function ChatPage() {
