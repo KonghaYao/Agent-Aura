@@ -103,10 +103,17 @@ export const useArtifactsStore = (): ComposedArtifact[] => {
                     case "update":
                         // 更新现有内容，使用 old_str 和 new_str 进行替换
                         if (command.old_str && command.new_str) {
-                            currentContent = currentContent.replace(
-                                command.old_str,
-                                command.new_str,
-                            );
+                            // 检查 old_str 是否在 currentContent 中
+                            if (currentContent.includes(command.old_str)) {
+                                currentContent = currentContent.replace(
+                                    command.old_str,
+                                    command.new_str,
+                                );
+                            } else {
+                                console.warn(
+                                    `old_str not found in currentContent: ${command.old_str}`,
+                                );
+                            }
                         } else if (command.content) {
                             // 如果没有 old_str/new_str，则直接使用 content 覆盖
                             currentContent = command.content;

@@ -41,8 +41,8 @@ dependencies:
     specifier: ^1.5.3
     version: 1.5.3(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
   '@langgraph-js/sdk':
-    specifier: ^3.0.2
-    version: 3.0.2(@langchain/core@0.3.78)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)
+    specifier: ^3.1.0
+    version: 3.1.0(@langchain/core@0.3.78)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)
   '@nanostores/react':
     specifier: ^1.0.0
     version: 1.0.0(nanostores@1.0.1)(react@19.2.0)
@@ -74,8 +74,8 @@ dependencies:
     specifier: ^1.2.7
     version: 1.2.8(@types/react-dom@19.2.0)(@types/react@19.2.0)(react-dom@19.2.0)(react@19.2.0)
   ai-artifacts:
-    specifier: ^1.1.0
-    version: 1.1.0
+    specifier: ^1.2.0
+    version: 1.2.0
   ajv:
     specifier: ^8.17.1
     version: 8.17.1
@@ -1612,8 +1612,8 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/sdk@3.0.2(@langchain/core@0.3.78)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3):
-    resolution: {integrity: sha512-Lhb+cBXHaZIoPiUWNIJJL2v1aXWy4AyiPUWi5EUei9iA2pHSlOaj/RhExIUhxVQTydzqr+UHnKYqF1igN8Mm/w==}
+  /@langgraph-js/sdk@3.1.0(@langchain/core@0.3.78)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3):
+    resolution: {integrity: sha512-rTiiPKdIWYTwRFBlusTcxX874FMpZblaHFrYeu4I/XlNMyUbUvQWN64rB8h//OGyn8wxOIdKEpgTauDIdwImZA==}
     peerDependencies:
       '@nanostores/react': ^1.0.0
       '@nanostores/vue': ^1.0.0
@@ -3489,8 +3489,8 @@ packages:
     hasBin: true
     dev: false
 
-  /ai-artifacts@1.1.0:
-    resolution: {integrity: sha512-2btgrmy/nexMTUNQk9cgX7RUMIw2OTQbDLOqAVwPv7VSS0+9mzEMlUlcV5ZtEhwDDdXUGoIW3OyzwYVtUkSl1w==}
+  /ai-artifacts@1.2.0:
+    resolution: {integrity: sha512-rrqU0dcrYik+CqRbDDfGezRsRqxJFLFbRY5aAL5DpvEa2T2xrRoPgSYhN12NfY4qIkN75tE1/szuDqeCB1wj6w==}
     dependencies:
       comlink: 4.4.2
       prismjs: 1.30.0

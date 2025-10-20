@@ -1,4 +1,5 @@
 import { tool } from "@langchain/core/tools";
+import { getCurrentTaskInput } from "@langchain/langgraph";
 import { z } from "zod";
 
 export const ArtifactCommandSchema = {
@@ -20,7 +21,7 @@ export const ArtifactCommandSchema = {
     content: z
         .string()
         .describe(
-            "The actual content to be created or updated. Don't Reply These Code to User, User can see these code in artifacts.",
+            "The actual content to be created. Don't Reply These Code to User, User can see these code in artifacts. If you need to update the content, use the 'update' command. content can be empty if you need to update a new artifact.",
         ),
     old_str: z
         .string()
@@ -75,9 +76,11 @@ Usage Notes:
 2. **Tech Stack:** 
     - react component
     - shadcn/ui
+        - Only use components that are officially available in the shadcn/ui library. If a required component does not exist in shadcn/ui, implement it using standard HTML elements instead.
     - tailwindcss
     - framer-motion for animation
     - lucide-react for icons usage (DOES NOT output <svg> or emoji for icons.)
+        - Do not use icons that are not available in lucide-react
     - recharts
 
 3. **Implementation Notes:**
@@ -102,6 +105,13 @@ Usage Notes:
             - Tone: import Tone from 'tone'
             - Motion: import { motion } from 'framer-motion'
     - Mermaid Diagrams: "application/vnd.ant.mermaid".
+
+<extra-libraries>
+    <how-to-highlight-code>
+        import { CodeBlock } from '@/components/ai-elements/code-block';
+        <CodeBlock code="console.log('Hello, world!');" language="javascript" />
+    </how-to-highlight-code>
+</extra-libraries>
 `,
         schema: z.object(ArtifactCommandSchema),
     },
