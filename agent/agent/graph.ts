@@ -26,7 +26,6 @@ const AuraMainAgent = entrypoint(
             ...feTools,
         ];
         const llm = await createLLM(state, "main_model");
-
         const memoryPrompt =
             state.memory_prompt || (await getBackgroundMemory(config));
         const agent = createReactAgent({

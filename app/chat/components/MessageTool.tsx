@@ -1,7 +1,11 @@
 "use client";
 
 import React, { JSX, useState } from "react";
-import { LangGraphClient, RenderMessage, ToolMessage } from "@langgraph-js/sdk";
+import {
+    LangGraphClient,
+    type RenderMessage,
+    type ToolMessage,
+} from "@langgraph-js/sdk";
 import { UsageMetadata } from "./UsageMetadata";
 import { useChat } from "@langgraph-js/sdk/react";
 import { Response } from "@/components/ai-elements/response";

@@ -4,7 +4,7 @@ import { getMessageContent } from "@langgraph-js/sdk";
 
 const memoryDB = new RemoteMemoryDatabase(
     "https://langgraph-memory.konghayao.deno.net/",
-    process.env.MEMORY_MASTER_KEY,
+    import.meta.env.MEMORY_MASTER_KEY,
 );
 const getCurrentDate = () => new Date().toISOString().split("T")[0];
 const getDateDaysAgo = (days: number) => {

@@ -8,7 +8,7 @@ import {
     useExtraParams,
 } from "./context/ExtraParamsContext";
 import { UsageMetadata } from "./components/UsageMetadata";
-import { Message } from "@langgraph-js/sdk";
+import { type Message } from "@langgraph-js/sdk";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
 import "../markdown.css";
 import { ArtifactsProvider, useArtifacts } from "../artifacts/ArtifactsContext";
@@ -34,7 +34,6 @@ import FileDropzone from "./components/FileDropzone";
 import { defaultUploader } from "./services/uploaders";
 import ImageUploader from "./components/ImageUploader";
 import { ToolsProvider } from "./context/ToolsContext";
-import { MCPConfigDialog } from "./components/MCPConfigDialog";
 import HistoryButton from "./components/HistoryButton";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 
@@ -297,7 +296,6 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select>
-                <MCPConfigDialog></MCPConfigDialog>
                 {client?.tokenCounter?.output_tokens! > 0 && (
                     <UsageMetadata
                         usage_metadata={client?.tokenCounter || {}}
@@ -422,7 +420,7 @@ const Chat: React.FC = () => {
 
 const ChatWrapper: React.FC = () => {
     const apiUrl =
-        (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000") +
+        (import.meta.env.NEXT_PUBLIC_API_URL || "http://localhost:4321") +
         "/api/langgraph/";
 
     return (

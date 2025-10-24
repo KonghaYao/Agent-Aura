@@ -38,7 +38,7 @@ export function SelectionPromptDialog() {
         try {
             const chatResponse = new ChatResponse(
                 "gpt-4o-mini",
-                process.env.NEXT_PUBLIC_LANGGRAPH_API_URL!,
+                import.meta.env.NEXT_PUBLIC_LANGGRAPH_API_URL!,
                 {
                     defaultHeader: {
                         "Content-Type": "application/json",

@@ -9,7 +9,7 @@ import React, {
 import { useChat } from "@langgraph-js/sdk/react";
 import { ToolRenderData } from "@langgraph-js/sdk";
 import { useDebounceCallback } from "usehooks-ts";
-import { ArtifactCommand } from "@/agent/tools/create_artifacts";
+import { type ArtifactCommand } from "@/agent/tools/create_artifacts";
 
 export interface ComposedArtifact {
     id: string;
