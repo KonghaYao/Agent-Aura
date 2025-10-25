@@ -29,7 +29,6 @@ import {
     ResizablePanel,
     ResizableHandle,
 } from "@/components/ui/resizable";
-import AnimatedBackground from "../components/AnimatedBackground";
 import FileDropzone from "./components/FileDropzone";
 import { defaultUploader } from "./services/uploaders";
 import ImageUploader from "./components/ImageUploader";
@@ -259,29 +258,6 @@ const ChatInput: React.FC = () => {
                         })}
                     </SelectContent>
                 </Select>
-                {/* <Select
-                    value={extraParams.reasoning_model}
-                    onValueChange={(value) => {
-                        setExtraParams({
-                            ...extraParams,
-                            reasoning_model: value,
-                        });
-                    }}
-                >
-                    <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
-                        <Brain></Brain>
-                        <SelectValue placeholder="选择一个模型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {models.reasoning_model.map((i) => {
-                            return (
-                                <SelectItem value={i} key={i}>
-                                    {i}
-                                </SelectItem>
-                            );
-                        })}
-                    </SelectContent>
-                </Select> */}
                 <Select value={currentAgent} onValueChange={_setCurrentAgent}>
                     <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
                         <SelectValue placeholder="选择一个 Agent" />
@@ -334,18 +310,21 @@ const ChatInput: React.FC = () => {
 
 // 使用memo来记忆ChatContainer组件，避免不必要的重新渲染
 const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
-    const { renderMessages } = useChat();
-
     return (
         <div className="flex-1 flex flex-col h-full overflow-auto hide-scrollbar">
             <div className="flex-1 flex flex-col items-center justify-center mb-8 w-full max-w-4xl mx-auto">
                 {hasMessages ? (
                     <ChatMessages />
                 ) : (
-                    <h1 className="text-4xl font-bold mb-24 text-center">
-                        <span className="text-4xl pr-2">👋</span>
-                        你好，我是 Aura
-                    </h1>
+                    <div className="flex flex-col items-center justify-center h-full">
+                        <h1 className="text-4xl font-bold mb-6 text-center">
+                            <span className="text-4xl pr-2">👋</span>
+                            你好，我是 Aura
+                        </h1>
+                        <p className="text-lg text-gray-500 mb-8 text-center">
+                            我是一个 AI 助手，可以帮助你完成各种任务
+                        </p>
+                    </div>
                 )}
                 <div className="px-4 w-full sticky bottom-8 ">
                     <ChatInput />
@@ -412,7 +391,6 @@ const Chat: React.FC = () => {
                         </>
                     )}
                 </ResizablePanelGroup>
-                {!hasMessages && <AnimatedBackground />}
             </div>
         </FileDropzone>
     );
@@ -435,7 +413,6 @@ const ChatWrapper: React.FC = () => {
                 console.error(`Failed to initialize ${currentAgent}:`, error);
             }}
         >
-            <ChatInitializer />
             <ToolsProvider>
                 <ExtraParamsProvider>
                     <ArtifactsProvider>
@@ -445,19 +422,6 @@ const ChatWrapper: React.FC = () => {
             </ToolsProvider>
         </ChatProvider>
     );
-};
-
-// 初始化组件，用于处理历史记录刷新
-const ChatInitializer: React.FC = () => {
-    const { refreshHistoryList } = useChat();
-
-    useEffect(() => {
-        // 初始化完成，刷新历史记录
-        console.log("ChatProvider: 初始化完成，刷新历史记录");
-        refreshHistoryList();
-    }, [refreshHistoryList]);
-
-    return null;
 };
 
 export default ChatWrapper;

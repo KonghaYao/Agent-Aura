@@ -1,8 +1,12 @@
 ---
 import Chat from "../../app/chat/Chat.jsx";
 import Layout from "../layouts/Layout.astro";
+import Sidebar from "../layouts/Sidebar.astro";
 ---
 
 <Layout>
-    <Chat client:only="react" />
+    <Sidebar />
+    <section class="flex-1">
+        <Chat client:only="react" />
+    </section>
 </Layout>
