@@ -28,7 +28,7 @@ export function useChatModel(config?: { model: string }): {
         // 重命名为 sendMessages
         try {
             const response = await fetch(
-                process.env.NEXT_PUBLIC_LANGGRAPH_API_URL! +
+                import.meta.env.NEXT_PUBLIC_LANGGRAPH_API_URL! +
                     "/llm/response-with-messages",
                 {
                     method: "POST",

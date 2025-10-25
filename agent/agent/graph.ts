@@ -26,27 +26,23 @@ const AuraMainAgent = entrypoint(
             ...feTools,
         ];
         const llm = await createLLM(state, "main_model");
-
-        const memoryPrompt =
-            state.memory_prompt || (await getBackgroundMemory(config));
+        // const memoryPrompt = await getBackgroundMemory(config);
         const agent = createReactAgent({
             llm,
             tools,
             prompt:
-                executorPrompt +
-                "\n" +
-                artifactsPrompt +
-                "\n" +
-                stylePrompt +
-                "\n" +
-                memoryPrompt,
+                executorPrompt + "\n" + artifactsPrompt + "\n" + stylePrompt,
+            // "\n" +
+            // memoryPrompt,
         });
         const response = await agent.invoke({
-            messages: await wrapMemoryMessages(state.messages, config),
+            messages: state.messages,
+            // messages: await wrapMemoryMessages(state.messages, config),
         });
 
         return {
-            messages: await saveMemory(response.messages, config),
+            messages: response.messages,
+            // messages: await saveMemory(response.messages, config),
         };
     },
 );

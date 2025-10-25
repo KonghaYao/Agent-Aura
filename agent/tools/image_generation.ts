@@ -12,7 +12,9 @@ export const image_generation = tool(
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${process.env.VOL_API_KEY}`,
+                            Authorization: `Bearer ${
+                                import.meta.env.VOL_API_KEY
+                            }`,
                         },
                         body: JSON.stringify({
                             model: "doubao-seededit-3-0-i2i-250628",
@@ -64,7 +66,7 @@ export const image_generation = tool(
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${process.env.VOL_API_KEY}`,
+                        Authorization: `Bearer ${import.meta.env.VOL_API_KEY}`,
                     },
                     body: JSON.stringify({
                         model: "doubao-seedream-3-0-t2i-250415",

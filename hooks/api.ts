@@ -4,7 +4,7 @@ export class ChatResponse {
     private defaultHeader: Record<string, string>;
     constructor(
         model: string,
-        baseUrl: string = process.env.NEXT_PUBLIC_LANGGRAPH_API_URL!,
+        baseUrl: string = import.meta.env.NEXT_PUBLIC_LANGGRAPH_API_URL!,
         options: {
             defaultHeader?: Record<string, string>;
         } = {},

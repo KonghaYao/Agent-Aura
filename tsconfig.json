@@ -1,4 +1,5 @@
 {
+    "extends": "astro/tsconfigs/strict",
     "compilerOptions": {
         "target": "ES2017",
         "lib": ["dom", "dom.iterable", "esnext"],
@@ -11,7 +12,7 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "jsx": "preserve",
+        "jsx": "react-jsx",
         "incremental": true,
         "plugins": [
             {
@@ -20,8 +21,10 @@
         ],
         "paths": {
             "@/*": ["./*"]
-        }
+        },
+        "jsxImportSource": "react",
+        "verbatimModuleSyntax": false
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    "include": [".astro/types.d.ts", "**/*.ts", "**/*.tsx"],
     "exclude": ["node_modules"]
 }

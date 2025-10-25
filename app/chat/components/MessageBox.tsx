@@ -8,7 +8,7 @@ import {
     formatTokens,
     getMessageContent,
     LangGraphClient,
-    RenderMessage,
+    type RenderMessage,
 } from "@langgraph-js/sdk";
 import { motion } from "motion/react";
 import { useChat } from "@langgraph-js/sdk/react";
