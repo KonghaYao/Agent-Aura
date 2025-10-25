@@ -21,7 +21,7 @@ const embedder = new LangChainEmbedder(
 );
 // 使用测试数据库配置
 const pool = new Pool({
-    connectionString: import.meta.env.MEMROY_DATABASE_URL,
+    connectionString: process.env.MEMROY_DATABASE_URL,
 });
 
 const vectorStore = new PostgresVectorStore({
@@ -36,7 +36,7 @@ export const memoryDB = new MemoryDataBase(
     embedder,
     vectorStore,
 );
-if (import.meta.env.MEMORY_DATABASE_SETUP) {
+if (process.env.MEMORY_DATABASE_SETUP) {
     // 初始化表
     await memoryDB.setup();
     console.log("memoryDB setup");
