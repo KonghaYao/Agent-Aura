@@ -397,9 +397,10 @@ const Chat: React.FC = () => {
 };
 
 const ChatWrapper: React.FC = () => {
-    const apiUrl =
-        (import.meta.env.NEXT_PUBLIC_API_URL || "http://localhost:4321") +
-        "/api/langgraph/";
+    const apiUrl = new URL(
+        "/api/langgraph/",
+        globalThis.location ? globalThis.location.href : "",
+    ).toString();
 
     return (
         <ChatProvider
