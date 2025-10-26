@@ -1,0 +1,12 @@
+---
+import AgentStorePage from "../../app/agent-store/page.jsx";
+import Layout from "../layouts/Layout.astro";
+import Sidebar from "../layouts/Sidebar.astro";
+---
+
+<Layout>
+    <Sidebar />
+    <section class="flex-1">
+        <AgentStorePage client:only="react" />
+    </section>
+</Layout>

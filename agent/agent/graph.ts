@@ -1,14 +1,13 @@
 import { entrypoint, getConfig } from "@langchain/langgraph";
 import { GraphState, createLLM } from "./state";
 import { createFeTools, createSwarm } from "@langgraph-js/pro";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-
+import { z } from "zod";
+import { createAgent } from "langchain";
 import { create_artifacts } from "../tools/create_artifacts";
 import { getPrompt } from "./getPrompt";
 // import { image_generation } from "../tools/image_generation";
 import { tavily_extract, tavily_search } from "../tools/tavily";
 import { getBackgroundMemory, saveMemory, wrapMemoryMessages } from "../memory";
-import { RunnableConfig } from "@langchain/core/runnables";
 
 const AuraMainAgent = entrypoint(
     "main",
@@ -25,12 +24,12 @@ const AuraMainAgent = entrypoint(
             // image_generation,
             ...feTools,
         ];
-        const llm = await createLLM(state, "main_model");
+        const model = await createLLM(state, "main_model");
         // const memoryPrompt = await getBackgroundMemory(config);
-        const agent = createReactAgent({
-            llm,
+        const agent = createAgent({
+            model,
             tools,
-            prompt:
+            systemPrompt:
                 executorPrompt + "\n" + artifactsPrompt + "\n" + stylePrompt,
             // "\n" +
             // memoryPrompt,

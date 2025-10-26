@@ -13,6 +13,7 @@ import {
 } from "@langchain/langgraph/prebuilt";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
+import { createAgent } from "langchain";
 
 const DebateAgent = createState(ModelState, createReactAgentAnnotation()).build(
     {
@@ -54,14 +55,14 @@ const DebateAgent = createState(ModelState, createReactAgentAnnotation()).build(
 const pro_agent_saying = task(
     "pro_agent_saying",
     async (state: typeof DebateAgent.State) => {
-        const agent = createReactAgent({
-            llm: new ChatOpenAI({
+        const agent = createAgent({
+            model: new ChatOpenAI({
                 modelName: state.pro_model,
                 streaming: true,
                 streamUsage: true,
             }),
             tools: [],
-            prompt: `你是辩论比赛中的正方辩手。
+            systemPrompt: `你是辩论比赛中的正方辩手。
 
 辩论主题：${state.debate_title}
 辩论描述：${state.debate_description}
@@ -99,14 +100,14 @@ const pro_agent_saying = task(
 const con_agent_saying = task(
     "con_agent_saying",
     async (state: typeof DebateAgent.State) => {
-        const agent = createReactAgent({
-            llm: new ChatOpenAI({
+        const agent = createAgent({
+            model: new ChatOpenAI({
                 modelName: state.con_model,
                 streaming: true,
                 streamUsage: true,
             }),
             tools: [],
-            prompt: `你是辩论比赛中的反方辩手。
+            systemPrompt: `你是辩论比赛中的反方辩手。
 
 辩论主题：${state.debate_title}
 辩论描述：${state.debate_description}
@@ -162,14 +163,14 @@ const messagesToXml = (messages: any[], nameMapper: Record<string, string>) => {
 };
 
 const judge = task("judge", async (state: typeof DebateAgent.State) => {
-    const agent = createReactAgent({
-        llm: new ChatOpenAI({
+    const agent = createAgent({
+        model: new ChatOpenAI({
             modelName: state.judge_model,
             streaming: true,
             streamUsage: true,
         }),
         tools: [],
-        prompt: `你是辩论比赛的公正评判者。
+        systemPrompt: `你是辩论比赛的公正评判者。
 
 辩论主题：${state.debate_title}
 辩论描述：${state.debate_description}
@@ -216,7 +217,7 @@ const workflow = entrypoint(
                 con_agent_saying_result.messages.map((i) => {
                     return {
                         ...i,
-                        role: i.getType() === "human" ? "ai" : "human",
+                        role: HumanMessage.isInstance(i) ? "ai" : "human",
                     };
                 }),
             );
@@ -236,6 +237,6 @@ const workflow = entrypoint(
     },
 );
 export const graph = createEntrypointGraph({
-    stateSchema: DebateAgent,
+    stateSchema: DebateAgent as any,
     graph: workflow,
 });

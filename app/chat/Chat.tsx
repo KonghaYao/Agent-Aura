@@ -35,6 +35,8 @@ import ImageUploader from "./components/ImageUploader";
 import { ToolsProvider } from "./context/ToolsContext";
 import HistoryButton from "./components/HistoryButton";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { AgentConfigProvider, useAgentConfig } from "./context";
+import { AgentSelectorCompact, AgentInfoPanel } from "./components";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -48,18 +50,6 @@ const ChatMessages: React.FC = () => {
     } = useChat();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const MessageContainer = useRef<HTMLDivElement>(null);
-
-    // 检查是否足够接近底部（距离底部 30% 以内）
-    const isNearBottom = () => {
-        if (!MessageContainer.current) return false;
-
-        const container = MessageContainer.current;
-        const scrollPosition = container.scrollTop + container.clientHeight;
-        const scrollHeight = container.scrollHeight;
-
-        // 当距离底部不超过容器高度的 30% 时，认为足够接近底部
-        return scrollHeight - scrollPosition <= container.clientHeight * 0.3;
-    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -109,13 +99,39 @@ const ChatInput: React.FC = () => {
         loading,
         sendMessage,
         stopGeneration,
-        setCurrentAgent,
         client,
-        currentAgent,
     } = useChat();
+    const agentConfig = useAgentConfig();
     const { extraParams, setExtraParams } = useExtraParams();
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // 当切换 agent 时，检查当前选中的 model 是否有效，如果无效则重置为第一个
+    useEffect(() => {
+        const currentAgentData = agentConfig.getCurrentAgentData();
+        if (currentAgentData && currentAgentData.llm.length > 0) {
+            const currentModelName = extraParams.model_name;
+            const availableModels = currentAgentData.llm.map((m) => m.model);
+
+            // 如果当前选中的 model 不存在于新 agent 的模型列表中，重置为第一个
+            if (
+                currentModelName &&
+                !availableModels.includes(currentModelName)
+            ) {
+                setExtraParams({
+                    ...extraParams,
+                    model_name: currentAgentData.llm[0].model,
+                });
+            }
+            // 如果没有选中任何 model，默认设置为第一个
+            else if (!currentModelName) {
+                setExtraParams({
+                    ...extraParams,
+                    model_name: currentAgentData.llm[0].model,
+                });
+            }
+        }
+    }, [agentConfig.currentAgent]); // 监听 currentAgent 变化
 
     const handleFileUploaded = (url: string) => {
         setImageUrls((prev) => [...prev, url]);
@@ -133,7 +149,6 @@ const ChatInput: React.FC = () => {
         };
 
         window.addEventListener("fileUploaded", handleFileUploadedEvent);
-        setCurrentAgent(localStorage.getItem("agent_name") || "");
         return () => {
             window.removeEventListener("fileUploaded", handleFileUploadedEvent);
         };
@@ -159,11 +174,6 @@ const ChatInput: React.FC = () => {
         }
     };
 
-    // const _setCurrentAgent = (agent: string) => {
-    //     localStorage.setItem("agent_name", agent);
-    //     setCurrentAgent(agent);
-    // };
-
     const sendMultiModalMessage = () => {
         if (userInput.trim() === "" && imageUrls.length === 0) {
             return;
@@ -185,7 +195,10 @@ const ChatInput: React.FC = () => {
         ];
 
         sendMessage(content, {
-            extraParams,
+            extraParams: {
+                ...extraParams,
+                agent_protocol: agentConfig.getCurrentAgentData(),
+            },
         });
 
         // 清空输入和图片列表
@@ -200,109 +213,103 @@ const ChatInput: React.FC = () => {
         }
     };
 
-    const _setCurrentAgent = (agent: string) => {
-        localStorage.setItem("agent_name", agent);
-        setCurrentAgent(agent);
-    };
-    const allowAgents = () => {
-        const allow = ["agent", "deep-research", "deep-wiki"];
-        return (
-            client?.availableAssistants.filter((i) =>
-                allow.includes(i.graph_id),
-            ) || []
-        );
-    };
     return (
-        <div
-            className={cn(
-                "w-full border border-gray-200 p-2 rounded-xl bg-white z-10 shadow-xl",
-            )}
-        >
-            {imageUrls.length > 0 && (
-                <ImageUploader
-                    imageUrls={imageUrls}
-                    onAddImage={handleFileUploaded}
-                    onRemoveImage={removeImage}
-                />
-            )}
-            <Textarea
-                ref={textareaRef}
-                className="flex-1 max-h-24 resize-none border-0 shadow-none p-3 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                rows={1}
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                onPaste={handlePaste}
-                autoFocus
-                placeholder="你好，我是Aura，有什么可以帮你的吗？"
-                disabled={loading}
-            />
-            <div className="flex items-center gap-2 p-2">
-                <Select
-                    value={extraParams.main_model || "gpt-4.1-mini"}
-                    onValueChange={(value) => {
-                        setExtraParams({ ...extraParams, main_model: value });
-                    }}
-                >
-                    <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
-                        <Brain></Brain>
-                        <SelectValue placeholder="选择一个模型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {models.main_model.map((i) => {
-                            return (
-                                <SelectItem value={i} key={i}>
-                                    {i}
-                                </SelectItem>
-                            );
-                        })}
-                    </SelectContent>
-                </Select>
-                <Select value={currentAgent} onValueChange={_setCurrentAgent}>
-                    <SelectTrigger className="w-[180px] border-0 bg-transparent hover:bg-gray-100 transition-colors rounded-md">
-                        <SelectValue placeholder="选择一个 Agent" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {allowAgents().map((i) => {
-                            return (
-                                <SelectItem value={i.graph_id} key={i.graph_id}>
-                                    {i.name}
-                                </SelectItem>
-                            );
-                        })}
-                    </SelectContent>
-                </Select>
-                {client?.tokenCounter?.output_tokens! > 0 && (
-                    <UsageMetadata
-                        usage_metadata={client?.tokenCounter || {}}
-                    />
+        <div className="space-y-2 w-full">
+            <div
+                className={cn(
+                    "w-full border border-gray-200 p-2 rounded-xl bg-white z-10 shadow-xl",
                 )}
-                <div className="flex-1"></div>
-                <HistoryButton />
-                {imageUrls.length === 0 && (
+            >
+                {imageUrls.length > 0 && (
                     <ImageUploader
                         imageUrls={imageUrls}
                         onAddImage={handleFileUploaded}
                         onRemoveImage={removeImage}
                     />
                 )}
-                <Button
-                    onClick={() =>
-                        loading ? stopGeneration() : sendMultiModalMessage()
-                    }
-                    disabled={
-                        !loading && !userInput.trim() && imageUrls.length === 0
-                    }
-                    variant={loading ? "destructive" : "default"}
-                    size="icon"
-                    className="rounded-full"
-                >
-                    {loading ? (
-                        <StopCircle className="h-5 w-5" />
-                    ) : (
-                        <Send className="h-5 w-5 " />
+                {/* <AgentInfoPanel /> */}
+                <Textarea
+                    ref={textareaRef}
+                    className="flex-1 max-h-24 resize-none border-0 shadow-none p-3 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
+                    rows={1}
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    onPaste={handlePaste}
+                    autoFocus
+                    placeholder="你好，我是Aura，有什么可以帮你的吗？"
+                    disabled={loading}
+                />
+                <div className="flex items-center gap-2 p-2">
+                    <Select
+                        value={
+                            extraParams.model_name ||
+                            agentConfig.getCurrentAgentData()?.llm[0].model ||
+                            ""
+                        }
+                        onValueChange={(value) => {
+                            setExtraParams({
+                                ...extraParams,
+                                model_name: value,
+                            });
+                        }}
+                    >
+                        <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
+                            <Brain></Brain>
+                            <SelectValue placeholder="选择一个模型" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {agentConfig
+                                .getCurrentAgentData()
+                                ?.llm.map((model) => {
+                                    return (
+                                        <SelectItem
+                                            value={model.model}
+                                            key={model.model}
+                                        >
+                                            {model.model}
+                                        </SelectItem>
+                                    );
+                                })}
+                        </SelectContent>
+                    </Select>
+
+                    {/* Agent 选择器 */}
+                    <AgentSelectorCompact />
+                    {client?.tokenCounter?.output_tokens! > 0 && (
+                        <UsageMetadata
+                            usage_metadata={client?.tokenCounter || {}}
+                        />
                     )}
-                </Button>
+                    <div className="flex-1"></div>
+                    <HistoryButton />
+                    {imageUrls.length === 0 && (
+                        <ImageUploader
+                            imageUrls={imageUrls}
+                            onAddImage={handleFileUploaded}
+                            onRemoveImage={removeImage}
+                        />
+                    )}
+                    <Button
+                        onClick={() =>
+                            loading ? stopGeneration() : sendMultiModalMessage()
+                        }
+                        disabled={
+                            !loading &&
+                            !userInput.trim() &&
+                            imageUrls.length === 0
+                        }
+                        variant={loading ? "destructive" : "default"}
+                        size="icon"
+                        className="rounded-full"
+                    >
+                        {loading ? (
+                            <StopCircle className="h-5 w-5" />
+                        ) : (
+                            <Send className="h-5 w-5 " />
+                        )}
+                    </Button>
+                </div>
             </div>
         </div>
     );
@@ -403,25 +410,30 @@ const ChatWrapper: React.FC = () => {
     ).toString();
 
     return (
-        <ChatProvider
-            defaultAgent="agent"
-            apiUrl={apiUrl}
-            defaultHeaders={{}}
-            withCredentials={false}
-            showHistory={false}
-            showGraph={false}
-            onInitError={(error, currentAgent) => {
-                console.error(`Failed to initialize ${currentAgent}:`, error);
-            }}
-        >
-            <ToolsProvider>
-                <ExtraParamsProvider>
-                    <ArtifactsProvider>
-                        <Chat />
-                    </ArtifactsProvider>
-                </ExtraParamsProvider>
-            </ToolsProvider>
-        </ChatProvider>
+        <AgentConfigProvider>
+            <ChatProvider
+                defaultAgent="agent-graph"
+                apiUrl={apiUrl}
+                defaultHeaders={{}}
+                withCredentials={false}
+                showHistory={false}
+                showGraph={false}
+                onInitError={(error, currentAgent) => {
+                    console.error(
+                        `Failed to initialize ${currentAgent}:`,
+                        error,
+                    );
+                }}
+            >
+                <ToolsProvider>
+                    <ExtraParamsProvider>
+                        <ArtifactsProvider>
+                            <Chat />
+                        </ArtifactsProvider>
+                    </ExtraParamsProvider>
+                </ToolsProvider>
+            </ChatProvider>
+        </AgentConfigProvider>
     );
 };
 

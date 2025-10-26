@@ -1,14 +1,39 @@
 ---
-
+const config = [
+    {
+        name: "Aura",
+        path: "/",
+        icon: "🌟",
+    },
+    {
+        name: "Agent Store",
+        path: "/agent-store",
+        icon: "🤖",
+    },
+];
 ---
 
-<nav class="bg-gray-100 w-20">
-    <div class="flex justify-center h-full">
+<nav
+    class="bg-white border-r border-gray-200 w-20 h-screen flex flex-col shadow-sm"
+>
+    <div class="flex justify-center py-8">
         <h1
-            class="text-5xl font-bold h-64 mx-4"
+            class="text-3xl font-bold text-gray-800 tracking-wide"
             style="writing-mode: vertical-rl; text-orientation: mixed;"
         >
             Aura
         </h1>
+    </div>
+    <div class="flex-1 flex flex-col gap-1 px-2">
+        {
+            config.map((item) => (
+                <a
+                    href={item.path}
+                    class="flex items-center justify-center w-12 h-12 mx-auto rounded-lg text-xl transition-all duration-200 hover:bg-gray-100 hover:scale-105 active:scale-95 group"
+                    title={item.name}>
+                    <span class="group-hover:animate-pulse">{item.icon}</span>
+                </a>
+            ))
+        }
     </div>
 </nav>

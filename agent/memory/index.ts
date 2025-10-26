@@ -1,4 +1,8 @@
-import { AIMessage, BaseMessage as Message } from "@langchain/core/messages";
+import {
+    AIMessage,
+    HumanMessage,
+    BaseMessage as Message,
+} from "@langchain/core/messages";
 import { RemoteMemoryDatabase } from "@langgraph-js/memory/client";
 import { getMessageContent } from "@langgraph-js/sdk";
 
@@ -31,8 +35,8 @@ ${memory
 };
 
 export const getRelativeMemory = async (history: Message[], context: any) => {
-    const humanMessages = excludeMemoryMessages(history).filter(
-        (msg) => msg.getType() === "human",
+    const humanMessages = excludeMemoryMessages(history).filter((msg) =>
+        HumanMessage.isInstance(msg),
     );
     if (!humanMessages.length) return [];
 
