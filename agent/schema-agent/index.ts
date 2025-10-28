@@ -36,6 +36,7 @@ export const createLLM = async (
         model: model_name,
         streamUsage: true,
         streaming: true,
+        useResponsesApi: false,
     });
 };
 
