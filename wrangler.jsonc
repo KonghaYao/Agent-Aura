@@ -1,0 +1,6 @@
+{
+    "name": "agent-aura",
+    "main": "build/server.mjs",
+    "compatibility_flags": ["nodejs_compat"],
+    "compatibility_date": "2025-10-29"
+}
