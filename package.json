@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "astro dev",
         "build": "astro build",
+        "dev:server": "bun --port 8123 ./agent/node-server.ts",
         "build:server": "vite build --config vite.config.server.ts",
         "start": "astro preview",
         "lint": "astro lint"
@@ -20,7 +21,7 @@
         "@langchain/tavily": "^1.0.0",
         "@langgraph-js/memory": "^1.4.1",
         "@langgraph-js/pro": "^2.0.0",
-        "@langgraph-js/pure-graph": "^2.1.0",
+        "@langgraph-js/pure-graph": "^2.1.1",
         "@langgraph-js/sdk": "^3.2.0",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-context-menu": "^2.2.16",

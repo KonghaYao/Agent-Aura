@@ -3,7 +3,7 @@ name: agent-aura-api
 access: "aliyun-1"
 
 vars: # 全局变量
-    region: "cn-shenzhen"
+    region: "ap-southeast-1"
 
 resources:
     agent_aura_api:
@@ -43,13 +43,6 @@ resources:
             runtime: custom.debian12
             cpu: 0.35
             memorySize: 512
-            logConfig:
-                enableRequestMetrics: true
-                enableInstanceMetrics: true
-                logBeginRule: DefaultRegex
-                project: serverless-cn-shenzhen-baa583de-f4c5-5847-8854-def428edb61a
-                enableCustomExtraLog: true
-                logstore: default-logs
             environmentVariables:
                 DATABASE_URL: ${env('DATABASE_URL')}
                 OPENAI_BASE_URL: ${env('OPENAI_BASE_URL')}
