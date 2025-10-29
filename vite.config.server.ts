@@ -27,11 +27,10 @@ export default defineConfig({
 
     build: {
         outDir: "./build",
-        target: "esnext",
+        target: "es2022",
         lib: {
-            entry: "./agent/raw-server.ts",
+            entry: ["./agent/raw-server.ts", "./agent/node-server.ts"],
             formats: ["es"],
-            fileName: "server",
         },
         minify: false,
         sourcemap: true,

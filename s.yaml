@@ -1,0 +1,66 @@
+edition: 3.0.0
+name: agent-aura-api
+access: "aliyun-1"
+
+vars: # 全局变量
+    region: "cn-shenzhen"
+
+resources:
+    agent_aura_api:
+        component: fc3
+        props:
+            region: ${vars.region}
+            code: ./build
+            triggers:
+                - triggerConfig:
+                      methods:
+                          - GET
+                          - POST
+                          - DELETE
+                          - PATCH
+                          - OPTIONS
+                          - HEAD
+                      authType: anonymous
+                      disableURLInternet: false
+                  triggerName: httpTrigger
+                  description: agent-aura-api
+                  qualifier: LATEST
+                  triggerType: http
+            handler: node ./node-server.mjs
+            role: ""
+            disableOndemand: false
+            description: agent-aura-api
+            timeout: 30
+            diskSize: 512
+            customRuntimeConfig:
+                port: 8123
+                command:
+                    - node
+                    - ./node-server.mjs
+                healthCheckConfig: {}
+            internetAccess: true
+            functionName: agent-aura-api
+            runtime: custom.debian12
+            cpu: 0.35
+            memorySize: 512
+            logConfig:
+                enableRequestMetrics: true
+                enableInstanceMetrics: true
+                logBeginRule: DefaultRegex
+                project: serverless-cn-shenzhen-baa583de-f4c5-5847-8854-def428edb61a
+                enableCustomExtraLog: true
+                logstore: default-logs
+            environmentVariables:
+                DATABASE_URL: ${env('DATABASE_URL')}
+                OPENAI_BASE_URL: ${env('OPENAI_BASE_URL')}
+                OPENAI_API_KEY: ${env('OPENAI_API_KEY')}
+                TAVILY_API_KEY: ${env('TAVILY_API_KEY')}
+                TAVILY_HOST: ${env('TAVILY_HOST')}
+                REDIS_URL: ${env('REDIS_URL')}
+                NODE_ENV: production
+                PATH: >-
+                    /var/fc/lang/nodejs22/bin:/usr/local/bin/apache-maven/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ruby/bin:/opt/bin:/code:/code/bin
+                LD_LIBRARY_PATH: >-
+                    /code:/code/lib:/usr/local/lib:/opt/lib:/opt/php8.1/lib:/opt/php8.0/lib:/opt/php7.2/lib
+                TZ: Asia/Shanghai
+                NODE_PATH: /opt/nodejs/node_modules
