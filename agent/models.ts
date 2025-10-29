@@ -1,3 +1,4 @@
+/** @deprecated */
 export const models = {
     main_model: [
         "x-ai/grok-4-fast",

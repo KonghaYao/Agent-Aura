@@ -4,7 +4,11 @@ import { graph as debateGraph } from "./debate/graph";
 import { graph as agentGraph } from "./schema-agent/index";
 import { getEnv } from "./getEnv";
 
-if (getEnv("NODE_ENV") !== "production") {
+if (
+    getEnv("NODE_ENV") !== "production" &&
+    // @ts-ignore
+    !globalThis.Bun
+) {
     console.log("register env");
     globalThis.process.env = import.meta.env;
 }

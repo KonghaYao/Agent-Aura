@@ -5,7 +5,7 @@
     "scripts": {
         "dev": "astro dev",
         "build": "astro build",
-        "build:server": "pnpm vite build",
+        "build:server": "vite build --config vite.config.server.ts",
         "start": "astro preview",
         "lint": "astro lint"
     },
