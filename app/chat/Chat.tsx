@@ -404,10 +404,12 @@ const Chat: React.FC = () => {
 };
 
 const ChatWrapper: React.FC = () => {
-    const apiUrl = new URL(
-        "/api/langgraph/",
-        globalThis.location ? globalThis.location.href : "",
-    ).toString();
+    const apiUrl =
+        import.meta.env.PUBLIC_AGENT_URL ||
+        new URL(
+            "/api/langgraph/",
+            globalThis.location ? globalThis.location.href : "",
+        ).toString();
 
     return (
         <AgentConfigProvider>
