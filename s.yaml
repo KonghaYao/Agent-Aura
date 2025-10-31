@@ -30,7 +30,7 @@ resources:
             role: ""
             disableOndemand: false
             description: agent-aura-api
-            timeout: 30
+            timeout: 120
             diskSize: 512
             customRuntimeConfig:
                 port: 8123
@@ -41,7 +41,8 @@ resources:
             internetAccess: true
             functionName: agent-aura-api
             runtime: custom.debian12
-            cpu: 0.35
+            cpu: 0.5
+            instanceConcurrency: 10
             memorySize: 512
             environmentVariables:
                 DATABASE_URL: ${env('DATABASE_URL')}
