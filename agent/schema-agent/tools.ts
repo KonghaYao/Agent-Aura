@@ -2,8 +2,10 @@ import { AgentProtocol } from "./types";
 import { StructuredTool } from "@langchain/core/tools";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import * as tavily from "../tools/tavily";
+import { create_artifacts } from "../tools/create_artifacts";
 const prebuiltTools: Record<string, StructuredTool> = {
     ...tavily,
+    create_artifacts: create_artifacts,
 };
 
 export const createPrebuiltTools = async (

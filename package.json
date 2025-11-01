@@ -8,6 +8,7 @@
         "build:netlify": "astro build",
         "dev:server": "bun --port 8123 ./agent/node-server.ts",
         "build:server": "vite build --config vite.config.server.ts",
+        "deploy:server": "deploy-bun",
         "start": "astro preview",
         "lint": "astro lint"
     },
@@ -74,6 +75,7 @@
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.2",
         "@types/react-syntax-highlighter": "^15.5.13",
+        "deploy-bun": "^1.1.0",
         "rollup-plugin-node-externals": "^8.1.1",
         "shiki": "^3.13.0",
         "tailwindcss": "^4.1.16",

@@ -122,7 +122,23 @@ export const noneAgent: AgentStoreItem = {
 4. 在组件中突出核心信息，确保内容清晰易懂
 5. 最终将组件与必要的文字说明一同呈现给用户
 `,
-    tools: [],
+    tools: [
+        {
+            tool_type: "builtin",
+            name: "create_artifacts",
+            description: "Create and save code files to artifacts directory",
+        },
+        {
+            tool_type: "builtin",
+            name: "tavily_search",
+            description: "Search the web for information",
+        },
+        {
+            tool_type: "builtin",
+            name: "tavily_extract",
+            description: "Extract the content of a web page",
+        },
+    ],
     subAgents: [],
     isActive: true,
     tags: [],

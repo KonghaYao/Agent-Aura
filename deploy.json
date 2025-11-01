@@ -1,0 +1,9 @@
+{
+    "name": "deploy-bun",
+    "build": "pnpm build:server",
+    "deploy": {
+        "dist": "./build",
+        "entrypoint": "./raw-server.mjs",
+        "port": 8123
+    }
+}

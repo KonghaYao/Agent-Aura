@@ -195,6 +195,9 @@ devDependencies:
   '@types/react-syntax-highlighter':
     specifier: ^15.5.13
     version: 15.5.13
+  deploy-bun:
+    specifier: ^1.1.0
+    version: 1.1.0
   rollup-plugin-node-externals:
     specifier: ^8.1.1
     version: 8.1.1(rollup@4.52.4)
@@ -6406,6 +6409,11 @@ packages:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
     engines: {node: '>= 0.8'}
     dev: false
+
+  /deploy-bun@1.1.0:
+    resolution: {integrity: sha512-+TtnLyjDVXUhxLzI/Tc8tBLHWIPsmhpIOYC445IEayDzMMryuYKpMXIKZ8vvLnV1ZUWqX/UcsGVOqR7NITLSuw==}
+    hasBin: true
+    dev: true
 
   /dequal@2.0.3:
     resolution: {integrity: sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==}
