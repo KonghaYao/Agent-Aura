@@ -65,10 +65,7 @@ const ChatMessages: React.FC = () => {
     }, [renderMessages]);
 
     return (
-        <div
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 w-full pt-12"
-            ref={MessageContainer}
-        >
+        <div className="w-full p-4 pt-12" ref={MessageContainer}>
             <MessagesBox
                 renderMessages={renderMessages}
                 collapsedTools={collapsedTools}
@@ -318,12 +315,14 @@ const ChatInput: React.FC = () => {
 // 使用memo来记忆ChatContainer组件，避免不必要的重新渲染
 const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
     return (
-        <div className="flex-1 flex flex-col h-full overflow-auto hide-scrollbar">
-            <div className="flex-1 flex flex-col items-center justify-center mb-8 w-full max-w-4xl mx-auto">
+        <div className="flex flex-col h-screen overflow-hidden">
+            <div className="flex-1 flex flex-col items-center w-full max-w-4xl mx-auto overflow-hidden">
                 {hasMessages ? (
-                    <ChatMessages />
+                    <div className="flex-1 overflow-y-auto w-full">
+                        <ChatMessages />
+                    </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center h-full">
+                    <div className="flex flex-col items-center justify-center flex-1">
                         <h1 className="text-4xl font-bold mb-6 text-center">
                             <span className="text-4xl pr-2">👋</span>
                             你好，我是 Aura
@@ -333,7 +332,7 @@ const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
                         </p>
                     </div>
                 )}
-                <div className="px-4 w-full sticky bottom-8 ">
+                <div className="px-4 w-full pb-8">
                     <ChatInput />
                 </div>
             </div>
