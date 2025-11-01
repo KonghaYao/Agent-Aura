@@ -29,7 +29,7 @@ export default defineConfig({
         outDir: "./build",
         target: "es2022",
         lib: {
-            entry: ["./agent/raw-server.ts", "./agent/node-server.ts"],
+            entry: ["./agent/raw-server.ts"],
             formats: ["es"],
         },
         minify: false,

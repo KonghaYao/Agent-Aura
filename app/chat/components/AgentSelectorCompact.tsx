@@ -51,14 +51,6 @@ export function AgentSelectorCompact() {
                 </div>
             </SelectTrigger>
             <SelectContent>
-                <SelectItem value={NONE_VALUE}>
-                    <div className="flex items-center gap-2">
-                        <span>默认模式</span>
-                        <Badge variant="secondary" className="text-xs">
-                            无 Agent
-                        </Badge>
-                    </div>
-                </SelectItem>
                 {availableAgents.map((agent) => (
                     <SelectItem key={agent.id} value={agent.id}>
                         <div className="flex flex-col items-start gap-1">
@@ -71,7 +63,7 @@ export function AgentSelectorCompact() {
                                 </Badge>
                             </div>
                             {agent.description && (
-                                <span className="text-xs text-muted-foreground line-clamp-1">
+                                <span className="text-xs text-muted-foreground line-clamp-1 max-w-64">
                                     {agent.description}
                                 </span>
                             )}

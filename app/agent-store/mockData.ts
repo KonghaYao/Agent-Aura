@@ -35,9 +35,10 @@ export const mockAgents: AgentStoreItem[] = [
 
 export const noneAgent: AgentStoreItem = {
     id: "__none__",
-    name: "None",
-    description: "None",
+    name: "Default Agent",
+    description: "Very Good at Anything!",
     protocolVersion: "1.0",
+    version: "1.0.0",
     llm: defaultModelsAllowed,
     systemPrompt: `# Role: 技术顶尖的私人助理
 
@@ -146,7 +147,6 @@ export const noneAgent: AgentStoreItem = {
     updatedAt: "2024-02-20T14:30:00Z",
     author: "AI Team",
     url: "",
-    version: "",
 };
 
 /**

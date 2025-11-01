@@ -22,7 +22,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, Send, StopCircle } from "lucide-react";
+import {
+    Mention,
+    MentionContent,
+    MentionInput,
+    MentionItem,
+} from "@/components/ui/mention";
+import { Brain, Send, StopCircle, Plus } from "lucide-react";
 import { models } from "@/agent/models";
 import {
     ResizablePanelGroup,
@@ -37,6 +43,7 @@ import HistoryButton from "./components/HistoryButton";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AgentConfigProvider, useAgentConfig } from "./context";
 import { AgentSelectorCompact, AgentInfoPanel } from "./components";
+import { noneAgent } from "../agent-store/mockData";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -97,11 +104,13 @@ const ChatInput: React.FC = () => {
         sendMessage,
         stopGeneration,
         client,
+        createNewChat,
     } = useChat();
+    const { currentAgent, availableAgents, selectAgent, clearAgent } =
+        useAgentConfig();
     const agentConfig = useAgentConfig();
     const { extraParams, setExtraParams } = useExtraParams();
     const [imageUrls, setImageUrls] = useState<string[]>([]);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     // 当切换 agent 时，检查当前选中的 model 是否有效，如果无效则重置为第一个
     useEffect(() => {
@@ -203,13 +212,6 @@ const ChatInput: React.FC = () => {
         setImageUrls([]);
     };
 
-    const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            sendMultiModalMessage();
-        }
-    };
-
     return (
         <div className="space-y-2 w-full">
             <div
@@ -225,18 +227,50 @@ const ChatInput: React.FC = () => {
                     />
                 )}
                 {/* <AgentInfoPanel /> */}
-                <Textarea
-                    ref={textareaRef}
-                    className="flex-1 max-h-24 resize-none border-0 shadow-none p-3 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0"
-                    rows={1}
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    onPaste={handlePaste}
-                    autoFocus
-                    placeholder="你好，我是Aura，有什么可以帮你的吗？"
-                    disabled={loading}
-                />
+                <Mention
+                    inputValue={userInput}
+                    onInputValueChange={(e) => {
+                        setUserInput(e);
+                    }}
+                    onValueChange={(data) => {
+                        console.log(data);
+                        if (data.length === 0) {
+                            selectAgent(noneAgent.id);
+                            return;
+                        }
+                        const agent = availableAgents.find(
+                            (i) => i.name === data.at(-1),
+                        );
+                        agent && selectAgent(agent?.id);
+                    }}
+                    trigger="@"
+                    className="w-full"
+                >
+                    <MentionInput
+                        asChild
+                        className="flex-1 max-h-24 resize-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 "
+                        onPaste={handlePaste}
+                        autoFocus
+                        placeholder="你好，我是Aura，有什么可以帮你的吗？"
+                        disabled={loading}
+                    >
+                        <textarea />
+                    </MentionInput>
+                    <MentionContent>
+                        {availableAgents.map((user) => (
+                            <MentionItem
+                                key={user.id}
+                                value={user.name}
+                                className="flex-col items-start gap-0.5"
+                            >
+                                <span className="text-sm">{user.name}</span>
+                                <span className="text-muted-foreground text-xs">
+                                    {user.description}
+                                </span>
+                            </MentionItem>
+                        ))}
+                    </MentionContent>
+                </Mention>
                 <div className="flex items-center gap-2 p-2">
                     <Select
                         value={
@@ -279,6 +313,15 @@ const ChatInput: React.FC = () => {
                         />
                     )}
                     <div className="flex-1"></div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={createNewChat}
+                        className="rounded-full hover:bg-gray-100"
+                        title="新建对话"
+                    >
+                        <Plus className="h-5 w-5" />
+                    </Button>
                     <HistoryButton />
                     {imageUrls.length === 0 && (
                         <ImageUploader
@@ -385,12 +428,15 @@ const Chat: React.FC = () => {
 
                     {showArtifact && (
                         <>
-                            <ResizableHandle withHandle />
+                            <ResizableHandle
+                                withHandle
+                                className="bg-gray-200"
+                            />
                             <ResizablePanel
                                 defaultSize={panelSizes.artifact}
                                 minSize={30}
                             >
-                                <div className="h-full overflow-hidden px-4 py-12">
+                                <div className="h-full overflow-hidden border-r border-gray-200 p-4 relative">
                                     <ArtifactViewer />
                                 </div>
                             </ResizablePanel>

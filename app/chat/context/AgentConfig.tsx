@@ -55,7 +55,10 @@ export function AgentConfigProvider({ children }: AgentConfigProviderProps) {
             setIsLoading(true);
             const agents = await AgentStoreService.getAllAgents();
             // 只显示激活的 Agents
-            const activeAgents = agents.filter((agent) => agent.isActive);
+            const activeAgents = [
+                noneAgent,
+                ...agents.filter((agent) => agent.isActive),
+            ];
             setAvailableAgents(activeAgents);
 
             // 如果有保存的选中 Agent ID，尝试恢复
