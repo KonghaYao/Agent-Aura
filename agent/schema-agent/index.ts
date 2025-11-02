@@ -7,7 +7,7 @@ import { createTools } from "./tools";
 import { createEntrypointGraph } from "@langgraph-js/pure-graph";
 import { withLangGraph } from "@langchain/langgraph/zod";
 import { z } from "zod/v3";
-import { ChatAnthropic } from "@langchain/anthropic";
+// import { ChatAnthropic } from "@langchain/anthropic";
 
 const AgentProtocolSchema = z.object({
     agent_protocol: z.custom<AgentProtocol>(),
@@ -34,11 +34,11 @@ export const createLLM = async (
         model_name = llm.model;
     }
     if (protocol.llm[0].provider === "anthropic") {
-        return new ChatAnthropic({
-            model: model_name,
-            streamUsage: true,
-            streaming: true,
-        });
+        // return new ChatAnthropic({
+        //     model: model_name,
+        //     streamUsage: true,
+        //     streaming: true,
+        // });
     }
     return new ChatOpenAI({
         model: model_name,

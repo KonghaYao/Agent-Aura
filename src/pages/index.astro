@@ -1,12 +1,15 @@
 ---
-import Chat from "../../app/chat/Chat.jsx";
 import Layout from "../layouts/Layout.astro";
-import Sidebar from "../layouts/Sidebar.astro";
+import HeroSection from "../../components/HeroSection";
+import FeaturesSection from "../../components/FeaturesSection";
 ---
 
-<Layout>
-    <Sidebar />
-    <section class="flex-1">
-        <Chat client:only="react" />
-    </section>
+<Layout
+    title="Agent Aura - AI Agent Platform"
+    description="构建、部署和管理智能AI代理的现代化平台"
+>
+    <main class="min-h-screen flex-1">
+        <HeroSection />
+        <FeaturesSection />
+    </main>
 </Layout>

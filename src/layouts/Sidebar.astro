@@ -1,39 +1,90 @@
 ---
-const config = [
+import UserAvatar from "../../components/UserAvatar";
+const navigation = [
     {
         name: "Aura",
         path: "/",
         icon: "🌟",
+        description: "AI Agent Platform"
     },
     {
         name: "Agent Store",
         path: "/agent-store",
         icon: "🤖",
+        description: "浏览和创建代理"
     },
+    {
+        name: "Agent Chat",
+        path: "/agent",
+        icon: "💬",
+        description: "与AI代理对话"
+    }
 ];
+
+const currentPath = Astro.url.pathname;
 ---
 
-<nav
-    class="bg-white border-r border-gray-200 w-20 h-screen flex flex-col shadow-sm"
->
-    <div class="flex justify-center py-8">
-        <h1
-            class="text-3xl font-bold text-gray-800 tracking-wide"
-            style="writing-mode: vertical-rl; text-orientation: mixed;"
-        >
-            Aura
-        </h1>
+<!-- Sidebar -->
+<aside class="group/sidebar bg-sidebar border-sidebar-border border-r w-16 hover:w-64 transition-all duration-300 ease-in-out h-screen flex flex-col shadow-sm overflow-hidden">
+    <!-- Logo Section -->
+    <div class="flex items-center justify-center h-16 px-4 border-b border-sidebar-border">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
+                <span class="text-primary-foreground font-bold text-lg">A</span>
+            </div>
+            <div class="hidden group-hover/sidebar:block transition-opacity duration-200">
+                <h1 class="text-sidebar-foreground font-semibold text-lg truncate">
+                    Agent Aura
+                </h1>
+            </div>
+        </div>
     </div>
-    <div class="flex-1 flex flex-col gap-1 px-2">
-        {
-            config.map((item) => (
-                <a
-                    href={item.path}
-                    class="flex items-center justify-center w-12 h-12 mx-auto rounded-lg text-xl transition-all duration-200 hover:bg-gray-100 hover:scale-105 active:scale-95 group"
-                    title={item.name}>
-                    <span class="group-hover:animate-pulse">{item.icon}</span>
-                </a>
-            ))
-        }
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-6">
+        <ul class="space-y-2">
+            {navigation.map((item) => (
+                <li>
+                    <a
+                        href={item.path}
+                        class:list={[
+                            "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group/nav-item relative",
+                            currentPath === item.path
+                                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        ]}
+                        title={item.description}
+                    >
+                        <!-- Active Indicator -->
+                        {currentPath === item.path && (
+                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"></div>
+                        )}
+
+                        <!-- Icon -->
+                        <div class="flex items-center justify-center w-6 h-6 shrink-0 text-xl group-hover/nav-item:scale-110 transition-transform duration-200">
+                            {item.icon}
+                        </div>
+
+                        <!-- Label -->
+                        <span class="hidden group-hover/sidebar:block text-sm font-medium truncate transition-opacity duration-200">
+                            {item.name}
+                        </span>
+
+                        <!-- Tooltip for collapsed state -->
+                        <div class="group-hover/sidebar:hidden absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover/nav-item:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                            {item.description}
+                        </div>
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </nav>
+
+    <!-- Footer -->
+    <div class="p-3 border-t border-sidebar-border">
+       <UserAvatar client:visible show-name show-email></UserAvatar>
     </div>
-</nav>
+</aside>
+
+<!-- Mobile Overlay (for future mobile support) -->
+<div class="fixed inset-0 bg-black/50 -translate-x-full lg:hidden" id="mobile-overlay"></div>
