@@ -20,4 +20,8 @@ app.use(
     auth,
 );
 app.route("/", LangGraphApp);
-export default app;
+export default {
+    idleTimeout: 120,
+    fetch: app.fetch,
+    port: 8123,
+};
