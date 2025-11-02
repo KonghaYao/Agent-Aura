@@ -1,6 +1,6 @@
 import { MiddlewareHandler } from "hono";
 import { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index";
-import { auth as BetterAuth } from "@/lib/auth";
+import { auth as BetterAuth } from "../lib/auth";
 
 export const auth: MiddlewareHandler<{
     Variables: LangGraphServerContext;

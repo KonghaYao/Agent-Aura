@@ -8,7 +8,7 @@
         "build:netlify": "astro build",
         "dev:server": "bun --port 8123 ./agent/raw-server.ts",
         "build:server": "vite build --config vite.config.server.ts",
-        "deploy:server": "deploy-bun",
+        "deploy:server": "bunx --bun deploy-bun",
         "start": "astro preview",
         "lint": "astro lint"
     },
@@ -56,6 +56,7 @@
         "mcp-client": "^1.12.3",
         "motion": "^12.23.24",
         "nanostores": "^1.0.1",
+        "pg": "^8.16.3",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
         "react-markdown": "^10.1.0",
