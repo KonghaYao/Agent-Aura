@@ -27,7 +27,5 @@ export default defineConfig({
         plugins: [tailwindcss()],
     },
 
-    adapter: netlify({
-        edgeMiddleware: true,
-    }),
+    adapter: netlify({}),
 });
