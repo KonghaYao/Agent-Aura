@@ -1,8 +1,9 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { Resend } from "resend";
+import { getEnv } from "../agent/getEnv";
 
-const resend = new Resend(import.meta.env.RESEND_API_KEY);
+const resend = new Resend(getEnv("RESEND_API_KEY"));
 
 async function sendEmail({
     to,
@@ -27,8 +28,14 @@ async function sendEmail({
 }
 
 export const auth = betterAuth({
+    advanced: {
+        crossSubDomainCookies: getEnv("AUTH_COOKIE_DOMAIN") && {
+            enabled: true,
+            domain: getEnv("AUTH_COOKIE_DOMAIN"),
+        },
+    },
     database: new Pool({
-        connectionString: import.meta.env.AUTH_DATABASE_URL,
+        connectionString: getEnv("AUTH_DATABASE_URL"),
     }),
     emailAndPassword: {
         enabled: true,

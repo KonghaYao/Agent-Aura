@@ -462,7 +462,7 @@ const ChatWrapper: React.FC = () => {
                 defaultAgent="agent-graph"
                 apiUrl={apiUrl}
                 defaultHeaders={{}}
-                withCredentials={false}
+                withCredentials={true}
                 showHistory={false}
                 showGraph={false}
                 onInitError={(error, currentAgent) => {

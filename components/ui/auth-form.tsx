@@ -51,8 +51,10 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
                     {
                         onSuccess: () => {
                             toast.success("登录成功，正在跳转...");
-                            // 使用 JS 指令跳转
-                            window.location.href = "/agent";
+                            setTimeout(() => {
+                                // 使用 JS 指令跳转
+                                window.location.href = "/agent";
+                            }, 300);
                         },
                         onError: (ctx) => {
                             // Handle the error

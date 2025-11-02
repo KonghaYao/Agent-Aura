@@ -6,7 +6,7 @@
         "dev": "astro dev",
         "build": "astro build",
         "build:netlify": "astro build",
-        "dev:server": "bun --port 8123 ./agent/node-server.ts",
+        "dev:server": "bun --port 8123 ./agent/raw-server.ts",
         "build:server": "vite build --config vite.config.server.ts",
         "deploy:server": "deploy-bun",
         "start": "astro preview",
