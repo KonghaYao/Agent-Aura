@@ -5,6 +5,11 @@ import { auth as BetterAuth } from "../lib/auth";
 export const auth: MiddlewareHandler<{
     Variables: LangGraphServerContext;
 }> = async (c, next) => {
+    // Allow OPTIONS requests to pass through for CORS preflight
+    if (c.req.method === "OPTIONS") {
+        return await next();
+    }
+
     const session = await BetterAuth.api.getSession({
         headers: c.req.raw.headers,
     });
