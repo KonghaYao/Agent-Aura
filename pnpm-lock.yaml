@@ -47,8 +47,8 @@ dependencies:
     specifier: ^2.0.0
     version: 2.0.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
   '@langgraph-js/pure-graph':
-    specifier: ^2.2.7
-    version: 2.2.7(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
+    specifier: ^2.2.10
+    version: 2.2.10(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6)
   '@langgraph-js/sdk':
     specifier: ^3.2.0
     version: 3.2.0(@langchain/core@1.0.1)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)
@@ -2086,8 +2086,8 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/pure-graph@2.2.7(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6):
-    resolution: {integrity: sha512-LhApeicSwoL4wWPqNV740wBeqVHVY8J+PkTxoQZ0yJmUs11lVTS4Up79OsOVaYcFrnO41vRvSwLvHH90jP2P/w==}
+  /@langgraph-js/pure-graph@2.2.10(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(ws@8.18.3)(zod-to-json-schema@3.24.6):
+    resolution: {integrity: sha512-awVqQvFSTXqqXCEZagPA3OI+IJWu68XWQLWuW70u17f/PwMFBV5NkyZeS+hKu721/mXWf81GLMkKjHZCZGp/Fw==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@langchain/core': 1.0.1(@opentelemetry/api@1.9.0)

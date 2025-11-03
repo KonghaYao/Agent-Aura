@@ -1,6 +1,6 @@
 {
     "name": "aura-agent",
-    "main": "build/server.js",
+    "main": "build/raw-server.mjs",
     "compatibility_flags": ["nodejs_compat"],
     "compatibility_date": "2025-10-29"
 }
