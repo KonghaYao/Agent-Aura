@@ -12,6 +12,6 @@ if (
     console.log("register env");
     globalThis.process.env = import.meta.env;
 }
-registerGraph("agent", graph);
+// registerGraph("agent", graph);
 registerGraph("agent-graph", agentGraph as any);
 export default {};
