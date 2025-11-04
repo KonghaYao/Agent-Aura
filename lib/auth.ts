@@ -3,8 +3,6 @@ import { Pool } from "pg";
 import { Resend } from "resend";
 import { getEnv } from "../agent/getEnv";
 
-const resend = new Resend(getEnv("RESEND_API_KEY"));
-
 async function sendEmail({
     to,
     subject,
@@ -14,6 +12,7 @@ async function sendEmail({
     subject: string;
     text: string;
 }) {
+    const resend = new Resend(getEnv("RESEND_API_KEY"));
     try {
         await resend.emails.send({
             from: "Agent Aura <onboarding@resend.dev>",
