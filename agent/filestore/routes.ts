@@ -1,0 +1,218 @@
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index";
+import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
+
+// 扩展上下文类型以包含自定义变量
+type ExtendedContext = LangGraphServerContext & {
+    userId: string;
+};
+
+// 创建路由实例
+export const filesRouter = new Hono<{ Variables: ExtendedContext }>();
+
+// 请求/响应类型定义
+const createFileSchema = z.object({
+    // user_id: z.string().min(1, "用户ID不能为空"),
+    conversation_id: z.string().nullable().optional(),
+    file_name: z.string().min(1, "文件名不能为空").max(255, "文件名过长"),
+    file_size: z.number().int().positive("文件大小必须为正整数"),
+    file_type: z.string().min(1, "文件类型不能为空").max(50, "文件类型过长"),
+    oss_url: z.string().min(1, "OSS URL不能为空").max(512, "OSS URL过长"),
+    category: z.string().max(32, "分类过长").nullable().optional(),
+    tags: z.array(z.string()).default([]),
+    is_ai_gen: z.boolean().default(false),
+});
+
+const updateFileSchema = z.object({
+    conversation_id: z.string().nullable().optional(),
+    file_name: z
+        .string()
+        .min(1, "文件名不能为空")
+        .max(255, "文件名过长")
+        .optional(),
+    file_size: z.number().int().positive("文件大小必须为正整数").optional(),
+    file_type: z
+        .string()
+        .min(1, "文件类型不能为空")
+        .max(50, "文件类型过长")
+        .optional(),
+    oss_url: z
+        .string()
+        .min(1, "OSS URL不能为空")
+        .max(512, "OSS URL过长")
+        .optional(),
+    category: z.string().max(32, "分类过长").nullable().optional(),
+    tags: z.array(z.string()).optional(),
+    is_ai_gen: z.boolean().optional(),
+});
+
+const getFilesQuerySchema = z.object({
+    limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
+    offset: z.coerce.number().int().min(0).default(0).optional(),
+    conversation_id: z.string().optional(),
+    category: z.string().optional(),
+    tags: z.string().optional(), // 逗号分隔的标签列表
+});
+
+// 中间件：获取用户ID（从认证上下文中）
+filesRouter.use("*", async (c, next) => {
+    // 从认证上下文中获取用户ID（需要与auth中间件配合使用）
+    const userId = c.get("langgraph_context")?.userId;
+    if (!userId) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+    c.set("userId", userId);
+    await next();
+});
+
+// 创建文件
+filesRouter.post("/", zValidator("json", createFileSchema), async (c) => {
+    try {
+        const data = c.req.valid("json") as FileInsert;
+        data.user_id = c.get("userId") as string;
+        console.log(data);
+        const file = await fileStoreService.createFile(data);
+
+        if (!file) {
+            return c.json({ error: "创建文件失败" }, 500);
+        }
+
+        return c.json({ data: file }, 201);
+    } catch (error) {
+        console.error("创建文件失败:", error);
+        return c.json({ error: "创建文件失败" }, 500);
+    }
+});
+
+// 获取文件列表
+filesRouter.get("/", zValidator("query", getFilesQuerySchema), async (c) => {
+    try {
+        const userId = c.get("userId") as string;
+        const query = c.req.valid("query");
+
+        const options = {
+            limit: query.limit,
+            offset: query.offset,
+            conversationId: query.conversation_id,
+            category: query.category,
+            tags: query.tags
+                ? query.tags.split(",").map((tag) => tag.trim())
+                : undefined,
+        };
+
+        const files = await fileStoreService.getFilesByUserId(userId, options);
+        return c.json({ data: files });
+    } catch (error) {
+        console.error("获取文件列表失败:", error);
+        return c.json({ error: "获取文件列表失败" }, 500);
+    }
+});
+
+// 根据ID获取单个文件
+filesRouter.get("/:id", async (c) => {
+    try {
+        const id = parseInt(c.req.param("id"));
+        const userId = c.get("userId") as string;
+
+        if (isNaN(id)) {
+            return c.json({ error: "无效的文件ID" }, 400);
+        }
+
+        const file = await fileStoreService.getFileById(id);
+
+        if (!file) {
+            return c.json({ error: "文件不存在" }, 404);
+        }
+
+        // 检查文件是否属于当前用户
+        if (file.user_id !== userId) {
+            return c.json({ error: "无权访问此文件" }, 403);
+        }
+
+        return c.json({ data: file });
+    } catch (error) {
+        console.error("获取文件失败:", error);
+        return c.json({ error: "获取文件失败" }, 500);
+    }
+});
+
+// 更新文件
+filesRouter.put("/:id", zValidator("json", updateFileSchema), async (c) => {
+    try {
+        const id = parseInt(c.req.param("id"));
+        const userId = c.get("userId") as string;
+        const updates = c.req.valid("json") as FileUpdate;
+
+        if (isNaN(id)) {
+            return c.json({ error: "无效的文件ID" }, 400);
+        }
+
+        // 先检查文件是否存在且属于当前用户
+        const existingFile = await fileStoreService.getFileById(id);
+        if (!existingFile) {
+            return c.json({ error: "文件不存在" }, 404);
+        }
+
+        if (existingFile.user_id !== userId) {
+            return c.json({ error: "无权修改此文件" }, 403);
+        }
+
+        const updatedFile = await fileStoreService.updateFile(id, updates);
+
+        if (!updatedFile) {
+            return c.json({ error: "更新文件失败" }, 500);
+        }
+
+        return c.json({ data: updatedFile });
+    } catch (error) {
+        console.error("更新文件失败:", error);
+        return c.json({ error: "更新文件失败" }, 500);
+    }
+});
+
+// 删除文件
+filesRouter.delete("/:id", async (c) => {
+    try {
+        const id = parseInt(c.req.param("id"));
+        const userId = c.get("userId") as string;
+
+        if (isNaN(id)) {
+            return c.json({ error: "无效的文件ID" }, 400);
+        }
+
+        // 先检查文件是否存在且属于当前用户
+        const existingFile = await fileStoreService.getFileById(id);
+        if (!existingFile) {
+            return c.json({ error: "文件不存在" }, 404);
+        }
+
+        if (existingFile.user_id !== userId) {
+            return c.json({ error: "无权删除此文件" }, 403);
+        }
+
+        const deletedFile = await fileStoreService.deleteFile(id);
+
+        if (!deletedFile) {
+            return c.json({ error: "删除文件失败" }, 500);
+        }
+
+        return c.json({ data: deletedFile });
+    } catch (error) {
+        console.error("删除文件失败:", error);
+        return c.json({ error: "删除文件失败" }, 500);
+    }
+});
+
+// 获取文件统计信息
+filesRouter.get("/stats/summary", async (c) => {
+    try {
+        const userId = c.get("userId") as string;
+        const stats = await fileStoreService.getFileStats(userId);
+        return c.json({ data: stats });
+    } catch (error) {
+        console.error("获取文件统计失败:", error);
+        return c.json({ error: "获取文件统计失败" }, 500);
+    }
+});

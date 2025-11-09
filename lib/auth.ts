@@ -27,12 +27,12 @@ async function sendEmail({
 }
 
 export const auth = betterAuth({
-    advanced: {
-        crossSubDomainCookies: getEnv("AUTH_COOKIE_DOMAIN") && {
-            enabled: true,
-            domain: getEnv("AUTH_COOKIE_DOMAIN"),
-        },
-    },
+    // advanced: {
+    //     crossSubDomainCookies: getEnv("AUTH_COOKIE_DOMAIN") && {
+    //         enabled: true,
+    //         domain: getEnv("AUTH_COOKIE_DOMAIN"),
+    //     },
+    // },
     database: new Pool({
         connectionString: getEnv("AUTH_DATABASE_URL"),
     }),
