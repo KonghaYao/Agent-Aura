@@ -16,6 +16,7 @@
         "@astrojs/netlify": "^6.6.0",
         "@astrojs/react": "^4.4.0",
         "@diceui/mention": "^0.7.3",
+        "@hono/zod-validator": "^0.7.4",
         "@langchain/core": "^1.0.1",
         "@langchain/langgraph": "^1.0.1",
         "@langchain/langgraph-sdk": "^1.0.0",
