@@ -14,8 +14,8 @@ if [ ! -f "netlify.toml" ]; then
 fi
 
 # Default values
-FROM="${1:-/api/langgraph/*}"
-TO="${2:-$AGENT_AURA_API_URL}"
+FROM="${1:-/api/langgraph/}*"
+TO="${2:-$AGENT_AURA_API_URL}${1}:splat"
 STATUS="${3:-200}"
 FORCE="${4:-true}"
 

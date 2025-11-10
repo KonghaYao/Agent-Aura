@@ -6,6 +6,8 @@ import LangGraphApp, {
 import { auth } from "./auth";
 import { cors } from "hono/cors";
 import { getEnv } from "./getEnv";
+import { filesRouter } from "./filestore/routes";
+import { type AuthType, auth as betterAuth } from "../lib/auth";
 const app = new Hono<{ Variables: LangGraphServerContext }>();
 
 // Middleware to inject custom context
@@ -19,7 +21,19 @@ app.use(
     }),
     auth,
 );
-app.route("/", LangGraphApp);
+
+app.route("/api/langgraph", LangGraphApp);
+app.route("/api/files", filesRouter);
+
+const authRouter = new Hono<{ Bindings: AuthType }>({
+    strict: false,
+});
+authRouter.on(["POST", "GET"], "/auth/*", (c) => {
+    return betterAuth.handler(c.req.raw);
+});
+
+app.route("/api/auth", authRouter);
+
 export default {
     idleTimeout: 120,
     fetch: app.fetch,

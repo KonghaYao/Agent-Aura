@@ -6,7 +6,6 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 
 import netlify from "@astrojs/netlify";
-console.log(process.env.NODE_ENV);
 // https://astro.build/config
 export default defineConfig({
     integrations: [react()],
