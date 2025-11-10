@@ -1,3 +1,19 @@
 [build]
 command = "pnpm build:netlify"
 publish = "dist"
+
+[[redirects]]
+from = "/api/langgraph/*"
+to = "112222"
+status = 200
+force = true
+[redirects.headers]
+X-From = "Netlify"
+
+[[redirects]]
+from = "/api/files/*"
+to = "112222"
+status = 200
+force = true
+[redirects.headers]
+X-From = "Netlify"
