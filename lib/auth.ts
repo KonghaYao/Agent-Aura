@@ -36,6 +36,7 @@ export const auth = betterAuth({
     database: new Pool({
         connectionString: getEnv("AUTH_DATABASE_URL"),
     }),
+    trustedOrigins: [getEnv("AUTH_TRUSTED_ORIGINS")],
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: true,
