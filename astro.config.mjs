@@ -9,7 +9,7 @@ import netlify from "@astrojs/netlify";
 // https://astro.build/config
 export default defineConfig({
     integrations: [react()],
-    output: "server",
+    output: "static",
     vite: {
         define:
             process.env.NODE_ENV === "production"
@@ -24,7 +24,15 @@ export default defineConfig({
             },
         },
         plugins: [tailwindcss()],
+        server: {
+            proxy: {
+                "/api": {
+                    target: "http://localhost:8123",
+                    changeOrigin: true,
+                    rewrite: (path) => path,
+                },
+            },
+        },
     },
-
     adapter: netlify({}),
 });

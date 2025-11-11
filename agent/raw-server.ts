@@ -8,22 +8,10 @@ import { cors } from "hono/cors";
 import { getEnv } from "./getEnv";
 import { filesRouter } from "./filestore/routes";
 import { type AuthType, auth as betterAuth } from "../lib/auth";
+import { logger } from "hono/logger";
+
 const app = new Hono<{ Variables: LangGraphServerContext }>();
-
-// Middleware to inject custom context
-app.use(
-    "/*",
-    cors({
-        origin: "https://" + getEnv("AUTH_COOKIE_DOMAIN"),
-        allowMethods: ["POST", "GET", "OPTIONS", "DELETE", "PUT", "PATCH"],
-        maxAge: 600,
-        credentials: true,
-    }),
-    auth,
-);
-
-app.route("/api/langgraph", LangGraphApp);
-app.route("/api/files", filesRouter);
+app.use(logger());
 
 const authRouter = new Hono<{ Bindings: AuthType }>({
     strict: false,
@@ -31,8 +19,13 @@ const authRouter = new Hono<{ Bindings: AuthType }>({
 authRouter.on(["POST", "GET"], "/*", (c) => {
     return betterAuth.handler(c.req.raw);
 });
-
 app.route("/api/auth", authRouter);
+
+// Middleware to inject custom context
+app.use("/*", auth);
+
+app.route("/api/langgraph", LangGraphApp);
+app.route("/api/files", filesRouter);
 
 export default {
     idleTimeout: 120,

@@ -44,7 +44,7 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
                         email,
                         password,
                         callbackURL: new URL(
-                            "/auth",
+                            "/agent",
                             globalThis.location.href,
                         ).toString(),
                     },
