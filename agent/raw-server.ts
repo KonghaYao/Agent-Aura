@@ -28,7 +28,7 @@ app.route("/api/files", filesRouter);
 const authRouter = new Hono<{ Bindings: AuthType }>({
     strict: false,
 });
-authRouter.on(["POST", "GET"], "/api/auth/*", (c) => {
+authRouter.on(["POST", "GET"], "/*", (c) => {
     return betterAuth.handler(c.req.raw);
 });
 
