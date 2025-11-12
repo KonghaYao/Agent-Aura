@@ -74,8 +74,7 @@ const FilesPage: React.FC = () => {
                             document.getElementById("file-upload")?.click()
                         }
                     >
-                        <Upload className="mr-2 h-4 w-4 text-blue-500" />{" "}
-                        上传文件
+                        <Upload className="mr-2 h-4 w-4" /> 上传文件
                     </Button>
                     <input
                         id="file-upload"
@@ -84,28 +83,6 @@ const FilesPage: React.FC = () => {
                         onChange={handleUpload}
                     />
                 </div>
-            </div>
-            <div className="flex border-b mb-4">
-                <button
-                    className={`px-4 py-2 ${
-                        activeCategory === "all"
-                            ? "border-b-2 border-blue-500"
-                            : ""
-                    }`}
-                    onClick={() => setActiveCategory("all")}
-                >
-                    最近
-                </button>
-                <button
-                    className={`px-4 py-2 ${
-                        activeCategory === "mydrive"
-                            ? "border-b-2 border-blue-500"
-                            : ""
-                    }`}
-                    onClick={() => setActiveCategory("mydrive")}
-                >
-                    我的云盘
-                </button>
             </div>
             <div className="flex space-x-4 mb-4">
                 <button

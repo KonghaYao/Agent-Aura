@@ -1,14 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { authClient } from "../lib/auth-client";
+import React from "react";
+import { useStore } from "@nanostores/react";
 import { Avatar, AvatarFallback, AvatarImage, AvatarProps } from "./ui/avatar";
 import { cn } from "@/lib/utils";
-
-interface User {
-    id: string;
-    name?: string;
-    email?: string;
-    image?: string;
-}
+import { userStore } from "../src/stores/userStore";
 
 interface UserAvatarProps extends Omit<AvatarProps, "children"> {
     showName?: boolean;
@@ -25,50 +19,11 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     size = "default",
     ...props
 }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const currentUser = useStore(userStore.user);
+    const loading = useStore(userStore.isLoading);
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const session = await authClient.getSession();
-                console.log(session);
-                if (session?.data?.user) {
-                    setUser(session.data.user as User);
-                }
-            } catch (error) {
-                console.error("Failed to fetch user:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, []);
-
-    const getInitials = (name?: string, email?: string): string => {
-        if (name) {
-            return name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")
-                .toUpperCase()
-                .slice(0, 2);
-        }
-        if (email) {
-            return email[0].toUpperCase();
-        }
-        return "U";
-    };
-
-    const getDisplayName = (name?: string, email?: string): string => {
-        if (name) return name;
-        if (email) return email.split("@")[0];
-        return "用户";
-    };
-
-    const initials = getInitials(user?.name, user?.email);
-    const displayName = getDisplayName(user?.name, user?.email);
+    const initials = userStore.getInitials(currentUser);
+    const displayName = userStore.getDisplayName(currentUser);
 
     return (
         <div className={cn("flex items-center gap-3", className)}>
@@ -81,9 +36,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
                     <>
                         <AvatarImage
                             src={
-                                user?.image ||
+                                currentUser?.image ||
                                 "https://api.dicebear.com/7.x/shapes/svg?seed=" +
-                                    user?.id
+                                    currentUser?.id
                             }
                             alt={displayName}
                             onError={(e) => {
@@ -115,7 +70,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
                             {loading ? (
                                 <div className="h-3 w-24 bg-muted-foreground/20 rounded animate-pulse" />
                             ) : (
-                                user?.email && user.email
+                                currentUser?.email && currentUser.email
                             )}
                         </div>
                     )}

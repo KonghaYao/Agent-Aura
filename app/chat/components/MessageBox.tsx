@@ -70,7 +70,7 @@ export const MessagesBox = ({
     };
 
     return (
-        <div className="flex flex-col gap-8 w-full">
+        <div className="flex flex-col gap-4 w-full">
             {renderMessages.map((message, index) => (
                 <ContextMenu key={message.unique_id}>
                     <ContextMenuTrigger asChild>

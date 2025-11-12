@@ -5,28 +5,22 @@ import React, {
     useContext,
     ReactNode,
     useEffect,
-    useState,
     useMemo,
-    useRef,
-    useCallback,
 } from "react";
 import { UnionTool } from "@langgraph-js/sdk";
 import { useChat } from "@langgraph-js/sdk/react";
-import {
-    update_plan,
-    web_search_tool,
-    read_web_page_tool,
-    image_generation,
-} from "../tools/index";
+import { update_plan, image_generation } from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
+import { tavily_search_tool } from "../tools/tavily_search_tool";
+import { tavily_extract_tool } from "../tools/tavily_extract_tool";
 
 // 内置工具列表
 const BUILTIN_TOOLS = [
     create_artifacts,
-    web_search_tool,
     update_plan,
-    read_web_page_tool,
     image_generation,
+    tavily_search_tool,
+    tavily_extract_tool,
 ];
 
 interface ToolsContextType {

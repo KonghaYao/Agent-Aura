@@ -1,10 +1,8 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Sidebar from "../layouts/Sidebar.astro";
 import FilesPage from "../../app/files/FilesPage";
+import AgentLayout from "../layouts/AgentLayout.astro";
 ---
 
-<Layout title="File Management">
-    <Sidebar />
+<AgentLayout>
     <FilesPage client:load />
-</Layout>
+</AgentLayout>

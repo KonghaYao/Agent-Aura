@@ -28,7 +28,14 @@ import {
     MentionInput,
     MentionItem,
 } from "@/components/ui/mention";
-import { Brain, Send, StopCircle, Plus } from "lucide-react";
+import {
+    Brain,
+    Send,
+    StopCircle,
+    Plus,
+    ClosedCaption,
+    XIcon,
+} from "lucide-react";
 import { models } from "@/agent/models";
 import {
     ResizablePanelGroup,
@@ -106,8 +113,7 @@ const ChatInput: React.FC = () => {
         client,
         createNewChat,
     } = useChat();
-    const { currentAgent, availableAgents, selectAgent, clearAgent } =
-        useAgentConfig();
+    const { availableAgents, selectAgent } = useAgentConfig();
     const agentConfig = useAgentConfig();
     const { extraParams, setExtraParams } = useExtraParams();
     const [imageUrls, setImageUrls] = useState<string[]>([]);
@@ -233,17 +239,37 @@ const ChatInput: React.FC = () => {
                         setUserInput(e);
                     }}
                     onValueChange={(data) => {
-                        console.log(data);
+                        console.log("Mention data:", data);
+                        // 如果没有数据，清空选择
                         if (data.length === 0) {
                             selectAgent(noneAgent.id);
                             return;
                         }
-                        const agent = availableAgents.find(
-                            (i) => i.name === data.at(-1),
-                        );
-                        agent && selectAgent(agent?.id);
+
+                        const lastValue = data.at(-1);
+                        // 检查是否是模型选择（以 /model 开头）
+                        if (
+                            lastValue &&
+                            lastValue.startsWith &&
+                            lastValue.startsWith("/model ")
+                        ) {
+                            // 这是模型选择
+                            const modelName = lastValue.replace("/model ", "");
+                            if (modelName) {
+                                setExtraParams({
+                                    ...extraParams,
+                                    model_name: modelName,
+                                });
+                            }
+                        } else {
+                            // 这是 agent 选择
+                            const agent = availableAgents.find(
+                                (i) => i.name === lastValue,
+                            );
+                            agent && selectAgent(agent?.id);
+                        }
                     }}
-                    trigger="@"
+                    trigger="/"
                     className="w-full"
                 >
                     <MentionInput
@@ -257,18 +283,45 @@ const ChatInput: React.FC = () => {
                         <textarea />
                     </MentionInput>
                     <MentionContent>
-                        {availableAgents.map((user) => (
-                            <MentionItem
-                                key={user.id}
-                                value={user.name}
-                                className="flex-col items-start gap-0.5"
-                            >
-                                <span className="text-sm">{user.name}</span>
-                                <span className="text-muted-foreground text-xs">
-                                    {user.description}
-                                </span>
-                            </MentionItem>
-                        ))}
+                        {/* 根据输入内容显示不同的选项 */}
+                        {(() => {
+                            const lastMention = userInput
+                                .split("/")
+                                .pop()
+                                ?.split(" ")[0];
+                            if (lastMention === "model") {
+                                // 显示模型选项
+                                return agentConfig
+                                    .getCurrentAgentData()
+                                    ?.llm.map((model) => (
+                                        <MentionItem
+                                            key={model.model}
+                                            value={`/model ${model.model}`}
+                                            className="flex-col items-start gap-0.5"
+                                        >
+                                            <span className="text-sm">
+                                                {model.model}
+                                            </span>
+                                        </MentionItem>
+                                    ));
+                            } else {
+                                // 显示 agent 选项
+                                return availableAgents.map((user) => (
+                                    <MentionItem
+                                        key={user.id}
+                                        value={user.name}
+                                        className="flex-col items-start gap-0.5"
+                                    >
+                                        <span className="text-sm">
+                                            {user.name}
+                                        </span>
+                                        <span className="text-muted-foreground text-xs">
+                                            {user.description}
+                                        </span>
+                                    </MentionItem>
+                                ));
+                            }
+                        })()}
                     </MentionContent>
                 </Mention>
                 <div className="flex items-center gap-2 p-2">
@@ -285,9 +338,11 @@ const ChatInput: React.FC = () => {
                             });
                         }}
                     >
-                        <SelectTrigger className="w-fit border-none bg-transparent hover:bg-gray-100 transition-colors rounded-md">
-                            <Brain></Brain>
-                            <SelectValue placeholder="选择一个模型" />
+                        <SelectTrigger className="h-9">
+                            <div className="flex items-center gap-2">
+                                <Brain className="w-3.5 h-3.5 text-muted-foreground"></Brain>
+                                <SelectValue placeholder="选择模型" />
+                            </div>
                         </SelectTrigger>
                         <SelectContent>
                             {agentConfig
@@ -386,7 +441,7 @@ ChatContainer.displayName = "ChatContainer";
 
 const Chat: React.FC = () => {
     const { renderMessages } = useChat();
-    const { showArtifact } = useArtifacts();
+    const { showArtifact, setShowArtifact } = useArtifacts();
     const [panelSizes, setPanelSizes] = useState({
         chat: 50,
         artifact: 50,
@@ -436,8 +491,24 @@ const Chat: React.FC = () => {
                                 defaultSize={panelSizes.artifact}
                                 minSize={30}
                             >
-                                <div className="h-full overflow-hidden border-r border-gray-200 p-4 relative">
-                                    <ArtifactViewer />
+                                <div className="h-full overflow-hidden border-r border-gray-200 relative flex flex-col">
+                                    <div className="flex items-center justify-between border-b border-gray-200 px-2 py-2">
+                                        <span className="font-semibold text-sm">
+                                            Artifact
+                                        </span>
+                                        <button
+                                            className="text-gray-400 hover:text-red-500 transition-colors"
+                                            title="Delete Artifact"
+                                            onClick={() => {
+                                                setShowArtifact(false);
+                                            }}
+                                        >
+                                            <XIcon></XIcon>
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-hidden p-4">
+                                        <ArtifactViewer />
+                                    </div>
                                 </div>
                             </ResizablePanel>
                         </>

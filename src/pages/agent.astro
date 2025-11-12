@@ -1,12 +1,12 @@
 ---
 import Chat from "../../app/chat/Chat.jsx";
+import AgentLayout from "../layouts/AgentLayout.astro";
 import Layout from "../layouts/Layout.astro";
 import Sidebar from "../layouts/Sidebar.astro";
 ---
 
-<Layout>
-    <Sidebar />
+<AgentLayout>
     <section class="flex-1">
         <Chat client:only="react" />
     </section>
-</Layout>
+</AgentLayout>

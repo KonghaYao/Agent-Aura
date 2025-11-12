@@ -43,8 +43,7 @@ export const create_artifacts = tool(
     },
     {
         name: "create_artifacts",
-        description: `
-What is Artifact
+        description: `What is Artifact?
 
 - An Artifact is an independent content container you create to store substantial content that can be saved, edited, and reused. It presents code, documents, creative works, etc., as standalone entities rather than mixing them into the conversation.
 

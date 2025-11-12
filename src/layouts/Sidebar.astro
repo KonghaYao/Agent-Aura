@@ -88,7 +88,7 @@ const currentPath = Astro.url.pathname;
 
     <!-- Footer -->
     <div class="p-3 border-t border-sidebar-border">
-       <UserAvatar client:visible show-name={true} show-email={true}></UserAvatar>
+       <UserAvatar client:only="react" ></UserAvatar>
     </div>
 </aside>
 

@@ -1,5 +1,4 @@
 import { registerGraph } from "@langgraph-js/pure-graph";
-import { graph } from "./agent/graph";
 import { graph as agentGraph } from "./schema-agent/index";
 import { getEnv } from "./getEnv";
 

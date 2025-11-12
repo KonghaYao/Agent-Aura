@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { AuthForm } from "../../components/ui/auth-form";
+import { Toaster } from "../../components/ui/sonner";
 ---
 
 <html lang="en">
@@ -15,6 +16,7 @@ import { AuthForm } from "../../components/ui/auth-form";
             class="container mx-auto flex items-center justify-center min-h-screen px-4"
         >
             <AuthForm client:load />
+            <Toaster client:load />
         </div>
     </body>
 </html>

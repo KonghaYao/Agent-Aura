@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { Toaster } from "../../components/ui/sonner";
 export interface Props {
     title?: string;
     description?: string;
@@ -19,5 +20,6 @@ const { title = "Agent Aura", description = "AI Agent Platform" } = Astro.props;
     </head>
     <body class="min-h-screen bg-background font-sans antialiased flex">
         <slot />
+        <Toaster client:only="react" />
     </body>
 </html>
