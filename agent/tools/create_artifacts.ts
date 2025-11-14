@@ -5,6 +5,7 @@ import { z } from "zod";
 export const ArtifactCommandSchema = {
     command: z
         .enum(["create", "update", "rewrite"])
+        .default("create")
         .describe(
             "The operation to perform: create new artifact, update existing, or rewrite",
         ),
@@ -25,11 +26,13 @@ export const ArtifactCommandSchema = {
         ),
     old_str: z
         .string()
+        .optional()
         .describe(
             "The existing content to be replaced (for update operations)",
         ),
     new_str: z
         .string()
+        .optional()
         .describe(
             "The new content to replace the old content (for update operations)",
         ),

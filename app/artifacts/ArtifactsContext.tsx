@@ -108,12 +108,15 @@ export const useArtifactsStore = (): {
 
             // 按命令顺序处理每个操作
             for (const command of commands) {
+                command.command = command.command || "create";
+
                 switch (command.command) {
                     case "create":
                         // 创建新 artifact，直接使用 content
-                        currentContent = command.content;
+                        currentContent = command.content || "";
                         currentFilename = command.title || `artifact-${id}`;
-                        currentFiletype = command.type || command.language;
+                        currentFiletype =
+                            command.type || command.language || "";
                         break;
 
                     case "update":
@@ -130,33 +133,37 @@ export const useArtifactsStore = (): {
                                     `old_str not found in currentContent: ${command.old_str}`,
                                 );
                             }
-                        } else if (command.content) {
+                        } else if (command.content !== undefined) {
                             // 如果没有 old_str/new_str，则直接使用 content 覆盖
                             currentContent = command.content;
                         }
+                        // 如果既没有 old_str/new_str，也没有 content，则保持当前内容不变
                         break;
 
                     case "rewrite":
-                        currentContent = command.content;
+                        currentContent = command.content || "";
                         break;
                 }
 
                 // 创建当前版本的 artifact
                 const artifact: Artifact = {
                     group_id: id,
-                    id: command.tool_id!,
+                    id: command.tool_id || `tool-${id}-${version}`,
                     code: currentContent,
                     filename: currentFilename,
                     filetype: currentFiletype,
                     version: version,
-                    is_done: command.is_done!,
+                    is_done: command.is_done ?? false,
                 };
 
                 artifacts.push(artifact);
                 version++;
             }
 
-            composedFiles.set(id, artifacts);
+            // 只有当 artifacts 数组不为空时才添加到 composedFiles
+            if (artifacts.length > 0) {
+                composedFiles.set(id, artifacts);
+            }
         }
 
         const artifacts = [...composedFiles.values()].map((artifacts) => ({
