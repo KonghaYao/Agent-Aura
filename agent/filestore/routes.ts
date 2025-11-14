@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index";
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
+import { TextStoreService } from "./text-store";
 
 // 扩展上下文类型以包含自定义变量
 type ExtendedContext = LangGraphServerContext & {
@@ -11,6 +12,9 @@ type ExtendedContext = LangGraphServerContext & {
 
 // 创建路由实例
 export const filesRouter = new Hono<{ Variables: ExtendedContext }>();
+
+// 初始化文本存储服务
+export const textStoreService = new TextStoreService();
 
 // 请求/响应类型定义
 const createFileSchema = z.object({
@@ -63,6 +67,7 @@ filesRouter.use("*", async (c, next) => {
     if (!userId) {
         return c.json({ error: "Unauthorized" }, 401);
     }
+    await textStoreService.setup();
     c.set("userId", userId);
     await next();
 });
@@ -214,5 +219,228 @@ filesRouter.get("/stats/summary", async (c) => {
     } catch (error) {
         console.error("获取文件统计失败:", error);
         return c.json({ error: "获取文件统计失败" }, 500);
+    }
+});
+
+// ============================================================================
+// 文本存储 API (基于 Meilisearch)
+// ============================================================================
+
+// 文本文档请求/响应类型定义
+const createTextDocSchema = z.object({
+    content: z.string().min(1, "内容不能为空"),
+    filename: z.string().optional(),
+});
+
+const updateTextDocSchema = z.object({
+    content: z.string().min(1, "内容不能为空").optional(),
+    filename: z.string().optional(),
+});
+
+const searchTextSchema = z.object({
+    q: z.string().optional(), // 搜索关键词
+    limit: z.coerce.number().int().min(1).max(100).default(20).optional(),
+    offset: z.coerce.number().int().min(0).default(0).optional(),
+    sort: z.string().optional(), // 排序字段，如 "created_at:desc"
+    filter: z.string().optional(), // 额外的过滤条件
+});
+
+// 创建文本文档
+filesRouter.post(
+    "/text",
+    zValidator("json", createTextDocSchema),
+    async (c) => {
+        try {
+            const data = c.req.valid("json");
+            const userId = c.get("userId") as string;
+
+            const doc = {
+                id: crypto.randomUUID(),
+                user_id: userId,
+                content: data.content,
+                filename: data.filename,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            };
+
+            await textStoreService.saveToFileStore(doc);
+
+            // 生成下载 URL
+            const downloadUrl = `${c.req.url.split("/text")[0]}/text/${
+                doc.id
+            }/download`;
+
+            return c.json(
+                {
+                    data: {
+                        ...doc,
+                        download_url: downloadUrl,
+                    },
+                },
+                201,
+            );
+        } catch (error) {
+            console.error("创建文本文档失败:", error);
+            return c.json({ error: "创建文本文档失败" }, 500);
+        }
+    },
+);
+
+// 搜索文本文档
+filesRouter.get(
+    "/text/search",
+    zValidator("query", searchTextSchema),
+    async (c) => {
+        try {
+            const userId = c.get("userId") as string;
+            const query = c.req.valid("query");
+
+            const results = await textStoreService.searchFileStore(
+                query.q || "",
+                {
+                    userId,
+                    limit: query.limit,
+                    offset: query.offset,
+                    sort: query.sort ? query.sort.split(",") : undefined,
+                    filter: query.filter,
+                },
+            );
+
+            return c.json({ data: results });
+        } catch (error) {
+            console.error("搜索文本文档失败:", error);
+            return c.json({ error: "搜索文本文档失败" }, 500);
+        }
+    },
+);
+
+// 获取用户的文本文档列表
+filesRouter.get("/text", async (c) => {
+    try {
+        const userId = c.get("userId") as string;
+        const limit = c.req.query("limit")
+            ? parseInt(c.req.query("limit")!)
+            : 50;
+        const offset = c.req.query("offset")
+            ? parseInt(c.req.query("offset")!)
+            : 0;
+
+        const results = await textStoreService.getUserFiles(userId, {
+            limit,
+            offset,
+        });
+
+        return c.json({ data: results });
+    } catch (error) {
+        console.error("获取文本文档列表失败:", error);
+        return c.json({ error: "获取文本文档列表失败" }, 500);
+    }
+});
+
+// 根据ID获取单个文本文档
+filesRouter.get("/text/:id", async (c) => {
+    try {
+        const id = c.req.param("id");
+        const userId = c.get("userId") as string;
+
+        const doc = await textStoreService.getFileStore(id);
+
+        if (!doc) {
+            return c.json({ error: "文档不存在" }, 404);
+        }
+
+        // 检查文档是否属于当前用户
+        if (doc.user_id !== userId) {
+            return c.json({ error: "无权访问此文档" }, 403);
+        }
+
+        return c.json({ data: doc });
+    } catch (error) {
+        console.error("获取文本文档失败:", error);
+        return c.json({ error: "获取文本文档失败" }, 500);
+    }
+});
+
+// 更新文本文档
+filesRouter.put(
+    "/text/:id",
+    zValidator("json", updateTextDocSchema),
+    async (c) => {
+        try {
+            const id = c.req.param("id");
+            const userId = c.get("userId") as string;
+            const updates = c.req.valid("json");
+
+            // 先检查文档是否存在且属于当前用户
+            const existingDoc = await textStoreService.getFileStore(id);
+            if (!existingDoc) {
+                return c.json({ error: "文档不存在" }, 404);
+            }
+
+            if (existingDoc.user_id !== userId) {
+                return c.json({ error: "无权修改此文档" }, 403);
+            }
+
+            await textStoreService.updateFileStore(id, updates);
+            const updatedDoc = await textStoreService.getFileStore(id);
+
+            return c.json({ data: updatedDoc });
+        } catch (error) {
+            console.error("更新文本文档失败:", error);
+            return c.json({ error: "更新文本文档失败" }, 500);
+        }
+    },
+);
+
+// 删除文本文档
+filesRouter.delete("/text/:id", async (c) => {
+    try {
+        const id = c.req.param("id");
+        const userId = c.get("userId") as string;
+
+        // 先检查文档是否存在且属于当前用户
+        const existingDoc = await textStoreService.getFileStore(id);
+        if (!existingDoc) {
+            return c.json({ error: "文档不存在" }, 404);
+        }
+
+        if (existingDoc.user_id !== userId) {
+            return c.json({ error: "无权删除此文档" }, 403);
+        }
+
+        await textStoreService.deleteFileStore(id);
+        return c.json({ data: { id, deleted: true } });
+    } catch (error) {
+        console.error("删除文本文档失败:", error);
+        return c.json({ error: "删除文本文档失败" }, 500);
+    }
+});
+
+// 下载文本文档
+filesRouter.get("/text/:id/download", async (c) => {
+    try {
+        const id = c.req.param("id");
+        const userId = c.get("userId") as string;
+
+        const doc = await textStoreService.getFileStore(id);
+
+        if (!doc) {
+            return c.json({ error: "文档不存在" }, 404);
+        }
+
+        // 检查文档是否属于当前用户
+        if (doc.user_id !== userId) {
+            return c.json({ error: "无权访问此文档" }, 403);
+        }
+
+        // 设置响应头，支持文件下载
+        const fileName = doc.filename || `text-document-${id}.txt`;
+        c.header("Content-Type", "text/plain; charset=utf-8");
+        c.header("Content-Disposition", `attachment; filename="${fileName}"`);
+
+        return c.text(doc.content);
+    } catch (error) {
+        console.error("下载文本文档失败:", error);
+        return c.json({ error: "下载文本文档失败" }, 500);
     }
 });
