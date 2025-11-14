@@ -489,7 +489,7 @@ const Chat: React.FC = () => {
                             />
                             <ResizablePanel
                                 defaultSize={panelSizes.artifact}
-                                minSize={30}
+                                minSize={50}
                             >
                                 <div className="h-full overflow-hidden border-r border-gray-200 relative flex flex-col">
                                     <div className="flex items-center justify-between border-b border-gray-200 px-2 py-2">
@@ -506,7 +506,7 @@ const Chat: React.FC = () => {
                                             <XIcon></XIcon>
                                         </button>
                                     </div>
-                                    <div className="flex-1 overflow-hidden p-4">
+                                    <div className="flex-1 overflow-hidden p-4 max-w-full max-h-full">
                                         <ArtifactViewer />
                                     </div>
                                 </div>

@@ -11,6 +11,17 @@ import { ToolRenderData } from "@langgraph-js/sdk";
 import { useDebounceCallback } from "usehooks-ts";
 import { type ArtifactCommand } from "@/agent/tools/create_artifacts";
 
+// 简单的字符串 hash 函数
+const simpleHash = (str: string): string => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // 转换为32位整数
+    }
+    return hash.toString(36);
+};
+
 export interface ComposedArtifact {
     id: string;
     filename: string;
@@ -30,6 +41,7 @@ export interface Artifact {
 
 interface ArtifactsContextType {
     artifacts: ComposedArtifact[];
+    artifactDataVersion: string;
 
     currentArtifactId: [string, string] | null;
     setCurrentArtifactById: (id: string, tool_id: string) => void;
@@ -39,6 +51,7 @@ interface ArtifactsContextType {
 
 const ArtifactsContext = createContext<ArtifactsContextType>({
     artifacts: [],
+    artifactDataVersion: "",
     currentArtifactId: null,
     setCurrentArtifactById: () => {},
     showArtifact: false,
@@ -51,7 +64,10 @@ interface ArtifactsProviderProps {
     children: ReactNode;
 }
 
-export const useArtifactsStore = (): ComposedArtifact[] => {
+export const useArtifactsStore = (): {
+    artifacts: ComposedArtifact[];
+    artifactDataVersion: string;
+} => {
     const { renderMessages, client } = useChat();
 
     return useMemo(() => {
@@ -143,12 +159,34 @@ export const useArtifactsStore = (): ComposedArtifact[] => {
             composedFiles.set(id, artifacts);
         }
 
-        return [...composedFiles.values()].map((artifacts) => ({
+        const artifacts = [...composedFiles.values()].map((artifacts) => ({
             id: artifacts[0].group_id,
             filename: artifacts[artifacts.length - 1].filename,
             filetype: artifacts[artifacts.length - 1].filetype,
             versions: artifacts,
         }));
+
+        // 生成数据版本 ID，基于所有 artifacts 的关键字段 - 逐层 hash 以减少计算量
+        const artifactDataVersion = artifacts
+            .map((artifact) => {
+                // 对每个 artifact 的版本进行 hash
+                const versionsHash = simpleHash(
+                    artifact.versions
+                        .map(
+                            (v) =>
+                                `${v.id}|${v.version}|${v.is_done}|${v.code.length}`,
+                        )
+                        .join(","),
+                );
+
+                // 对整个 artifact 进行 hash
+                return simpleHash(
+                    `${artifact.id}|${artifact.filename}|${artifact.filetype}|${versionsHash}`,
+                );
+            })
+            .join("|"); // 组合所有 artifact 的 hash
+
+        return { artifacts, artifactDataVersion };
     }, [renderMessages, client]);
 };
 
@@ -156,7 +194,7 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
     children,
 }) => {
     const [showArtifact, setShowArtifact] = useState(false);
-    const artifacts = useArtifactsStore();
+    const { artifacts, artifactDataVersion } = useArtifactsStore();
 
     const [currentArtifactId, setCurrentArtifactId] = useState<
         [string, string] | null
@@ -179,6 +217,7 @@ export const ArtifactsProvider: React.FC<ArtifactsProviderProps> = ({
         <ArtifactsContext.Provider
             value={{
                 artifacts: artifacts,
+                artifactDataVersion,
                 currentArtifactId,
                 setCurrentArtifactById,
                 showArtifact,

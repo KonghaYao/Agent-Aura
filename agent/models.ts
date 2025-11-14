@@ -20,15 +20,15 @@ export const models = {
 export const defaultModelsAllowed = [
     {
         provider: "openai",
-        model: "glm-4.6",
-    },
-    {
-        provider: "openai",
         model: "x-ai/grok-4-fast",
     },
     {
         provider: "openai",
         model: "x-ai/grok-code-fast-1",
+    },
+    {
+        provider: "openai",
+        model: "glm-4.6",
     },
     {
         provider: "openai",

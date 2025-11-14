@@ -6,7 +6,8 @@ if (typeof window !== "undefined") {
     await import("ai-artifacts");
 }
 export const ArtifactViewer: React.FC = () => {
-    const { artifacts, currentArtifactId } = useArtifacts();
+    const { artifacts, currentArtifactId, artifactDataVersion } =
+        useArtifacts();
     useEffect(() => {
         (async () => {
             const { setArtifactStore } = await import("ai-artifacts");
@@ -14,7 +15,7 @@ export const ArtifactViewer: React.FC = () => {
                 artifacts: { default: artifacts },
             });
         })();
-    }, [artifacts]);
+    }, [artifactDataVersion]); // 使用 dataVersion 而不是 artifacts 来检测变更
     return (
         <ai-artifacts
             store-id="default"

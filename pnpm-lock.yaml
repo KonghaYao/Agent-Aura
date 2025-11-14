@@ -50,8 +50,8 @@ dependencies:
     specifier: ^2.0.0
     version: 2.0.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(zod-to-json-schema@3.24.6)
   '@langgraph-js/pure-graph':
-    specifier: ^2.3.1
-    version: 2.3.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(zod-to-json-schema@3.24.6)
+    specifier: ^2.4.0
+    version: 2.4.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(zod-to-json-schema@3.24.6)
   '@langgraph-js/sdk':
     specifier: ^3.2.0
     version: 3.2.0(@langchain/core@1.0.1)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)
@@ -142,6 +142,9 @@ dependencies:
   lucide-react:
     specifier: ^0.546.0
     version: 0.546.0(react@19.2.0)
+  meilisearch:
+    specifier: ^0.54.0
+    version: 0.54.0
   motion:
     specifier: ^12.23.24
     version: 12.23.24(react-dom@19.2.0)(react@19.2.0)
@@ -1566,8 +1569,8 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/pure-graph@2.3.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(zod-to-json-schema@3.24.6):
-    resolution: {integrity: sha512-PNSb/+5U8gWljxxCyn/69tteeq0YhOWUju/A7dACu1JxMx9V+NDWbcOsyXGtTxVnutNY/XqnBO6U/opjXda/vA==}
+  /@langgraph-js/pure-graph@2.4.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)(zod-to-json-schema@3.24.6):
+    resolution: {integrity: sha512-M8zKk/iWPDGnkARf7ZyJXgmAh+HJF2arvzsiBIN7x+QFBapwojQ0s7zXJ1tEN5L/7i8CAwLR88p1NOdGl7Qxtw==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@langchain/core': 1.0.1(@opentelemetry/api@1.9.0)
@@ -8459,6 +8462,10 @@ packages:
   /media-typer@1.1.0:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
+    dev: false
+
+  /meilisearch@0.54.0:
+    resolution: {integrity: sha512-b1bwJAEfj8C6hgSN88+/LvW3pe3nWC+thBS2seAbPZGakf/vzsLqppgZquiomzCr2GhU7U7H289625qhYe3rbw==}
     dev: false
 
   /merge-descriptors@2.0.0:
