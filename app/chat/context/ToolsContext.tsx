@@ -13,6 +13,7 @@ import { update_plan, image_generation } from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
 import { tavily_search_tool } from "../tools/tavily_search_tool";
 import { tavily_extract_tool } from "../tools/tavily_extract_tool";
+import { sub_agents } from "../tools/sub_agents";
 
 // 内置工具列表
 const BUILTIN_TOOLS = [
@@ -21,6 +22,7 @@ const BUILTIN_TOOLS = [
     image_generation,
     tavily_search_tool,
     tavily_extract_tool,
+    sub_agents,
 ];
 
 interface ToolsContextType {

@@ -1,16 +1,16 @@
 import { AgentProtocol } from "./types";
-import { StructuredTool } from "@langchain/core/tools";
+import { ServerTool } from "@langchain/core/tools";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import * as tavily from "../tools/tavily";
 import { create_artifacts } from "../tools/create_artifacts";
-const prebuiltTools: Record<string, StructuredTool> = {
+const prebuiltTools: Record<string, ServerTool> = {
     ...tavily,
     create_artifacts: create_artifacts,
 };
 
 export const createPrebuiltTools = async (
     protocol: AgentProtocol,
-): Promise<StructuredTool[]> => {
+): Promise<ServerTool[]> => {
     const PrebuiltConfigs = protocol.tools.filter(
         (i) => i.tool_type === "builtin",
     );
@@ -22,7 +22,7 @@ export const createPrebuiltTools = async (
 
 export const createMCPTools = async (
     protocol: AgentProtocol,
-): Promise<StructuredTool[]> => {
+): Promise<ServerTool[]> => {
     const MCPConfigs = protocol.tools.filter((i) => i.tool_type === "mcp");
     if (MCPConfigs.length === 0) {
         return [];
@@ -43,7 +43,7 @@ export const createMCPTools = async (
 
 export const createTools = async (
     protocol: AgentProtocol,
-): Promise<StructuredTool[]> => {
+): Promise<ServerTool[]> => {
     return [
         ...(await createMCPTools(protocol)),
         ...(await createPrebuiltTools(protocol)),

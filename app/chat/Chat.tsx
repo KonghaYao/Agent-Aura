@@ -75,6 +75,7 @@ const ChatMessages: React.FC = () => {
             if (!loading) {
                 scrollToBottom();
             }
+            console.log(renderMessages);
         }
     }, [renderMessages]);
 

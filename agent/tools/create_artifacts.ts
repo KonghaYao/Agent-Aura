@@ -1,5 +1,4 @@
 import { tool } from "@langchain/core/tools";
-import { getCurrentTaskInput } from "@langchain/langgraph";
 import { z } from "zod";
 
 export const ArtifactCommandSchema = {
@@ -64,7 +63,7 @@ When to use the "create_artifacts" tool:
 When NOT to use the "create_artifacts" tool:
 - When providing conversational responses, such as explaining concepts or answering questions.
 - When giving advice, recommendations, or engaging in discussions.
-- When showing short code examples (less than 20 lines).
+- When showing short code examples (less than 100 lines).
 - When sharing temporary information only relevant to the current conversation.
 - When providing content that doesn't need to be saved or reused.
 - When creating simple lists or brief answers.

@@ -22,29 +22,6 @@ import {
 } from "@/components/ui/context-menu";
 import { useExtraParams } from "../context/ExtraParamsContext";
 
-// 消息操作栏组件
-const MessageActionBar = ({ message }: { message: RenderMessage }) => {
-    const { revertChatTo } = useChat();
-
-    const handleRevert = async () => {
-        if (message.id) {
-            await revertChatTo(message.id);
-        }
-    };
-
-    return (
-        <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRevert}
-            title="回滚到这条消息"
-            className="inline-flex"
-        >
-            <RotateCcw className="w-4 h-4 mr-2" />
-        </Button>
-    );
-};
-
 export const MessagesBox = ({
     renderMessages,
     collapsedTools,
