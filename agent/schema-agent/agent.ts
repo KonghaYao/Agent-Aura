@@ -1,11 +1,11 @@
-import { createAgent } from "langchain";
+import { AIMessageChunk, createAgent } from "langchain";
 import { AgentProtocol } from "./types";
 import { createTools } from "./tools";
 import { FileUploadMiddleware } from "../middlewares/FileUploadMiddleware";
 import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { z } from "zod";
-import { ServerTool } from "@langchain/core/tools";
+import { ClientTool, ServerTool } from "@langchain/core/tools";
 
 export const AgentProtocolSchema = z.object({
     agent_protocol: z.custom<AgentProtocol>(),
@@ -18,7 +18,7 @@ export const createLLM = async (
     options: {
         subagent_id?: string;
     } = {},
-): Promise<BaseChatModel> => {
+) => {
     if (!model_name) {
         model_name = protocol.llm[0].model;
     } else {
@@ -51,20 +51,26 @@ export const createSchemaAgent = async (
     protocol: AgentProtocol,
     select_model_name: string,
     options: {
-        extra_tools?: ServerTool[];
+        extra_tools?: ClientTool[];
         subagent_id?: string;
     } = {},
 ) => {
-    const tools = await createTools(protocol);
+    const [tools, model] = await Promise.all([
+        createTools(protocol),
+        createLLM(protocol, select_model_name, {
+            subagent_id: options.subagent_id,
+        }),
+    ] as const);
     return createAgent({
         // 工具调用数据，可以通过这个参数判断是否为子调用
         name: options.subagent_id
             ? `subagent_${options.subagent_id}`
             : undefined,
-        model: await createLLM(protocol, select_model_name, {
-            subagent_id: options.subagent_id,
-        }),
-        tools: [...tools, ...(options.extra_tools || [])],
+        model,
+        tools: [...tools, ...(options.extra_tools || [])] as (
+            | ClientTool
+            | ServerTool
+        )[],
         systemPrompt: protocol.systemPrompt,
         middleware: [FileUploadMiddleware()],
         stateSchema,

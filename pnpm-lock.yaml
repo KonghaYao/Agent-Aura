@@ -47,14 +47,14 @@ dependencies:
     specifier: ^1.4.1
     version: 1.4.1(@opentelemetry/api@1.9.0)
   '@langgraph-js/pro':
-    specifier: ^2.0.0
-    version: 2.0.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
+    specifier: ^2.0.1
+    version: 2.0.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
   '@langgraph-js/pure-graph':
-    specifier: ^2.4.0
-    version: 2.4.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
+    specifier: ^2.4.1
+    version: 2.4.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
   '@langgraph-js/sdk':
-    specifier: ^3.4.0
-    version: 3.4.0(@langchain/core@1.0.5)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)
+    specifier: ^3.4.1
+    version: 3.4.1(@langchain/core@1.0.5)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0)
   '@nanostores/react':
     specifier: ^1.0.0
     version: 1.0.0(nanostores@1.0.1)(react@19.2.0)
@@ -1032,17 +1032,6 @@ packages:
       hono: 4.10.2
     dev: false
 
-  /@hono/zod-validator@0.7.4(hono@4.10.2)(zod@3.25.76):
-    resolution: {integrity: sha512-biKGn3BRJVaftZlIPMyK+HCe/UHAjJ6sH0UyXe3+v0OcgVr9xfImDROTJFLtn9e3XEEAHGZIM9U6evu85abm8Q==}
-    peerDependencies:
-      hono: '>=3.9.0'
-      zod: ^3.25.0 || ^4.0.0
-    dependencies:
-      hono: 4.10.2
-      zod: 3.25.76
-    dev: false
-    optional: true
-
   /@hono/zod-validator@0.7.4(hono@4.10.2)(zod@4.1.12):
     resolution: {integrity: sha512-biKGn3BRJVaftZlIPMyK+HCe/UHAjJ6sH0UyXe3+v0OcgVr9xfImDROTJFLtn9e3XEEAHGZIM9U6evu85abm8Q==}
     peerDependencies:
@@ -1455,29 +1444,8 @@ packages:
       '@langchain/langgraph': ^0.2.53 || ^0.3.0 || ^0.4.0 || ^1.0.0-alpha.5
     dependencies:
       '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
-      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@3.25.76)
+      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12)
       zod: 3.25.76
-    dev: false
-
-  /@langchain/langgraph@1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@3.25.76):
-    resolution: {integrity: sha512-syxzzWTnmpCL+RhUEvalUeOXFoZy/KkzHa2Da2gKf18zsf9Dkbh3rfnRDrTyUGS1XSTejq07s4rg1qntdEDs2A==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      '@langchain/core': ^1.0.1
-      zod: ^3.25.32 || ^4.1.0
-      zod-to-json-schema: ^3.x
-    peerDependenciesMeta:
-      zod-to-json-schema:
-        optional: true
-    dependencies:
-      '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
-      '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.0.5)
-      '@langchain/langgraph-sdk': 1.0.0(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)
-      uuid: 10.0.0
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - react
-      - react-dom
     dev: false
 
   /@langchain/langgraph@1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12):
@@ -1577,15 +1545,15 @@ packages:
       - ws
     dev: false
 
-  /@langgraph-js/pro@2.0.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0):
-    resolution: {integrity: sha512-uPp6DHQExC1ake1sLrL2aaNhGp9qMc/KhhF39NsNJP/PeV0krHUlslPLXgPrT2SmRvXrLik/G9CGEYwwBx2Ldg==}
+  /@langgraph-js/pro@2.0.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0):
+    resolution: {integrity: sha512-cO4MUBm5mKw48wRtnW3wzqv46AiJCSgZvUldNPGYvMjhuYzHs2Sg41UDOHDAX41nLH6WbfSjT9rw2rOko5KLOQ==}
     dependencies:
       '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
-      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@3.25.76)
+      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12)
       '@langchain/langgraph-swarm': 1.0.0(@langchain/core@1.0.5)(@langchain/langgraph@1.0.2)
       '@langchain/openai': 1.1.1(@langchain/core@1.0.5)
       langchain: 1.0.4(@langchain/core@1.0.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
-      zod: 3.25.76
+      zod: 4.1.12
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -1597,22 +1565,22 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/pure-graph@2.4.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0):
-    resolution: {integrity: sha512-M8zKk/iWPDGnkARf7ZyJXgmAh+HJF2arvzsiBIN7x+QFBapwojQ0s7zXJ1tEN5L/7i8CAwLR88p1NOdGl7Qxtw==}
+  /@langgraph-js/pure-graph@2.4.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0):
+    resolution: {integrity: sha512-Ct4uRA2mYOONHLpV1wZQpoY1pMtfVSgjS7uyUSQQ6KiEFPfGPddS87uHFgYMatC0YnlbO5xWuCqbRh2zwanFOg==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
-      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@3.25.76)
+      '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.0.5)
       '@langchain/langgraph-checkpoint-sqlite': 1.0.0(@langchain/core@1.0.5)(@langchain/langgraph-checkpoint@1.0.0)
-      '@langgraph-js/pro': 2.0.0(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
+      '@langgraph-js/pro': 2.0.1(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
       camelcase-keys: 10.0.0
       eventemitter3: 5.0.1
       kysely: 0.28.8
       langchain: 1.0.4(@langchain/core@1.0.5)(@opentelemetry/api@1.9.0)(react-dom@19.2.0)(react@19.2.0)
-      zod: 3.25.76
+      zod: 4.1.12
     optionalDependencies:
-      '@hono/zod-validator': 0.7.4(hono@4.10.2)(zod@3.25.76)
+      '@hono/zod-validator': 0.7.4(hono@4.10.2)(zod@4.1.12)
       '@langchain/langgraph-checkpoint-postgres': 1.0.0(@langchain/core@1.0.5)(@langchain/langgraph-checkpoint@1.0.0)
       '@langchain/langgraph-checkpoint-redis': 1.0.0(@langchain/core@1.0.5)(@langchain/langgraph-checkpoint@1.0.0)
       better-sqlite3: 12.4.1
@@ -1634,8 +1602,8 @@ packages:
       - zod-to-json-schema
     dev: false
 
-  /@langgraph-js/sdk@3.4.0(@langchain/core@1.0.5)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0):
-    resolution: {integrity: sha512-tF/4DEhGLq5ZdFbdZu3VDvqMOO+8a/lSgU+bHhBgKUS2JwxCfMxuZVmHOipdR7ntVhT1hDj/idw5Q5nC1JENXg==}
+  /@langgraph-js/sdk@3.4.1(@langchain/core@1.0.5)(@nanostores/react@1.0.0)(react-dom@19.2.0)(react@19.2.0):
+    resolution: {integrity: sha512-R0TP6l0tPPtFn9N1A8isL7hqAb3G7AVcFeJ2qC48q+171xWFVVi0hyKcdl12zW8pX3ZEQQWjhg8+8Zs7Elx5wQ==}
     peerDependencies:
       '@nanostores/react': ^1.0.0
       '@nanostores/vue': ^1.0.0
@@ -1658,8 +1626,8 @@ packages:
       nanostores: 1.0.1
       react: 19.2.0
       ts-debounce: 4.0.0
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
+      zod: 4.1.12
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
     transitivePeerDependencies:
       - '@langchain/core'
       - react-dom
@@ -11781,6 +11749,14 @@ packages:
       zod: ^3.24.1
     dependencies:
       zod: 3.25.76
+    dev: false
+
+  /zod-to-json-schema@3.24.6(zod@4.1.12):
+    resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
+    peerDependencies:
+      zod: ^3.24.1
+    dependencies:
+      zod: 4.1.12
     dev: false
 
   /zod-to-ts@1.2.0(typescript@5.9.3)(zod@3.25.76):
