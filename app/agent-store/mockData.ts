@@ -1,5 +1,5 @@
 import { AgentStoreItem } from "./types";
-import { defaultModelsAllowed } from "@/agent/models";
+import { defaultModelsAllowed } from "../../agent/models";
 
 /**
  * 模拟数据，用于开发和测试
