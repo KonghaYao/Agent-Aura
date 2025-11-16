@@ -21,6 +21,19 @@ import {
     ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { useExtraParams } from "../context/ExtraParamsContext";
+import { Message } from "@/src/components/ai-elements/message";
+
+const transTypeToOpenAIType = (type: string) => {
+    switch (type) {
+        case "human":
+            return "user";
+        case "tool":
+            return "assistant";
+        case "ai":
+            return "assistant";
+    }
+    return "assistant";
+};
 
 export const MessagesBox = ({
     renderMessages,
@@ -47,54 +60,21 @@ export const MessagesBox = ({
     };
 
     return (
-        <div className="flex flex-col gap-4 w-full">
+        <>
             {renderMessages.map((message, index) => (
-                <ContextMenu key={message.unique_id}>
-                    <ContextMenuTrigger asChild>
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                                duration: 0.5,
-                            }}
-                            className="relative group"
-                        >
-                            {message.type === "human" ? (
-                                <MessageHuman
-                                    content={message.content}
-                                ></MessageHuman>
-                            ) : message.type === "tool" ? (
-                                <MessageTool
-                                    message={message}
-                                    getMessageContent={getMessageContent}
-                                    isCollapsed={collapsedTools.includes(
-                                        message.id!,
-                                    )}
-                                    onToggleCollapse={() =>
-                                        toggleToolCollapse(message.id!)
-                                    }
-                                ></MessageTool>
-                            ) : (
-                                <MessageAI message={message}></MessageAI>
-                            )}
-                        </motion.div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                        <ContextMenuItem
-                            onClick={() => handleRevertToMessage(message)}
-                        >
-                            <RotateCcw className="w-4 h-4 mr-2" />
-                            撤回到这条消息
-                        </ContextMenuItem>
-                        <ContextMenuItem
-                            onClick={() => handleRevertToMessage(message, true)}
-                        >
-                            <RotateCcw className="w-4 h-4 mr-2" />
-                            撤回并重新执行
-                        </ContextMenuItem>
-                    </ContextMenuContent>
-                </ContextMenu>
+                <Message
+                    key={message.id}
+                    from={transTypeToOpenAIType(message.type)}
+                >
+                    {message.type === "human" ? (
+                        <MessageHuman message={message}></MessageHuman>
+                    ) : message.type === "tool" ? (
+                        <MessageTool message={message}></MessageTool>
+                    ) : (
+                        <MessageAI message={message}></MessageAI>
+                    )}
+                </Message>
             ))}
-        </div>
+        </>
     );
 };

@@ -1,71 +1,66 @@
 "use client";
 
-import React from "react";
+import { RenderMessage } from "@langgraph-js/sdk";
+import React, { memo } from "react";
+import {
+    MessageAttachment,
+    MessageAttachments,
+    MessageContent,
+    MessageResponse,
+} from "@/src/components/ai-elements/message";
+import { FileUIPart } from "ai";
+import { getMimeTypeFromUrl } from "@/lib/utils";
 
 interface MessageHumanProps {
-    content: string | any[];
+    message: RenderMessage;
 }
 
-const MessageHuman: React.FC<MessageHumanProps> = ({ content }) => {
-    const renderContent = () => {
-        if (typeof content === "string") {
-            return <div className=" whitespace-pre-wrap">{content}</div>;
+const MessageHuman: React.FC<MessageHumanProps> = ({ message }) => {
+    const content: {
+        text: string;
+        attachments: FileUIPart[];
+    } = (() => {
+        if (typeof message.content === "string") {
+            return {
+                text: message.content,
+                attachments: [],
+            };
+        } else {
+            return {
+                text: message.content
+                    .filter((i) => i.type === "text")
+                    .map((i) => i.text)
+                    .join(""),
+                attachments: message.content
+                    .filter((i) => i.type !== "text")
+                    .map((i) => {
+                        /** @ts-ignore */
+                        const url = i[i.type]["url"];
+                        return {
+                            type: "file",
+                            mediaType: getMimeTypeFromUrl(url),
+                            url,
+                        };
+                    }),
+            };
         }
-
-        if (Array.isArray(content)) {
-            return content.map((item, index) => {
-                switch (item.type) {
-                    case "text":
-                        return (
-                            <div key={index} className="">
-                                {item.text}
-                            </div>
-                        );
-                    case "image_url":
-                        return (
-                            <div key={index} className="mt-2">
-                                <img
-                                    src={item.image_url.url}
-                                    alt="用户上传的图片"
-                                    className="max-w-[200px] rounded"
-                                />
-                            </div>
-                        );
-                    case "audio":
-                        return (
-                            <div key={index} className="mt-2">
-                                <audio
-                                    controls
-                                    src={item.audio_url}
-                                    className="w-full">
-                                    您的浏览器不支持音频播放
-                                </audio>
-                            </div>
-                        );
-                    default:
-                        return (
-                            <div
-                                key={index}
-                                className="text-white whitespace-pre-wrap">
-                                {JSON.stringify(item)}
-                            </div>
-                        );
-                }
-            });
-        }
-
-        return (
-            <div className=" whitespace-pre-wrap">
-                {JSON.stringify(content)}
-            </div>
-        );
-    };
+    })();
 
     return (
-        <div className="flex flex-row w-full justify-end ">
-            <div className="flex flex-col w-fit bg-neutral-200 rounded-lg max-w-[80%]">
-                <div className="flex flex-col px-4 py-2">{renderContent()}</div>
-            </div>
+        <div>
+            {content.attachments && content.attachments.length > 0 && (
+                <MessageAttachments className="mb-2">
+                    {content.attachments.map((attachment) => (
+                        <MessageAttachment
+                            data={attachment}
+                            key={attachment.url}
+                        />
+                    ))}
+                </MessageAttachments>
+            )}
+            <MessageContent>
+                <MessageResponse>{content.text}</MessageResponse>
+            </MessageContent>
         </div>
     );
 };

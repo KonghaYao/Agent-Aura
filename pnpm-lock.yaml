@@ -12,6 +12,10 @@ onlyBuiltDependencies:
   - rxdb
   - unrs-resolver
 
+overrides:
+  better-sqlite3: ^12.4.1
+  zod: 4.1.12
+
 dependencies:
   '@astrojs/netlify':
     specifier: ^6.6.0
@@ -95,11 +99,14 @@ dependencies:
     specifier: ^1.1.9
     version: 1.1.10(@types/react-dom@19.2.2)(@types/react@19.2.2)(react-dom@19.2.0)(react@19.2.0)
   '@radix-ui/react-tooltip':
-    specifier: ^1.2.7
+    specifier: ^1.2.8
     version: 1.2.8(@types/react-dom@19.2.2)(@types/react@19.2.2)(react-dom@19.2.0)(react@19.2.0)
   '@tailwindcss/vite':
     specifier: ^4.1.16
     version: 4.1.16(vite@7.1.12)
+  ai:
+    specifier: ^5.0.93
+    version: 5.0.93(zod@4.1.12)
   ai-artifacts:
     specifier: ^1.2.1
     version: 1.2.1
@@ -181,11 +188,14 @@ dependencies:
   tailwind-merge:
     specifier: ^3.3.1
     version: 3.3.1
+  use-stick-to-bottom:
+    specifier: ^1.1.1
+    version: 1.1.1(react@19.2.0)
   usehooks-ts:
     specifier: ^3.1.1
     version: 3.1.1(react@19.2.0)
   zod:
-    specifier: ^4.1.12
+    specifier: 4.1.12
     version: 4.1.12
 
 devDependencies:
@@ -233,6 +243,37 @@ devDependencies:
     version: 7.1.12(@types/node@20.19.19)
 
 packages:
+
+  /@ai-sdk/gateway@2.0.9(zod@4.1.12):
+    resolution: {integrity: sha512-E6x4h5CPPPJ0za1r5HsLtHbeI+Tp3H+YFtcH8G3dSSPFE6w+PZINzB4NxLZmg1QqSeA5HTP3ZEzzsohp0o2GEw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: 4.1.12
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.17(zod@4.1.12)
+      '@vercel/oidc': 3.0.3
+      zod: 4.1.12
+    dev: false
+
+  /@ai-sdk/provider-utils@3.0.17(zod@4.1.12):
+    resolution: {integrity: sha512-TR3Gs4I3Tym4Ll+EPdzRdvo/rc8Js6c4nVhFLuvGLX/Y4V9ZcQMa/HTiYsHEgmYrf1zVi6Q145UEZUfleOwOjw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: 4.1.12
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@standard-schema/spec': 1.0.0
+      eventsource-parser: 3.0.6
+      zod: 4.1.12
+    dev: false
+
+  /@ai-sdk/provider@2.0.0:
+    resolution: {integrity: sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==}
+    engines: {node: '>=18'}
+    dependencies:
+      json-schema: 0.4.0
+    dev: false
 
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
@@ -1036,7 +1077,7 @@ packages:
     resolution: {integrity: sha512-biKGn3BRJVaftZlIPMyK+HCe/UHAjJ6sH0UyXe3+v0OcgVr9xfImDROTJFLtn9e3XEEAHGZIM9U6evu85abm8Q==}
     peerDependencies:
       hono: '>=3.9.0'
-      zod: ^3.25.0 || ^4.0.0
+      zod: 4.1.12
     dependencies:
       hono: 4.10.2
       zod: 4.1.12
@@ -1327,8 +1368,8 @@ packages:
       p-queue: 6.6.2
       p-retry: 4.6.2
       uuid: 10.0.0
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
+      zod: 4.1.12
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -1401,7 +1442,7 @@ packages:
     dependencies:
       '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
       '@langchain/langgraph-checkpoint': 1.0.0(@langchain/core@1.0.5)
-      better-sqlite3: 11.10.0
+      better-sqlite3: 12.4.1
     dev: false
 
   /@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.0.5):
@@ -1445,7 +1486,7 @@ packages:
     dependencies:
       '@langchain/core': 1.0.5(@opentelemetry/api@1.9.0)
       '@langchain/langgraph': 1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12)
-      zod: 3.25.76
+      zod: 4.1.12
     dev: false
 
   /@langchain/langgraph@1.0.2(@langchain/core@1.0.5)(react-dom@19.2.0)(react@19.2.0)(zod@4.1.12):
@@ -1453,7 +1494,7 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': ^1.0.1
-      zod: ^3.25.32 || ^4.1.0
+      zod: 4.1.12
       zod-to-json-schema: ^3.x
     peerDependenciesMeta:
       zod-to-json-schema:
@@ -1495,8 +1536,8 @@ packages:
     dependencies:
       '@langchain/core': 0.3.78(@opentelemetry/api@1.9.0)
       js-tiktoken: 1.0.21
-      openai: 5.12.2(zod@3.25.76)
-      zod: 3.25.76
+      openai: 5.12.2(zod@4.1.12)
+      zod: 4.1.12
     transitivePeerDependencies:
       - ws
     dev: false
@@ -1535,7 +1576,7 @@ packages:
       hono: 4.10.2
       pg: 8.16.3
       uuid: 13.0.0
-      zod: 3.25.76
+      zod: 4.1.12
     transitivePeerDependencies:
       - '@opentelemetry/api'
       - '@opentelemetry/exporter-trace-otlp-proto'
@@ -1674,8 +1715,8 @@ packages:
       express-rate-limit: 7.5.1(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.1
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
+      zod: 4.1.12
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -2118,7 +2159,7 @@ packages:
       unixify: 1.0.0
       urlpattern-polyfill: 8.0.2
       yargs: 17.7.2
-      zod: 3.25.76
+      zod: 4.1.12
     transitivePeerDependencies:
       - encoding
       - react-native-b4a
@@ -3786,6 +3827,10 @@ packages:
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
     dev: false
 
+  /@standard-schema/spec@1.0.0:
+    resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+    dev: false
+
   /@swc/helpers@0.5.15:
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
     dependencies:
@@ -4576,6 +4621,11 @@ packages:
       - supports-color
     dev: false
 
+  /@vercel/oidc@3.0.3:
+    resolution: {integrity: sha512-yNEQvPcVrK9sIe637+I0jD6leluPxzwJKx/Haw6F4H77CdDsszUn5V3o96LPziXkSNE2B83+Z3mjqGKBK/R6Gg==}
+    engines: {node: '>= 20'}
+    dev: false
+
   /@vitejs/plugin-react@4.7.0(vite@6.4.1):
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
     engines: {node: ^14.18.0 || >=16.0.0}
@@ -4724,6 +4774,19 @@ packages:
       comlink: 4.4.2
       prismjs: 1.30.0
       solid-js: 1.9.9
+    dev: false
+
+  /ai@5.0.93(zod@4.1.12):
+    resolution: {integrity: sha512-9eGcu+1PJgPg4pRNV4L7tLjRR3wdJC9CXQoNMvtqvYNOLZHFCzjHtVIOr2SIkoJJeu2+sOy3hyiSuTmy2MA40g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: 4.1.12
+    dependencies:
+      '@ai-sdk/gateway': 2.0.9(zod@4.1.12)
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.17(zod@4.1.12)
+      '@opentelemetry/api': 1.9.0
+      zod: 4.1.12
     dev: false
 
   /ajv-errors@3.0.0(ajv@8.17.1):
@@ -4931,9 +4994,9 @@ packages:
       xxhash-wasm: 1.1.0
       yargs-parser: 21.1.1
       yocto-spinner: 0.2.3
-      zod: 3.25.76
-      zod-to-json-schema: 3.24.6(zod@3.25.76)
-      zod-to-ts: 1.2.0(typescript@5.9.3)(zod@3.25.76)
+      zod: 4.1.12
+      zod-to-json-schema: 3.24.6(zod@4.1.12)
+      zod-to-ts: 1.2.0(typescript@5.9.3)(zod@4.1.12)
     optionalDependencies:
       sharp: 0.34.4
     transitivePeerDependencies:
@@ -5157,13 +5220,6 @@ packages:
       rou3: 0.5.1
       set-cookie-parser: 2.7.2
       uncrypto: 0.1.3
-    dev: false
-
-  /better-sqlite3@11.10.0:
-    resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
-    dependencies:
-      bindings: 1.5.0
-      prebuild-install: 7.1.3
     dev: false
 
   /better-sqlite3@12.4.1:
@@ -7685,6 +7741,10 @@ packages:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
     dev: false
 
+  /json-schema@0.4.0:
+    resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
+    dev: false
+
   /json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
@@ -9146,19 +9206,19 @@ packages:
       regex: 6.0.1
       regex-recursion: 6.0.2
 
-  /openai@5.12.2(zod@3.25.76):
+  /openai@5.12.2(zod@4.1.12):
     resolution: {integrity: sha512-xqzHHQch5Tws5PcKR2xsZGX9xtch+JQFz5zb14dGqlshmmDAFBFEWmeIpf7wVqWV+w7Emj7jRgkNJakyKE0tYQ==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: ^3.23.8
+      zod: 4.1.12
     peerDependenciesMeta:
       ws:
         optional: true
       zod:
         optional: true
     dependencies:
-      zod: 3.25.76
+      zod: 4.1.12
     dev: false
 
   /openai@6.9.0(zod@4.1.12):
@@ -9166,7 +9226,7 @@ packages:
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: ^3.25 || ^4.0
+      zod: 4.1.12
     peerDependenciesMeta:
       ws:
         optional: true
@@ -11333,6 +11393,14 @@ packages:
       tslib: 2.8.1
     dev: false
 
+  /use-stick-to-bottom@1.1.1(react@19.2.0):
+    resolution: {integrity: sha512-JkDp0b0tSmv7HQOOpL1hT7t7QaoUBXkq045WWWOFDTlLGRzgIIyW7vyzOIJzY7L2XVIG7j1yUxeDj2LHm9Vwng==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    dependencies:
+      react: 19.2.0
+    dev: false
+
   /usehooks-ts@3.1.1(react@19.2.0):
     resolution: {integrity: sha512-I4diPp9Cq6ieSUH2wu+fDAVQO43xwtulo+fKEidHUwZPnYImbtkTjzIJYcDcJqxgmX31GVqNFURodvcgHcW0pA==}
     engines: {node: '>=16.15.0'}
@@ -11743,34 +11811,22 @@ packages:
       readable-stream: 4.7.0
     dev: false
 
-  /zod-to-json-schema@3.24.6(zod@3.25.76):
-    resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
-    peerDependencies:
-      zod: ^3.24.1
-    dependencies:
-      zod: 3.25.76
-    dev: false
-
   /zod-to-json-schema@3.24.6(zod@4.1.12):
     resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
     peerDependencies:
-      zod: ^3.24.1
+      zod: 4.1.12
     dependencies:
       zod: 4.1.12
     dev: false
 
-  /zod-to-ts@1.2.0(typescript@5.9.3)(zod@3.25.76):
+  /zod-to-ts@1.2.0(typescript@5.9.3)(zod@4.1.12):
     resolution: {integrity: sha512-x30XE43V+InwGpvTySRNz9kB7qFU8DlyEy7BsSTCHPH1R0QasMmHWZDCzYm6bVXtj/9NNJAZF3jW8rzFvH5OFA==}
     peerDependencies:
       typescript: ^4.9.4 || ^5.0.2
-      zod: ^3
+      zod: 4.1.12
     dependencies:
       typescript: 5.9.3
-      zod: 3.25.76
-    dev: false
-
-  /zod@3.25.76:
-    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+      zod: 4.1.12
     dev: false
 
   /zod@4.1.12:

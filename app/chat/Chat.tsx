@@ -51,6 +51,11 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AgentConfigProvider, useAgentConfig } from "./context";
 import { AgentSelectorCompact, AgentInfoPanel } from "./components";
 import { noneAgent } from "../agent-store/mockData";
+import {
+    Conversation,
+    ConversationContent,
+    ConversationScrollButton,
+} from "@/src/components/ai-elements/conversation";
 
 const ChatMessages: React.FC = () => {
     const {
@@ -62,25 +67,9 @@ const ChatMessages: React.FC = () => {
         toggleToolCollapse,
         isFELocking,
     } = useChat();
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const MessageContainer = useRef<HTMLDivElement>(null);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        if (renderMessages.length > 0 && MessageContainer.current) {
-            // 切换消息时，自动滚动到底部
-            if (!loading) {
-                scrollToBottom();
-            }
-            console.log(renderMessages);
-        }
-    }, [renderMessages]);
 
     return (
-        <div className="w-full p-4 pt-12" ref={MessageContainer}>
+        <div className="w-full p-4 pt-12 gap-4">
             <MessagesBox
                 renderMessages={renderMessages}
                 collapsedTools={collapsedTools}
@@ -99,7 +88,6 @@ const ChatMessages: React.FC = () => {
                     {JSON.stringify(inChatError)}
                 </div>
             )}
-            <div ref={messagesEndRef} />
         </div>
     );
 };
@@ -414,26 +402,27 @@ const ChatInput: React.FC = () => {
 // 使用memo来记忆ChatContainer组件，避免不必要的重新渲染
 const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
-            <div className="flex-1 flex flex-col items-center w-full max-w-4xl mx-auto overflow-hidden">
-                {hasMessages ? (
-                    <div className="flex-1 overflow-y-auto w-full">
+        <div className="flex flex-col h-full max-w-4xl w-full mx-auto">
+            <Conversation>
+                <ConversationContent>
+                    {hasMessages ? (
                         <ChatMessages />
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center flex-1">
-                        <h1 className="text-4xl font-bold mb-6 text-center">
-                            <span className="text-4xl pr-2">👋</span>
-                            你好，我是 Aura
-                        </h1>
-                        <p className="text-lg text-gray-500 mb-8 text-center">
-                            我是一个 AI 助手，可以帮助你完成各种任务
-                        </p>
-                    </div>
-                )}
-                <div className="px-4 w-full pb-8">
-                    <ChatInput />
-                </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center flex-1">
+                            <h1 className="text-4xl font-bold mb-6 text-center">
+                                <span className="text-4xl pr-2">👋</span>
+                                你好，我是 Aura
+                            </h1>
+                            <p className="text-lg text-gray-500 mb-8 text-center">
+                                我是一个 AI 助手，可以帮助你完成各种任务
+                            </p>
+                        </div>
+                    )}
+                </ConversationContent>
+                <ConversationScrollButton />
+            </Conversation>
+            <div className="px-4 w-full pb-8">
+                <ChatInput />
             </div>
         </div>
     );
@@ -469,7 +458,8 @@ const Chat: React.FC = () => {
                 window.dispatchEvent(event);
             }}
         >
-            <div className="flex h-full w-full justify-center overflow-hidden">
+            <div className="flex h-screen w-full justify-center overflow-hidden">
+                {/* <ChatContainer hasMessages={hasMessages} /> */}
                 <ResizablePanelGroup
                     direction="horizontal"
                     className="w-full h-full"
@@ -477,6 +467,7 @@ const Chat: React.FC = () => {
                 >
                     <ResizablePanel
                         defaultSize={showArtifact ? panelSizes.chat : 100}
+                        className="flex flex-col h-full"
                         minSize={30}
                     >
                         <ChatContainer hasMessages={hasMessages} />

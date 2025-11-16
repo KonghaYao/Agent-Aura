@@ -2,10 +2,8 @@ import "./index";
 import { Hono } from "hono";
 import LangGraphApp, {
     LangGraphServerContext,
-} from "@langgraph-js/pure-graph/dist/adapter/hono/index";
+} from "@langgraph-js/pure-graph/dist/adapter/hono/index.js";
 import { auth } from "./auth";
-import { cors } from "hono/cors";
-import { getEnv } from "./getEnv";
 import { filesRouter } from "./filestore/routes";
 import { type AuthType, auth as betterAuth } from "../lib/auth";
 import { logger } from "hono/logger";

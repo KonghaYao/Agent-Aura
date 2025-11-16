@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index";
+import type { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index.js";
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
 import { TextStoreService } from "./text-store";
 

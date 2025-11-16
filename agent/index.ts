@@ -5,9 +5,10 @@ import { getEnv } from "./getEnv";
 if (
     getEnv("NODE_ENV") !== "production" &&
     // @ts-ignore
-    !globalThis.Bun
+    !globalThis.Bun &&
+    // @ts-ignore
+    !globalThis.Deno
 ) {
-    console.log("register env");
     globalThis.process.env = import.meta.env;
 }
 // registerGraph("agent", graph);

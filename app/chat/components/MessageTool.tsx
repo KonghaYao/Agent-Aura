@@ -2,7 +2,7 @@
 
 import React, { JSX, useState } from "react";
 import {
-    LangGraphClient,
+    getMessageContent,
     type RenderMessage,
     type ToolMessage,
 } from "@langgraph-js/sdk";
@@ -11,19 +11,12 @@ import { useChat } from "@langgraph-js/sdk/react";
 import { Response } from "@/components/ai-elements/response";
 interface MessageToolProps {
     message: ToolMessage & RenderMessage;
-    getMessageContent: (content: any) => string;
-    isCollapsed: boolean;
-    onToggleCollapse: () => void;
 }
 
-const MessageTool: React.FC<MessageToolProps> = ({
-    message,
-    getMessageContent,
-    isCollapsed,
-    onToggleCollapse,
-}) => {
+const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
     const { getToolUIRender } = useChat();
     const render = getToolUIRender(message.name!);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     return (
         <div className="flex flex-col w-full max-w-[80%]">
             {render ? (
@@ -32,7 +25,9 @@ const MessageTool: React.FC<MessageToolProps> = ({
                 <div className="flex flex-col w-full bg-white rounded-lg border border-gray-200">
                     <div
                         className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                        onClick={onToggleCollapse}
+                        onClick={() => {
+                            setIsCollapsed(!isCollapsed);
+                        }}
                     >
                         <div
                             className="text-sm font-medium text-gray-700"
