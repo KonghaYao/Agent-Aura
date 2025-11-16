@@ -44,7 +44,7 @@
         "@tailwindcss/vite": "^4.1.16",
         "ai": "^5.0.93",
         "ai-artifacts": "^1.2.1",
-        "astro": "^5.15.1",
+        "astro": "^5.15.8",
         "better-auth": "^1.3.34",
         "better-sqlite3": "^12.4.1",
         "class-variance-authority": "^0.7.1",
@@ -92,8 +92,7 @@
     },
     "pnpm": {
         "overrides": {
-            "better-sqlite3": "^12.4.1",
-            "zod": "4.1.12"
+            "better-sqlite3": "^12.4.1"
         },
         "onlyBuiltDependencies": [
             "@firebase/util",
