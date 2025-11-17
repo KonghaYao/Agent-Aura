@@ -20,7 +20,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Trash2, Download } from "lucide-react";
+import { Trash2, Download, Eye } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -36,9 +36,16 @@ import {
 interface FileTableProps {
     files: File[];
     onDelete: (id: number) => void;
+    onPreview: (file: File | null) => void;
+    previewFile: File | null;
 }
 
-const FileTable: React.FC<FileTableProps> = ({ files, onDelete }) => {
+const FileTable: React.FC<FileTableProps> = ({
+    files,
+    onDelete,
+    onPreview,
+    previewFile,
+}) => {
     const formatFileSize = (bytes: number) => {
         if (bytes === 0) return "0 Bytes";
         const k = 1024;
@@ -52,69 +59,101 @@ const FileTable: React.FC<FileTableProps> = ({ files, onDelete }) => {
     };
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>文件名</TableHead>
-                    <TableHead>大小</TableHead>
-                    <TableHead>更新时间</TableHead>
-                    <TableHead>操作</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {files.map((file) => (
-                    <TableRow key={file.id}>
-                        <TableCell className="font-medium">
-                            {file.file_name}
-                        </TableCell>
-                        <TableCell>{formatFileSize(file.file_size)}</TableCell>
-                        <TableCell>{formatDate(file.update_time)}</TableCell>
-                        <TableCell>
-                            <div className="flex space-x-2">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                        saveAs(file.oss_url, file.file_name)
-                                    }
-                                >
-                                    <Download className="h-4 w-4 text-green-500" />
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>
-                                                确定要删除吗？
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                此操作无法撤销。这将从服务器永久删除文件。
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>
-                                                取消
-                                            </AlertDialogCancel>
-                                            <AlertDialogAction
-                                                onClick={() =>
-                                                    onDelete(file.id)
-                                                }
-                                            >
-                                                删除
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </TableCell>
+        <>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-[50%]">文件名</TableHead>
+                        <TableHead className="w-[15%]">大小</TableHead>
+                        <TableHead className="w-[20%]">更新时间</TableHead>
+                        <TableHead className="w-[15%]">操作</TableHead>
                     </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {files.map((file) => (
+                        <TableRow key={file.id}>
+                            <TableCell className="font-medium max-w-0">
+                                <div
+                                    className="truncate"
+                                    title={file.file_name}
+                                >
+                                    {file.file_name}
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                {formatFileSize(file.file_size)}
+                            </TableCell>
+                            <TableCell>
+                                {formatDate(file.update_time)}
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex space-x-2">
+                                    {file.category === "document" && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            title="预览"
+                                            onClick={() =>
+                                                onPreview(
+                                                    previewFile?.id === file.id
+                                                        ? null
+                                                        : file,
+                                                )
+                                            }
+                                            className={
+                                                previewFile?.id === file.id
+                                                    ? "bg-blue-100"
+                                                    : ""
+                                            }
+                                        >
+                                            <Eye className="h-4 w-4 text-blue-500" />
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                            saveAs(file.oss_url, file.file_name)
+                                        }
+                                    >
+                                        <Download className="h-4 w-4 text-green-500" />
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    确定要删除吗？
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    此操作无法撤销。这将从服务器永久删除文件。
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>
+                                                    取消
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() =>
+                                                        onDelete(file.id)
+                                                    }
+                                                >
+                                                    删除
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </>
     );
 };
 

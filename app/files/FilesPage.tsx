@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import type { File } from "./types";
 import FileTable from "./components/FileTable";
+import FilePreviewContent from "./components/FilePreviewContent";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { FileService } from "./services/FileService";
 import { TmpFilesClient } from "../chat/FileUpload/index";
@@ -13,6 +14,7 @@ const FilesPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const [activeCategory, setActiveCategory] = useState<string>("all");
+    const [previewFile, setPreviewFile] = useState<File | null>(null);
 
     const fileService = FileService.getInstance(new TmpFilesClient());
 
@@ -65,7 +67,8 @@ const FilesPage: React.FC = () => {
     };
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto p-4 h-[calc(100vh-8rem)]">
+            {/* 顶部控制栏 */}
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-4">
                     <Button
@@ -84,77 +87,124 @@ const FilesPage: React.FC = () => {
                     />
                 </div>
             </div>
-            <div className="flex space-x-4 mb-4">
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "all" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("all")}
-                >
-                    全部
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "document" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("document")}
-                >
-                    文档
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "image" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("image")}
-                >
-                    图片
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "audio-video" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("audio-video")}
-                >
-                    音视频
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "table" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("table")}
-                >
-                    表格
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "code" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("code")}
-                >
-                    编程应用
-                </button>
-                <button
-                    className={`px-3 py-1 text-sm rounded-md ${
-                        activeCategory === "presentation" ? "bg-gray-200" : ""
-                    }`}
-                    onClick={() => setActiveCategory("presentation")}
-                >
-                    PPT
-                </button>
-            </div>
 
-            {uploadProgress !== null && (
-                <div className="mb-4">
-                    <p>上传中... {uploadProgress}%</p>
-                    <Progress value={uploadProgress} className="w-full" />
+            {/* 主内容区域 */}
+            <div className="flex gap-4 flex-1 min-h-0">
+                {/* 左侧文件列表区域 */}
+                <div className="flex-1 flex flex-col min-w-0">
+                    <div className="flex space-x-4 mb-4">
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "all" ? "bg-gray-200" : ""
+                            }`}
+                            onClick={() => setActiveCategory("all")}
+                        >
+                            全部
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "document"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() => setActiveCategory("document")}
+                        >
+                            文档
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "image" ? "bg-gray-200" : ""
+                            }`}
+                            onClick={() => setActiveCategory("image")}
+                        >
+                            图片
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "audio-video"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() => setActiveCategory("audio-video")}
+                        >
+                            音视频
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "table" ? "bg-gray-200" : ""
+                            }`}
+                            onClick={() => setActiveCategory("table")}
+                        >
+                            表格
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "code" ? "bg-gray-200" : ""
+                            }`}
+                            onClick={() => setActiveCategory("code")}
+                        >
+                            编程应用
+                        </button>
+                        <button
+                            className={`px-3 py-1 text-sm rounded-md ${
+                                activeCategory === "presentation"
+                                    ? "bg-gray-200"
+                                    : ""
+                            }`}
+                            onClick={() => setActiveCategory("presentation")}
+                        >
+                            PPT
+                        </button>
+                    </div>
+
+                    {uploadProgress !== null && (
+                        <div className="mb-4">
+                            <p>上传中... {uploadProgress}%</p>
+                            <Progress
+                                value={uploadProgress}
+                                className="w-full"
+                            />
+                        </div>
+                    )}
+
+                    {loading && <p>Loading files...</p>}
+                    {error && <p className="text-red-500">{error}</p>}
+                    {!loading && !error && (
+                        <FileTable
+                            files={files}
+                            onDelete={handleDelete}
+                            onPreview={setPreviewFile}
+                            previewFile={previewFile}
+                        />
+                    )}
                 </div>
-            )}
 
-            {loading && <p>Loading files...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-            {!loading && !error && (
-                <FileTable files={files} onDelete={handleDelete} />
-            )}
+                {/* 右侧预览区域 */}
+                {previewFile && (
+                    <div className="w-1/2 border-l pl-4 min-h-0">
+                        <div className="h-full flex flex-col">
+                            <div className="flex items-center justify-between mb-4 pb-2 border-b">
+                                <h3
+                                    className="text-lg font-semibold truncate flex-1"
+                                    title={previewFile.file_name}
+                                >
+                                    {previewFile.file_name}
+                                </h3>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setPreviewFile(null)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                            <div className="flex-1 overflow-auto">
+                                <FilePreviewContent file={previewFile} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

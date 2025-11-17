@@ -25,7 +25,7 @@
         "@langchain/tavily": "^1.0.0",
         "@langgraph-js/memory": "^1.4.1",
         "@langgraph-js/pro": "^2.0.1",
-        "@langgraph-js/pure-graph": "^2.4.1",
+        "@langgraph-js/pure-graph": "^2.4.2",
         "@langgraph-js/sdk": "^3.4.1",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -60,6 +60,7 @@
         "meilisearch": "^0.54.0",
         "motion": "^12.23.24",
         "nanostores": "^1.0.1",
+        "p-queue": "^9.0.0",
         "pg": "^8.16.3",
         "react": "^19.2.0",
         "react-dom": "^19.2.0",
@@ -96,10 +97,15 @@
         },
         "onlyBuiltDependencies": [
             "@firebase/util",
+            "@parcel/watcher",
             "@tailwindcss/oxide",
+            "better-sqlite3",
+            "cpu-features",
             "esbuild",
             "protobufjs",
             "rxdb",
+            "sharp",
+            "ssh2",
             "unrs-resolver"
         ]
     },

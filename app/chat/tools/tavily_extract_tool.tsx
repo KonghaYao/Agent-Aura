@@ -46,7 +46,7 @@ export const tavily_extract_tool = createUITool({
     render(tool) {
         const [isExpanded, setIsExpanded] = useState(false);
 
-        const data = tool.getInputRepaired() as TavilyExtractInput;
+        const data = tool.getInputRepaired();
         const response = tool.getJSONOutputSafe() as TavilyExtractResponse;
         const feedback: TavilyExtractResult[] = response?.results || [];
         const failedResults = response?.failed_results || [];
@@ -76,7 +76,7 @@ export const tavily_extract_tool = createUITool({
             const charCount = content.length;
             return { wordCount, charCount };
         };
-
+        data.urls = data.urls || [];
         return (
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
