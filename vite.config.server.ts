@@ -24,6 +24,11 @@ export default defineConfig({
     define: {
         __filename: "import.meta.filename",
     },
+    resolve: {
+        alias: {
+            "@": new URL("./", import.meta.url).pathname,
+        },
+    },
 
     build: {
         outDir: "./build",

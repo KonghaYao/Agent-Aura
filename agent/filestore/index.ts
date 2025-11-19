@@ -1,5 +1,7 @@
 import { Generated, ColumnType, Kysely, PostgresDialect, sql } from "kysely";
 import { LangGraphGlobal } from "@langgraph-js/pure-graph";
+import { Pool } from "pg";
+import { getEnv } from "../getEnv";
 
 export interface Database {
     files: FilesTable;
@@ -44,7 +46,12 @@ export class FileStoreService {
             dialect: new PostgresDialect({
                 pool: async () => {
                     await LangGraphGlobal.initGlobal();
-                    return (LangGraphGlobal.globalCheckPointer as any).pool;
+                    return (
+                        (LangGraphGlobal.globalCheckPointer as any).pool ||
+                        new Pool({
+                            connectionString: getEnv("FILE_DATABASE_URL"),
+                        })
+                    );
                 },
             }),
         });
