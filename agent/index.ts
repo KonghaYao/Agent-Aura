@@ -1,5 +1,6 @@
 import { registerGraph } from "@langgraph-js/pure-graph";
 import { graph as agentGraph } from "./schema-agent/index";
+import { graph as deepResearchGraph } from "./deep-research-v2/graph";
 import { getEnv } from "./getEnv";
 
 if (
@@ -11,6 +12,8 @@ if (
 ) {
     globalThis.process.env = import.meta.env;
 }
-// registerGraph("agent", graph);
-registerGraph("agent-graph", agentGraph as any);
+
+registerGraph("deep-research", deepResearchGraph);
+registerGraph("agent-graph", agentGraph);
+
 export default {};
