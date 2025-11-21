@@ -3,10 +3,13 @@ import { ClientTool } from "@langchain/core/tools";
 import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import * as tavily from "../tools/tavily";
 import { create_artifacts } from "../tools/create_artifacts";
+import { send_sandbox_file_to_user, run_sandbox_code } from "../tools/sandbox";
 
 const prebuiltTools: Record<string, ClientTool> = {
     ...tavily,
     create_artifacts: create_artifacts,
+    send_sandbox_file_to_user: send_sandbox_file_to_user,
+    run_sandbox_code: run_sandbox_code,
 } as any;
 
 export const createPrebuiltTools = async (

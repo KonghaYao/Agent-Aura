@@ -139,6 +139,16 @@ export const noneAgent: AgentStoreItem = {
             name: "tavily_extract",
             description: "Extract the content of a web page",
         },
+        {
+            tool_type: "builtin",
+            name: "send_sandbox_file_to_user",
+            description: "Send a file to the user",
+        },
+        {
+            tool_type: "builtin",
+            name: "run_sandbox_code",
+            description: "Run code in a sandbox",
+        },
     ],
     subAgents: [],
     isActive: true,
