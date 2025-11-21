@@ -1,5 +1,5 @@
 import { Command } from "@langchain/langgraph";
-import { HumanMessage, tool } from "langchain";
+import { HumanMessage, ReactAgent, tool } from "langchain";
 import { z } from "zod";
 import { createSchemaAgent } from "../schema-agent/agent";
 import { noneAgent } from "../../app/agent-store/mockData";
@@ -11,9 +11,21 @@ export const SubAgentStateSchema = z.object({
     task_store: z.custom().default({}),
 });
 
-export const ask_subagents = (stateSchema: any) =>
+const schema = z.object({
+    task_id: z.string().optional(),
+    subagent_id: z.string(),
+    question: z.string(),
+    data_transfer: z.any(),
+});
+
+export const ask_subagents = (
+    agentCreator: (
+        task_id: string,
+        args: z.infer<typeof schema>,
+    ) => Promise<any>,
+) =>
     tool(
-        async (args, config: ToolRuntime<any, typeof SubAgentStateSchema>) => {
+        async (args, config: ToolRuntime<typeof SubAgentStateSchema, any>) => {
             const state = config.state;
             const taskId: string = args.task_id || config.toolCall!.id!;
             let sub_state = {
@@ -22,14 +34,8 @@ export const ask_subagents = (stateSchema: any) =>
             if (taskId && (state as any)?.["task_store"]?.[taskId]) {
                 sub_state = (state as any)?.["task_store"][taskId];
             }
-            const agent = await createSchemaAgent(
-                stateSchema,
-                noneAgent,
-                "gpt-4o-mini",
-                {
-                    subagent_id: taskId,
-                },
-            );
+
+            const agent = await agentCreator(taskId, args);
             sub_state.messages.push(
                 new HumanMessage({ content: args.question }),
             );
@@ -56,11 +62,6 @@ export const ask_subagents = (stateSchema: any) =>
         {
             name: "ask_subagents",
             description: "ask subagents to help you",
-            schema: z.object({
-                task_id: z.string().optional(),
-                subagent_id: z.string(),
-                question: z.string(),
-                data_transfer: z.any(),
-            }),
+            schema,
         },
     );

@@ -5,8 +5,7 @@ import { AgentProtocolSchema, createSchemaAgent } from "./agent";
 import { ask_subagents, SubAgentStateSchema } from "../tools/ask_subagent";
 import { withLangGraph } from "@langchain/langgraph/zod";
 import { BaseMessage } from "langchain";
-import { AgentState } from "@langgraph-js/pro";
-// import { ChatAnthropic } from "@langchain/anthropic";
+import { noneAgent } from "@/app/agent-store/mockData";
 
 export const AgentGraphState = z
     .object({
@@ -27,7 +26,18 @@ export const graph = createEntrypointGraph({
                 protocol,
                 state.model_name,
                 {
-                    extra_tools: [ask_subagents(AgentGraphState)],
+                    extra_tools: [
+                        ask_subagents((taskId, args) =>
+                            createSchemaAgent(
+                                AgentGraphState,
+                                noneAgent,
+                                "gpt-4o-mini",
+                                {
+                                    subagent_id: taskId,
+                                },
+                            ),
+                        ),
+                    ],
                 },
             );
 
