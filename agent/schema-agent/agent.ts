@@ -1,10 +1,11 @@
-import { createAgent } from "langchain";
+import { createAgent, ReactAgent } from "langchain";
 import { AgentProtocol } from "./types";
 import { createTools } from "./tools";
 import { FileUploadMiddleware } from "../middlewares/FileUploadMiddleware";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { ClientTool, ServerTool } from "@langchain/core/tools";
+import { CompiledGraph } from "@langchain/langgraph";
 
 export const AgentProtocolSchema = z.object({
     agent_protocol: z.custom<AgentProtocol>(),
@@ -45,6 +46,19 @@ export const createLLM = async (
         },
     });
 };
+
+const prebuiltAgent: Record<
+    string,
+    CompiledGraph<any, any, any, any, any, any, any, any, any>
+> = {};
+
+export const registerPrebuiltAgent = (
+    agentId: string,
+    agent: CompiledGraph<any, any, any, any, any, any, any, any, any>,
+) => {
+    prebuiltAgent[agentId] = agent;
+};
+
 export const createSchemaAgent = async (
     stateSchema: any,
     protocol: AgentProtocol,
@@ -54,6 +68,9 @@ export const createSchemaAgent = async (
         subagent_id?: string;
     } = {},
 ) => {
+    if (prebuiltAgent[protocol.id]) {
+        return prebuiltAgent[protocol.id] as any as ReactAgent;
+    }
     const [tools, model] = await Promise.all([
         createTools(protocol),
         createLLM(protocol, select_model_name, {
