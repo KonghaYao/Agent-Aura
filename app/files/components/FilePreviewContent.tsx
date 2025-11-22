@@ -64,7 +64,12 @@ const FilePreviewContent: React.FC<FilePreviewContentProps> = ({ file }) => {
             }
 
             // 获取文件内容
-            const response = await fetch(file.oss_url);
+            const url =
+                import.meta.env.NODE_ENV === "production"
+                    ? file.oss_url
+                    : file.oss_url.replace("https://agent-aura.top", "");
+
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`无法获取文件内容 (${response.status})`);
             }

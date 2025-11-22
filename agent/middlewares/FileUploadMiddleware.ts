@@ -83,7 +83,7 @@ async function handleTavilyExtractData(
                     file_name: filename,
                     file_size: fileSize,
                     file_type: "text/markdown",
-                    oss_url: `https://agent-aura.top/api/files/text/${fileId}`, // 使用 textstore 协议表示存储在 text-store 中
+                    oss_url: `https://agent-aura.top/api/files/text/${fileId}/download`, // 使用 textstore 协议表示存储在 text-store 中
                     category: "document",
                     tags: ["tavily", "extract", "web-content"],
                     is_ai_gen: true, // 这是AI提取的内容

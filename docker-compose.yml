@@ -1,0 +1,35 @@
+version: "3"
+networks:
+  1panel-network:
+    external: true
+services:
+  deploy-server:
+    # 或使用镜像：
+    image: ghcr.io/konghayao/deploy-bun:latest
+    ports:
+      - "7899:7899" # 上传端口
+      - "28123:28123" # 应用端口
+    volumes:
+      # 持久化部署目录和状态文件
+      - ./deploy-data:/app/deployments
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      - VOL_API_KEY=${VOL_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - TAVILY_HOST=${TAVILY_HOST}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - AUTH_DATABASE_URL=${AUTH_DATABASE_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - AUTH_COOKIE_DOMAIN=${AUTH_COOKIE_DOMAIN}
+      - REDIS_URL=${REDIS_URL}
+      - AUTH_TRUSTED_ORIGINS=${AUTH_TRUSTED_ORIGINS}
+      - MEILISEARCH_HOST=${MEILISEARCH_HOST}
+      - MEILISEARCH_API_KEY=${MEILISEARCH_API_KEY}
+      - DAYTONA_API_KEY=${DAYTONA_API_KEY}
+    networks:
+      - 1panel-network
