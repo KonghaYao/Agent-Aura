@@ -435,8 +435,13 @@ filesRouter.get("/text/:id/download", async (c) => {
 
         // 设置响应头，支持文件下载
         const fileName = doc.filename || `text-document-${id}.txt`;
+        // encodeURIComponent 用于处理中文和特殊字符的文件名
+        const encodedFileName = encodeURIComponent(fileName);
         c.header("Content-Type", "text/plain; charset=utf-8");
-        c.header("Content-Disposition", `attachment; filename="${fileName}"`);
+        c.header(
+            "Content-Disposition",
+            `attachment; filename="${encodedFileName}"; filename*=UTF-8''${encodedFileName}`,
+        );
 
         return c.text(doc.content);
     } catch (error) {

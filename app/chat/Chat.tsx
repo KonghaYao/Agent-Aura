@@ -10,7 +10,7 @@ import {
 import { UsageMetadata } from "./components/UsageMetadata";
 import { type Message } from "@langgraph-js/sdk";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
-import "../markdown.css";
+// import "../markdown.css";
 import { ArtifactsProvider, useArtifacts } from "../artifacts/ArtifactsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";

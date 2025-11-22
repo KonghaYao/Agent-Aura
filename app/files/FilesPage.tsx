@@ -3,10 +3,42 @@ import type { File } from "./types";
 import FileTable from "./components/FileTable";
 import FilePreviewContent from "./components/FilePreviewContent";
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+    Upload,
+    Search,
+    Folder,
+    FileText,
+    Image as ImageIcon,
+    Film,
+    Table as TableIcon,
+    Code,
+    Presentation,
+    LayoutGrid,
+    List,
+} from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { FileService } from "./services/FileService";
 import { TmpFilesClient } from "../chat/FileUpload/index";
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+
+const CATEGORIES = [
+    { id: "all", label: "全部", icon: Folder },
+    { id: "document", label: "文档", icon: FileText },
+    { id: "image", label: "图片", icon: ImageIcon },
+    { id: "audio-video", label: "音视频", icon: Film },
+    { id: "table", label: "表格", icon: TableIcon },
+    { id: "code", label: "编程应用", icon: Code },
+    { id: "presentation", label: "PPT", icon: Presentation },
+];
 
 const FilesPage: React.FC = () => {
     const [files, setFiles] = useState<File[]>([]);
@@ -15,6 +47,7 @@ const FilesPage: React.FC = () => {
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [previewFile, setPreviewFile] = useState<File | null>(null);
+    const [searchQuery, setSearchQuery] = useState<string>("");
 
     const fileService = FileService.getInstance(new TmpFilesClient());
 
@@ -54,6 +87,8 @@ const FilesPage: React.FC = () => {
             setError(err.message);
         } finally {
             setUploadProgress(null);
+            // Clear input
+            event.target.value = "";
         }
     };
 
@@ -61,150 +96,159 @@ const FilesPage: React.FC = () => {
         try {
             await fileService.deleteFile(id);
             setFiles((prevFiles) => prevFiles.filter((file) => file.id !== id));
+            if (previewFile?.id === id) {
+                setPreviewFile(null);
+            }
         } catch (err: any) {
             setError(err.message);
         }
     };
 
+    const filteredFiles = files.filter((file) =>
+        file.file_name.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+
     return (
-        <div className="container mx-auto p-4 h-[calc(100vh-8rem)]">
-            {/* 顶部控制栏 */}
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-4">
-                    <Button
-                        variant="default"
-                        onClick={() =>
-                            document.getElementById("file-upload")?.click()
-                        }
-                    >
-                        <Upload className="mr-2 h-4 w-4" /> 上传文件
-                    </Button>
-                    <input
-                        id="file-upload"
-                        type="file"
-                        className="hidden"
-                        onChange={handleUpload}
-                    />
+        <div className="flex h-[calc(100vh-4rem)] w-full bg-background">
+            {/* Left Sidebar - Categories */}
+            <div className="w-64 border-r bg-muted/10 p-4 flex flex-col gap-4">
+                <div className="font-semibold text-lg px-2 mb-2">文件管理</div>
+                <div className="flex flex-col gap-1">
+                    {CATEGORIES.map((category) => (
+                        <Button
+                            key={category.id}
+                            variant={
+                                activeCategory === category.id
+                                    ? "secondary"
+                                    : "ghost"
+                            }
+                            className={cn(
+                                "justify-start",
+                                activeCategory === category.id &&
+                                    "bg-secondary text-secondary-foreground",
+                            )}
+                            onClick={() => setActiveCategory(category.id)}
+                        >
+                            <category.icon className="mr-2 h-4 w-4" />
+                            {category.label}
+                        </Button>
+                    ))}
+                </div>
+
+                <div className="mt-auto">
+                    {/* Placeholder for usage stats or similar */}
                 </div>
             </div>
 
-            {/* 主内容区域 */}
-            <div className="flex gap-4 flex-1 min-h-0">
-                {/* 左侧文件列表区域 */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    <div className="flex space-x-4 mb-4">
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "all" ? "bg-gray-200" : ""
-                            }`}
-                            onClick={() => setActiveCategory("all")}
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col min-w-0 bg-background">
+                {/* Top Bar */}
+                <div className="h-16 border-b flex items-center px-6 justify-between gap-4">
+                    <div className="relative max-w-md w-full">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="搜索文件..."
+                            className="pl-9 w-full"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="default"
+                            onClick={() =>
+                                document.getElementById("file-upload")?.click()
+                            }
                         >
-                            全部
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "document"
-                                    ? "bg-gray-200"
-                                    : ""
-                            }`}
-                            onClick={() => setActiveCategory("document")}
-                        >
-                            文档
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "image" ? "bg-gray-200" : ""
-                            }`}
-                            onClick={() => setActiveCategory("image")}
-                        >
-                            图片
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "audio-video"
-                                    ? "bg-gray-200"
-                                    : ""
-                            }`}
-                            onClick={() => setActiveCategory("audio-video")}
-                        >
-                            音视频
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "table" ? "bg-gray-200" : ""
-                            }`}
-                            onClick={() => setActiveCategory("table")}
-                        >
-                            表格
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "code" ? "bg-gray-200" : ""
-                            }`}
-                            onClick={() => setActiveCategory("code")}
-                        >
-                            编程应用
-                        </button>
-                        <button
-                            className={`px-3 py-1 text-sm rounded-md ${
-                                activeCategory === "presentation"
-                                    ? "bg-gray-200"
-                                    : ""
-                            }`}
-                            onClick={() => setActiveCategory("presentation")}
-                        >
-                            PPT
-                        </button>
+                            <Upload className="mr-2 h-4 w-4" /> 上传文件
+                        </Button>
+                        <input
+                            id="file-upload"
+                            type="file"
+                            className="hidden"
+                            onChange={handleUpload}
+                        />
+                    </div>
+                </div>
+
+                {/* File List */}
+                <div className="flex-1 p-6 overflow-auto">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="text-xl font-semibold tracking-tight">
+                            {CATEGORIES.find((c) => c.id === activeCategory)
+                                ?.label || "全部文件"}
+                            <span className="text-muted-foreground text-sm font-normal ml-2">
+                                ({filteredFiles.length} 个文件)
+                            </span>
+                        </h2>
                     </div>
 
                     {uploadProgress !== null && (
-                        <div className="mb-4">
-                            <p>上传中... {uploadProgress}%</p>
+                        <div className="mb-6 p-4 border rounded-lg bg-muted/30">
+                            <div className="flex justify-between text-sm mb-2">
+                                <span>正在上传...</span>
+                                <span>{uploadProgress}%</span>
+                            </div>
                             <Progress
                                 value={uploadProgress}
-                                className="w-full"
+                                className="w-full h-2"
                             />
                         </div>
                     )}
 
-                    {loading && <p>Loading files...</p>}
-                    {error && <p className="text-red-500">{error}</p>}
-                    {!loading && !error && (
-                        <FileTable
-                            files={files}
-                            onDelete={handleDelete}
-                            onPreview={setPreviewFile}
-                            previewFile={previewFile}
-                        />
+                    {loading ? (
+                        <div className="flex items-center justify-center h-64">
+                            <p className="text-muted-foreground">加载中...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="p-4 text-red-500 bg-red-50 rounded-md border border-red-200">
+                            {error}
+                        </div>
+                    ) : (
+                        <div className="rounded-md border">
+                            <FileTable
+                                files={filteredFiles}
+                                onDelete={handleDelete}
+                                onPreview={setPreviewFile}
+                                previewFile={previewFile}
+                            />
+                        </div>
                     )}
                 </div>
-
-                {/* 右侧预览区域 */}
-                {previewFile && (
-                    <div className="w-1/2 border-l pl-4 min-h-0">
-                        <div className="h-full flex flex-col">
-                            <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                                <h3
-                                    className="text-lg font-semibold truncate flex-1"
-                                    title={previewFile.file_name}
-                                >
-                                    {previewFile.file_name}
-                                </h3>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setPreviewFile(null)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <div className="flex-1 overflow-auto">
-                                <FilePreviewContent file={previewFile} />
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
+
+            {/* Preview Sheet */}
+            <Sheet
+                open={!!previewFile}
+                onOpenChange={(open) => !open && setPreviewFile(null)}
+            >
+                <SheetContent
+                    side="right"
+                    className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl p-0 flex flex-col gap-0 sm:w-3/4"
+                >
+                    <SheetHeader className="p-6 border-b">
+                        <SheetTitle className="truncate pr-8">
+                            {previewFile?.file_name}
+                        </SheetTitle>
+                        <SheetDescription>
+                            {previewFile && (
+                                <span className="text-xs text-muted-foreground">
+                                    {previewFile.file_size} bytes •{" "}
+                                    {new Date(
+                                        previewFile.update_time,
+                                    ).toLocaleString()}
+                                </span>
+                            )}
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto p-6">
+                        {previewFile && (
+                            <FilePreviewContent file={previewFile} />
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
         </div>
     );
 };
