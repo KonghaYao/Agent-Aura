@@ -33,6 +33,12 @@ export const auth = betterAuth({
     //         domain: getEnv("AUTH_COOKIE_DOMAIN"),
     //     },
     // },
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60, // Cache duration in seconds
+        },
+    },
     database: new Pool({
         connectionString: getEnv("AUTH_DATABASE_URL"),
     }),

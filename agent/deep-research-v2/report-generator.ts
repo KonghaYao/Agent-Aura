@@ -98,4 +98,3 @@ Date: ${new Date().toISOString().split("T")[0]}`,
 
     return response.text;
 };
-

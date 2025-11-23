@@ -114,7 +114,7 @@ export const processSearchResults = async (
         searchResults.reduce((col, cur) => col + cur.useful_webpages.length, 0),
     );
     const compressQueue = new PQueue({ concurrency: 3 });
-    const compressTasks = searchResults.map((result, index) => {
+    const compressTasks = searchResults.map((result) => {
         return async () => {
             try {
                 const compressedContent = await compressTopicDetails(
@@ -122,13 +122,13 @@ export const processSearchResults = async (
                     result.useful_webpages,
                     lang,
                 );
-                searchResults[index].compressed_content = compressedContent;
+                result.compressed_content = compressedContent;
             } catch (error) {
                 console.error(
                     `Failed to compress topic "${result.topic}":`,
                     error,
                 );
-                searchResults[index].compressed_content = `Error: Failed to compress topic "${
+                result.compressed_content = `Error: Failed to compress topic "${
                     result.topic
                 }". Error: ${
                     error instanceof Error ? error.message : String(error)
@@ -148,4 +148,3 @@ export const processSearchResults = async (
 
     return searchResults;
 };
-

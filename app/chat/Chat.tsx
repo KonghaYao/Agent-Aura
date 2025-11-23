@@ -408,7 +408,7 @@ const ChatContainer = memo(({ hasMessages }: { hasMessages: boolean }) => {
                     {hasMessages ? (
                         <ChatMessages />
                     ) : (
-                        <div className="flex flex-col items-center justify-center flex-1">
+                        <div className="flex flex-col items-center justify-center flex-1 mt-64">
                             <h1 className="text-4xl font-bold mb-6 text-center">
                                 <span className="text-4xl pr-2">👋</span>
                                 你好，我是 Aura

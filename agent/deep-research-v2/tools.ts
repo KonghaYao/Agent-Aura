@@ -29,7 +29,7 @@ export const stateSchema = AgentState.extend({
 
 export const think_tool = tool(
     (args) => {
-        return `Reflection recorded: ${args.reflection}`;
+        return `Reflection recorded successfully`;
     },
     {
         name: "think_tool",

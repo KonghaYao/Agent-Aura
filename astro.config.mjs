@@ -23,7 +23,10 @@ export default defineConfig({
                 "@": new URL("./", import.meta.url).pathname,
             },
         },
-        plugins: [tailwindcss()],
+        plugins: [
+            /** @ts-ignore */
+            tailwindcss(),
+        ],
         server: {
             proxy: {
                 "/api": {

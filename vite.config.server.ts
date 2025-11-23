@@ -37,7 +37,7 @@ export default defineConfig({
             entry: ["./agent/raw-server.ts"],
             formats: ["es"],
         },
-        minify: false,
+        minify: true,
         sourcemap: true,
     },
 });
