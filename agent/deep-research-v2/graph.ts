@@ -1,11 +1,12 @@
 import { Command, END, START, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
-import { AIMessage } from "@langchain/core/messages";
+import { AIMessage, BaseMessage } from "@langchain/core/messages";
 import { stateSchema } from "./tools";
 import { research_agent } from "./agent";
 import { processSearchResults } from "./content-processor";
 import { generateFinalReport } from "./report-generator";
 import { checkLastMessage } from "../utils/checkMessages";
+import { createToolCall } from "../utils/pro";
 
 export const graph = new StateGraph(stateSchema)
     .addSequence([
@@ -35,12 +36,14 @@ export const graph = new StateGraph(stateSchema)
             "process_results",
             async (state: z.infer<typeof stateSchema>, context?: any) => {
                 // 处理搜索结果：抓取网页内容并压缩
-                const processedResults = await processSearchResults(
-                    state.search_results,
-                    state.lang,
-                );
 
-                const appendMessages = [];
+                const { searchResults: processedResults } =
+                    await processSearchResults(
+                        state.search_results,
+                        state.lang,
+                    );
+
+                const appendMessages: BaseMessage[] = [];
                 // 将压缩后的内容添加到消息中
                 processedResults.forEach((result) => {
                     if (result.compressed_content) {
