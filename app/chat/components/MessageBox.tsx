@@ -46,19 +46,6 @@ export const MessagesBox = ({
     toggleToolCollapse: (id: string) => void;
     client: LangGraphClient;
 }) => {
-    const { revertChatTo } = useChat();
-    const { extraParams } = useExtraParams();
-    const handleRevertToMessage = async (
-        message: RenderMessage,
-        isRevertAndExecute: boolean = false,
-    ) => {
-        if (message.id) {
-            await revertChatTo(message.id, isRevertAndExecute, {
-                extraParams,
-            });
-        }
-    };
-
     return (
         <>
             {renderMessages.map((message, index) => (

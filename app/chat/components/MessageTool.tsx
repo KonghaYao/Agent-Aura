@@ -18,7 +18,7 @@ const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
     const render = getToolUIRender(message.name!);
     const [isCollapsed, setIsCollapsed] = useState(false);
     return (
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full mb-2">
             {render ? (
                 (render(message) as JSX.Element)
             ) : (

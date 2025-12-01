@@ -17,7 +17,7 @@ interface MessageAIProps {
 const MessageAI: React.FC<MessageAIProps> = ({ message }) => {
     return (
         <MessageContent>
-            <div className="flex flex-col p-4 gap-2">
+            <div className="flex flex-col p-4 gap-2 w-full">
                 <div className="text-sm font-medium text-gray-700">
                     {message.name}
                 </div>

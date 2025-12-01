@@ -240,10 +240,10 @@ const ChatInput: React.FC = () => {
                         if (
                             lastValue &&
                             lastValue.startsWith &&
-                            lastValue.startsWith("/model ")
+                            lastValue.startsWith("@model ")
                         ) {
                             // 这是模型选择
-                            const modelName = lastValue.replace("/model ", "");
+                            const modelName = lastValue.replace("@model ", "");
                             if (modelName) {
                                 setExtraParams({
                                     ...extraParams,
@@ -258,7 +258,7 @@ const ChatInput: React.FC = () => {
                             agent && selectAgent(agent?.id);
                         }
                     }}
-                    trigger="/"
+                    trigger="@"
                     className="w-full"
                 >
                     <MentionInput
@@ -275,7 +275,7 @@ const ChatInput: React.FC = () => {
                         {/* 根据输入内容显示不同的选项 */}
                         {(() => {
                             const lastMention = userInput
-                                .split("/")
+                                .split("@")
                                 .pop()
                                 ?.split(" ")[0];
                             if (lastMention === "model") {
@@ -285,7 +285,7 @@ const ChatInput: React.FC = () => {
                                     ?.llm.map((model) => (
                                         <MentionItem
                                             key={model.model}
-                                            value={`/model ${model.model}`}
+                                            value={`@model ${model.model}`}
                                             className="flex-col items-start gap-0.5"
                                         >
                                             <span className="text-sm">
