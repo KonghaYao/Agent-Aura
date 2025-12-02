@@ -1,4 +1,4 @@
-import { FileUploaderInterface } from "../components/FileDropzone";
+import type { FileUploaderInterface } from "../components/FileDropzone";
 
 export class TempFilesUploader implements FileUploaderInterface {
     isImageOnly = true;

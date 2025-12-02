@@ -56,6 +56,37 @@ export const mockAgents: AgentStoreItem[] = [
         updatedAt: "2024-02-20T14:30:00Z",
         author: "AI Team",
     },
+    {
+        id: "image-generation",
+        protocolVersion: "1.0",
+        name: "Image Generation",
+        description:
+            "An advanced image generation assistant that generates images based on a prompt.",
+        url: "https://example.com/agents/image-generation",
+        iconUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=image",
+        version: "1.0.0",
+        documentationUrl: "https://docs.example.com/image-generation",
+        systemPrompt: "",
+        llm: [
+            {
+                provider: "openai",
+                model: "gpt-4o-mini",
+            },
+        ],
+        tools: [
+            {
+                tool_type: "builtin",
+                name: "gemini_image_processor",
+                description: "Generate an image based on a prompt.",
+            },
+        ],
+        subAgents: [],
+        isActive: true,
+        tags: ["image", "generation"],
+        createdAt: "2024-03-20T10:00:00Z",
+        updatedAt: "2024-03-20T10:00:00Z",
+        author: "AI Team",
+    },
 ];
 
 export const noneAgent: AgentStoreItem = {

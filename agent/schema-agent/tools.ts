@@ -4,12 +4,14 @@ import { MultiServerMCPClient } from "@langchain/mcp-adapters";
 import * as tavily from "../tools/tavily";
 import { create_artifacts } from "../tools/create_artifacts";
 import { send_sandbox_file_to_user, run_sandbox_code } from "../tools/sandbox";
+import { gemini_image_processor } from "../tools/gemini_image_processor";
 
 const prebuiltTools: Record<string, ClientTool> = {
     ...tavily,
-    create_artifacts: create_artifacts,
-    send_sandbox_file_to_user: send_sandbox_file_to_user,
-    run_sandbox_code: run_sandbox_code,
+    create_artifacts,
+    send_sandbox_file_to_user,
+    run_sandbox_code,
+    gemini_image_processor,
 } as any;
 
 export const createPrebuiltTools = async (
