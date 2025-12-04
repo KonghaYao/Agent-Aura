@@ -7,6 +7,7 @@ import { auth } from "./auth";
 import { filesRouter } from "./filestore/routes";
 import { type AuthType, auth as betterAuth } from "../lib/auth";
 import { logger } from "hono/logger";
+import { agentsRouter } from "./schema-store/routes";
 
 const app = new Hono<{ Variables: LangGraphServerContext }>();
 app.use(logger());
@@ -24,7 +25,7 @@ app.use("/*", auth);
 
 app.route("/api/langgraph", LangGraphApp);
 app.route("/api/files", filesRouter);
-
+app.route("/api/agents", agentsRouter);
 export default {
     idleTimeout: 120,
     fetch: app.fetch,

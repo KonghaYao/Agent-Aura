@@ -33,19 +33,22 @@ export const gemini_image_processor = tool(
         name: "image_tool",
         description: `Generate or edit an image. To generate, provide a 'prompt'. To edit, provide a 'prompt' and some 'inputImageUrls'. The image will be shown to the user by this tool. You don't need to show the image url to the user in your response.
 
-When to use Generate
+inputImageUrls are reference images, which can be user-uploaded images or previously generated images.
 
-- The user asks to create an image from scratch based on a description.
-- The user's prompt is a creative request for a new visual.
-- No initial image is provided by the user.
-For example: "draw a cat", "draw a logo for my company", "draw a picture of a future city"
+Prompt Usage Guidelines:
+- Prompt length guideline: Keep prompts concise and to the point. Avoid overly long or complex descriptions.
+- When generating new images: Use detailed and accurate descriptions, ensuring the description is as specific and complete as possible
+- When editing existing images: Use relatively brief descriptions, only describing the changes to be made
+- When text or symbols need to appear in the image: Use the original text and symbols exactly as specified, rather than synonyms or approximations
 
-When to use Edit
+Example 1: Generate Image (Detailed Description)
+"Create a realistic photo of a golden retriever puppy sitting in a sunny meadow with wildflowers, detailed fur texture, natural lighting, 8k resolution"
 
-- The user provides an image and asks to modify it.
-- The user wants to change, add, or remove elements from an existing image.
-- An 'inputImageUrls' is available in the input.
-For example: "remove the background of this photo", "change the color of the car in the picture to red", "add a hat to the person in the picture"`,
+Example 2: Edit Image (Brief Description)
+Based on Image 1, change the dog's color to black
+
+Example 3: Merge Multiple Images
+Merge Image 1 and Image 2 together, create a double portrait scene, add a warm sunset background`,
         schema: z.object({
             prompt: z.string().describe("图片提示词"),
             inputImageUrls: z
@@ -76,8 +79,8 @@ For example: "remove the background of this photo", "change the color of the car
             model: z
                 .string()
                 .optional()
-                .default("gemini-2.5-flash-image")
-                // .default("gemini-3-pro-image-preview")
+                // .default("gemini-2.5-flash-image")
+                .default("gemini-3-pro-image-preview")
                 .describe("使用的 Gemini 模型"),
         }),
     },

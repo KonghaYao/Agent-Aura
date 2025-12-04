@@ -40,3 +40,12 @@ export interface AgentProtocol {
     tools: (BuiltinTool | InnerTool | MCPTool)[];
     subAgents: SubAgent[];
 }
+
+export interface AgentStoreItem extends AgentProtocol {
+    // 额外的元数据
+    createdAt?: string;
+    updatedAt?: string;
+    author?: string;
+    tags?: string[];
+    isActive?: boolean;
+}

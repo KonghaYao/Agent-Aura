@@ -3,10 +3,11 @@ import { AgentStoreItem } from "./types";
 import { AgentGallery } from "./components/AgentGallery";
 import { AgentForm } from "./components/AgentForm";
 import { AgentStoreService } from "./services/agentStoreService";
-import { mockAgents } from "./mockData";
+// import { AgentSchemaList } from "./mockData"; // 移除 AgentSchemaList 导入
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // 添加 Input 导入
 import { toast } from "sonner";
-import { Download, Upload, Trash, Database, ArrowLeft } from "lucide-react";
+import { Download, Upload, Trash, ArrowLeft, Search } from "lucide-react"; // 移除 Database 导入，添加 Search 导入
 
 type ViewMode = "gallery" | "edit";
 
@@ -17,16 +18,17 @@ export default function AgentStorePage() {
     );
     const [viewMode, setViewMode] = useState<ViewMode>("gallery");
     const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState(""); // 添加 searchQuery 状态
 
     // 加载 agents
     useEffect(() => {
-        loadAgents();
-    }, []);
+        loadAgents(searchQuery);
+    }, [searchQuery]); // 监听 searchQuery 变化
 
-    const loadAgents = async () => {
+    const loadAgents = async (query?: string) => {
         try {
             setIsLoading(true);
-            const data = await AgentStoreService.getAllAgents();
+            const { data } = await AgentStoreService.getAllAgents(query);
             setAgents(data);
         } catch (error) {
             toast.error("加载失败", {
@@ -38,23 +40,11 @@ export default function AgentStorePage() {
         }
     };
 
-    const handleLoadMockData = async () => {
-        try {
-            // 直接使用 service 创建 mock agents
-            for (const mockAgent of mockAgents) {
-                await AgentStoreService.createAgent(mockAgent);
-            }
-            await loadAgents();
-            toast.success("加载成功", {
-                description: `已加载 ${mockAgents.length} 个示例 Agent`,
-            });
-        } catch (error) {
-            toast.error("加载失败", {
-                description: "无法加载示例数据",
-            });
-            console.error(error);
-        }
-    };
+    // 移除 handleLoadMockData, handleExport, handleImport, handleClearAll
+    // const handleLoadMockData = async () => { ... };
+    // const handleExport = async () => { ... };
+    // const handleImport = () => { ... };
+    // const handleClearAll = async () => { ... };
 
     const handleCreateAgent = () => {
         setSelectedAgent(null);
@@ -96,78 +86,6 @@ export default function AgentStorePage() {
         }
     };
 
-    const handleExport = async () => {
-        try {
-            const jsonData = await AgentStoreService.exportAgents();
-            const blob = new Blob([jsonData], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `agents-export-${
-                new Date().toISOString().split("T")[0]
-            }.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            toast.success("导出成功", {
-                description: "Agent 数据已导出",
-            });
-        } catch (error) {
-            toast.error("导出失败", {
-                description: "无法导出 Agent 数据",
-            });
-            console.error(error);
-        }
-    };
-
-    const handleImport = () => {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".json";
-        input.onchange = async (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) return;
-
-            try {
-                const text = await file.text();
-                await AgentStoreService.importAgents(text);
-                await loadAgents();
-
-                toast.success("导入成功", {
-                    description: "Agent 数据已导入",
-                });
-            } catch (error) {
-                toast.error("导入失败", {
-                    description: "无法导入 Agent 数据，请检查文件格式",
-                });
-                console.error(error);
-            }
-        };
-        input.click();
-    };
-
-    const handleClearAll = async () => {
-        if (!confirm("确定要清空所有 Agent 数据吗？此操作不可恢复。")) {
-            return;
-        }
-
-        try {
-            await AgentStoreService.clearAll();
-            await loadAgents();
-
-            toast.success("已清空", {
-                description: "所有 Agent 数据已清空",
-            });
-        } catch (error) {
-            toast.error("清空失败", {
-                description: "无法清空 Agent 数据",
-            });
-            console.error(error);
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="container mx-auto py-8">
@@ -192,36 +110,18 @@ export default function AgentStorePage() {
                 </div>
 
                 {viewMode === "gallery" && (
-                    <div className="flex gap-2">
-                        {agents.length === 0 && (
-                            <Button
-                                variant="default"
-                                onClick={handleLoadMockData}
-                            >
-                                <Database className="w-4 h-4 mr-2" />
-                                加载示例数据
-                            </Button>
-                        )}
-                        <Button variant="outline" onClick={handleImport}>
-                            <Upload className="w-4 h-4 mr-2" />
-                            导入
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={handleExport}
-                            disabled={agents.length === 0}
-                        >
-                            <Download className="w-4 h-4 mr-2" />
-                            导出
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={handleClearAll}
-                            disabled={agents.length === 0}
-                            className="text-destructive hover:text-destructive"
-                        >
-                            <Trash className="w-4 h-4 mr-2" />
-                            清空
+                    <div className="flex gap-2 items-center">
+                        <div className="relative w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="搜索 Agent..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                        <Button variant="default" onClick={handleCreateAgent}>
+                            创建 Agent
                         </Button>
                     </div>
                 )}

@@ -1,93 +1,12 @@
-import { AgentStoreItem } from "./types";
-import { defaultModelsAllowed } from "../../agent/models";
-
-/**
- * 模拟数据，用于开发和测试
- */
-export const mockAgents: AgentStoreItem[] = [
-    {
-        id: "deep-research-v2",
-        protocolVersion: "1.0",
-        name: "Deep Researcher V2",
-        description:
-            "An advanced research assistant that performs deep web searches, synthesizes information from multiple sources, and provides comprehensive reports with citations.",
-        url: "https://example.com/agents/deep-researcher",
-        iconUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=research",
-        version: "2.0.0",
-        documentationUrl: "https://docs.example.com/deep-researcher",
-        systemPrompt: "",
-        llm: [
-            {
-                provider: "openai",
-                model: "gpt-4o-mini",
-            },
-        ],
-        tools: [],
-        subAgents: [],
-        isActive: true,
-        tags: ["research", "web-search", "synthesis"],
-        createdAt: "2024-03-20T10:00:00Z",
-        updatedAt: "2024-03-20T10:00:00Z",
-        author: "AI Team",
-    },
-    {
-        id: "1",
-        protocolVersion: "1.0",
-        name: "Code Assistant",
-        description:
-            "A powerful AI assistant that helps you write, review, and debug code. Supports multiple programming languages and provides real-time suggestions.",
-        url: "https://example.com/agents/code-assistant",
-        iconUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=code",
-        version: "1.2.0",
-        documentationUrl: "https://docs.example.com/code-assistant",
-        systemPrompt:
-            "You are a helpful code assistant. Help users write clean, efficient, and well-documented code.",
-        llm: [
-            {
-                provider: "openai",
-                model: "gpt-4o-mini",
-            },
-        ],
-        tools: [],
-        subAgents: [],
-        isActive: true,
-        tags: ["coding", "development", "productivity"],
-        createdAt: "2024-01-15T10:00:00Z",
-        updatedAt: "2024-02-20T14:30:00Z",
-        author: "AI Team",
-    },
-    {
-        id: "image-generation",
-        protocolVersion: "1.0",
-        name: "Image Generation",
-        description:
-            "An advanced image generation assistant that generates images based on a prompt.",
-        url: "https://example.com/agents/image-generation",
-        iconUrl: "https://api.dicebear.com/7.x/shapes/svg?seed=image",
-        version: "1.0.0",
-        documentationUrl: "https://docs.example.com/image-generation",
-        systemPrompt: "",
-        llm: [
-            {
-                provider: "openai",
-                model: "gpt-4o-mini",
-            },
-        ],
-        tools: [
-            {
-                tool_type: "builtin",
-                name: "gemini_image_processor",
-                description: "Generate an image based on a prompt.",
-            },
-        ],
-        subAgents: [],
-        isActive: true,
-        tags: ["image", "generation"],
-        createdAt: "2024-03-20T10:00:00Z",
-        updatedAt: "2024-03-20T10:00:00Z",
-        author: "AI Team",
-    },
-];
+import { defaultModelsAllowed } from "../../models";
+import { AgentStoreItem } from "../../schema-agent/types";
+import {
+    createArtifactsToolDefine,
+    tavilySearchToolDefine,
+    tavilyExtractToolDefine,
+    sendSandboxFileToUserToolDefine,
+    runSandboxCodeToolDefine,
+} from "../tools";
 
 export const noneAgent: AgentStoreItem = {
     id: "__none__",
@@ -180,31 +99,11 @@ export const noneAgent: AgentStoreItem = {
 5. 最终将组件与必要的文字说明一同呈现给用户
 `,
     tools: [
-        {
-            tool_type: "builtin",
-            name: "create_artifacts",
-            description: "Create and save code files to artifacts directory",
-        },
-        {
-            tool_type: "builtin",
-            name: "tavily_search",
-            description: "Search the web for information",
-        },
-        {
-            tool_type: "builtin",
-            name: "tavily_extract",
-            description: "Extract the content of a web page",
-        },
-        {
-            tool_type: "builtin",
-            name: "send_sandbox_file_to_user",
-            description: "Send a file to the user",
-        },
-        {
-            tool_type: "builtin",
-            name: "run_sandbox_code",
-            description: "Run code in a sandbox",
-        },
+        createArtifactsToolDefine,
+        tavilySearchToolDefine,
+        tavilyExtractToolDefine,
+        sendSandboxFileToUserToolDefine,
+        runSandboxCodeToolDefine,
     ],
     subAgents: [],
     isActive: true,
@@ -214,10 +113,3 @@ export const noneAgent: AgentStoreItem = {
     author: "AI Team",
     url: "",
 };
-
-/**
- * 加载模拟数据到 localStorage
- */
-export function loadMockData(): void {
-    localStorage.setItem("agent-store-data", JSON.stringify(mockAgents));
-}

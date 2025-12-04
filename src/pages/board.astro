@@ -1,0 +1,10 @@
+---
+import WhiteboardPage from "../../app/whiteboard/page.jsx";
+import AgentLayout from "../layouts/AgentLayout.astro";
+---
+
+<AgentLayout>
+    <section class="flex-1">
+        <WhiteboardPage client:only="react" />
+    </section>
+</AgentLayout>

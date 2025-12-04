@@ -9,8 +9,9 @@ import {
 import { ask_subagents, SubAgentStateSchema } from "../tools/ask_subagent";
 import { withLangGraph } from "@langchain/langgraph/zod";
 import { BaseMessage } from "langchain";
-import { noneAgent } from "@/app/agent-store/mockData";
+import { noneAgent } from "../schema-store/agents/noneAgent";
 import { graph as deepResearchGraph } from "../deep-research-v2/graph";
+import { AgentSchemaList } from "../schema-store";
 export const AgentGraphState = z
     .object({
         messages: withLangGraph(z.custom<BaseMessage[]>(), MessagesZodMeta),
@@ -25,7 +26,12 @@ export const graph = createEntrypointGraph({
     graph: entrypoint(
         { name: "agent-graph" },
         async (state: z.infer<typeof AgentGraphState>, context?: any) => {
-            const protocol = state.agent_protocol;
+            const protocol = AgentSchemaList.find(
+                (agent) => agent.id === state.agent_id,
+            );
+            if (!protocol) {
+                throw new Error(`Agent ${state.agent_id} not found`);
+            }
 
             const agent = await createSchemaAgent(
                 AgentGraphState,

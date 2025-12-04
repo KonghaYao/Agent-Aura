@@ -49,8 +49,8 @@ import { ToolsProvider } from "./context/ToolsContext";
 import HistoryButton from "./components/HistoryButton";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { AgentConfigProvider, useAgentConfig } from "./context";
-import { AgentSelectorCompact, AgentInfoPanel } from "./components";
-import { noneAgent } from "../agent-store/mockData";
+import { AgentSelectorCompact } from "./components";
+import { noneAgent } from "../../agent/schema-store/agents/noneAgent";
 import {
     Conversation,
     ConversationContent,
@@ -198,7 +198,7 @@ const ChatInput: React.FC = () => {
         sendMessage(content, {
             extraParams: {
                 ...extraParams,
-                agent_protocol: agentConfig.getCurrentAgentData(),
+                agent_id: agentConfig.getCurrentAgentData()?.id || noneAgent.id,
             },
         });
 

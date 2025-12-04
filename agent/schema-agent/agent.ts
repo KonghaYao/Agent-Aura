@@ -8,7 +8,7 @@ import { ClientTool, ServerTool } from "@langchain/core/tools";
 import { CompiledGraph } from "@langchain/langgraph";
 
 export const AgentProtocolSchema = z.object({
-    agent_protocol: z.custom<AgentProtocol>(),
+    agent_id: z.string(),
     model_name: z.string(),
 });
 

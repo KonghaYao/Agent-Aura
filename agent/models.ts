@@ -17,14 +17,6 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "gemini-3-pro-image-preview",
-    },
-    {
-        provider: "openai",
-        model: "gemini-2.5-flash-image",
-    },
-    {
-        provider: "openai",
         model: "gemini-2.0-flash",
     },
     {

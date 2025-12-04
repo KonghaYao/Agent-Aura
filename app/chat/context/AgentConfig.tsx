@@ -8,7 +8,7 @@ import React, {
 import { AgentStoreItem } from "@/app/agent-store/types";
 import { AgentStoreService } from "@/app/agent-store/services/agentStoreService";
 import { AgentProtocol } from "@/agent/schema-agent/types";
-import { noneAgent } from "@/app/agent-store/mockData";
+import { noneAgent } from "@/agent/schema-store/agents/noneAgent";
 
 interface AgentConfigContextType {
     // 当前选中的 Agent
@@ -53,12 +53,13 @@ export function AgentConfigProvider({ children }: AgentConfigProviderProps) {
     const refreshAgents = async () => {
         try {
             setIsLoading(true);
-            const agents = await AgentStoreService.getAllAgents();
+            const { data: agents } = await AgentStoreService.getAllAgents(
+                undefined,
+                20,
+                0,
+            );
             // 只显示激活的 Agents
-            const activeAgents = [
-                noneAgent,
-                ...agents.filter((agent) => agent.isActive),
-            ];
+            const activeAgents = [...agents.filter((agent) => agent.isActive)];
             setAvailableAgents(activeAgents);
 
             // 如果有保存的选中 Agent ID，尝试恢复
@@ -101,17 +102,17 @@ export function AgentConfigProvider({ children }: AgentConfigProviderProps) {
     useEffect(() => {
         refreshAgents();
 
-        // 监听 storage 变化（当在其他标签页修改 Agent 时）
-        const handleStorageChange = (e: StorageEvent) => {
-            if (e.key === "agent-store-data" || e.key === SELECTED_AGENT_KEY) {
-                refreshAgents();
-            }
-        };
-
-        window.addEventListener("storage", handleStorageChange);
-        return () => {
-            window.removeEventListener("storage", handleStorageChange);
-        };
+        // 移除监听 storage 变化的代码
+        // const handleStorageChange = (e: StorageEvent) => {
+        //     if (e.key === "agent-store-data" || e.key === SELECTED_AGENT_KEY) {
+        //         refreshAgents();
+        //     }
+        // };
+        //
+        // window.addEventListener("storage", handleStorageChange);
+        // return () => {
+        //     window.removeEventListener("storage", handleStorageChange);
+        // };
     }, []);
 
     const value: AgentConfigContextType = {
