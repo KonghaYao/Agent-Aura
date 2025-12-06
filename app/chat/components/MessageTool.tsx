@@ -9,6 +9,47 @@ import {
 import { UsageMetadata } from "./UsageMetadata";
 import { useChat } from "@langgraph-js/sdk/react";
 import { Response } from "@/components/ai-elements/response";
+import { MessagesBox } from "./MessageBox";
+import { ChevronDown, ChevronRight, Workflow } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+
+const SubProcessViewer = ({ messages }: { messages: RenderMessage[] }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <div className="w-full mt-4">
+            <CardHeader
+                className="p-3 cursor-pointer hover:bg-muted/20 transition-colors flex flex-row items-center justify-between space-y-0 border rounded-2xl"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <div className="flex items-center gap-2">
+                    {isOpen ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <div className="flex items-center gap-2 font-medium text-sm text-foreground">
+                        <Workflow className="h-4 w-4 text-blue-500" />
+                        <span>Sub Process Execution</span>
+                        <Badge
+                            variant="secondary"
+                            className="text-xs font-normal ml-2"
+                        >
+                            {messages.length} steps
+                        </Badge>
+                    </div>
+                </div>
+            </CardHeader>
+            {isOpen && (
+                <div className="border-l border-gray-200 pl-2 ml-2">
+                    <MessagesBox renderMessages={messages} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface MessageToolProps {
     message: ToolMessage & RenderMessage;
 }
@@ -55,6 +96,9 @@ const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
                         </div>
                     )}
                 </div>
+            )}
+            {message.sub_messages && message.sub_messages.length > 0 && (
+                <SubProcessViewer messages={message.sub_messages} />
             )}
         </div>
     );

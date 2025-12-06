@@ -19,12 +19,16 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
     const [mode, setMode] = useState<AuthMode>("login");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [verificationEmail, setVerificationEmail] = useState<string | null>(
+        null,
+    );
 
     const isLogin = mode === "login";
 
     const switchMode = (newMode: AuthMode) => {
         setMode(newMode);
         setError(null); // 切换模式时清除错误
+        setVerificationEmail(null);
     };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,6 +64,7 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
                             // Handle the error
                             if (ctx.error.status === 403) {
                                 toast.error("请验证您的邮箱地址");
+                                setVerificationEmail(email);
                             } else {
                                 toast.error(
                                     ctx.error.message ||
@@ -80,20 +85,63 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
                     return;
                 }
 
-                await authClient.signUp.email({
-                    email,
-                    password,
-                    name: email.split("@")[0], // 使用邮箱前缀作为默认名称
-                });
-
-                toast.success("注册成功！请检查您的邮箱并验证账户");
-                // 切换到登录模式
-                switchMode("login");
+                await authClient.signUp.email(
+                    {
+                        email,
+                        password,
+                        name: email.split("@")[0], // 使用邮箱前缀作为默认名称
+                    },
+                    {
+                        onSuccess: () => {
+                            toast.success("注册成功！请检查您的邮箱并验证账户");
+                            // 切换到登录模式
+                            switchMode("login");
+                        },
+                        onError: (ctx) => {
+                            if (ctx.error.status === 422) {
+                                toast.error("该邮箱已被注册，请直接登录");
+                                switchMode("login");
+                            } else {
+                                toast.error(
+                                    ctx.error.message || "注册失败，请重试",
+                                );
+                            }
+                        },
+                    },
+                );
             }
         } catch (err) {
             toast.error(
                 err instanceof Error ? err.message : "发生错误，请重试",
             );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!verificationEmail) return;
+        setIsLoading(true);
+        try {
+            await authClient.sendVerificationEmail(
+                {
+                    email: verificationEmail,
+                    callbackURL: new URL(
+                        "/agent",
+                        globalThis.location.href,
+                    ).toString(),
+                },
+                {
+                    onSuccess: () => {
+                        toast.success("验证邮件已发送，请检查您的邮箱");
+                    },
+                    onError: (ctx) => {
+                        toast.error(ctx.error.message || "发送失败，请重试");
+                    },
+                },
+            );
+        } catch (err) {
+            toast.error("发送失败，请重试");
         } finally {
             setIsLoading(false);
         }
@@ -203,6 +251,19 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
                                         : "Create Account"}
                                 </Button>
                             </Field>
+                            {verificationEmail && (
+                                <Field>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleResendVerification}
+                                        disabled={isLoading}
+                                        className="w-full"
+                                    >
+                                        重发验证邮件
+                                    </Button>
+                                </Field>
+                            )}
                             <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                                 Or continue with
                             </FieldSeparator>

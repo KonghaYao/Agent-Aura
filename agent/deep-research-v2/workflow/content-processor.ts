@@ -1,28 +1,38 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import {
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+} from "@langchain/core/messages";
 import PQueue from "p-queue";
-import { tavily_extract } from "../tools/tavily";
+import { tavily_extract } from "../../tools/tavily";
 import { z } from "zod";
-import { deepSearchResult } from "./tools";
-import { tool } from "langchain";
-import { ask_subagents } from "../tools/ask_subagent";
-import { getToolCallId } from "../utils/pro";
+import { deepSearchResult, stateSchema } from "../tools";
 
 export const getPage = async (page_url: string) => {
     const response = await tavily_extract.invoke({ urls: [page_url] });
     return response.results[0]?.raw_content || "";
 };
-export const compressTopicDetails = tool(
-    async ({ topic, webpages, lang }, config) => {
-        const model = new ChatOpenAI({
-            modelName: "gpt-4o-mini",
-            temperature: 0,
-            metadata: {
-                subagent_id: getToolCallId(config),
-            },
-        });
+export const compressTopicDetails = async ({
+    topic,
+    webpages,
+    lang,
+    subagent_id,
+}: {
+    topic: string;
+    webpages: string[];
+    lang: string;
+    subagent_id: string;
+}) => {
+    const model = new ChatOpenAI({
+        modelName: "gpt-4o-mini",
+        temperature: 0,
+        metadata: {
+            subagent_id,
+        },
+    });
 
-        const prompt = `You are a research assistant that has conducted research on a topic by calling several tools and web searches. Your job is now to clean up the findings, but preserve all of the relevant statements and information that the researcher has gathered. 
+    const prompt = `You are a research assistant that has conducted research on a topic by calling several tools and web searches. Your job is now to clean up the findings, but preserve all of the relevant statements and information that the researcher has gathered. 
 
 <Task>
 You need to clean up information gathered from tool calls and web searches in the existing messages.
@@ -61,13 +71,13 @@ The report should be structured like this:
 Critical Reminder: It is extremely important that any information that is even remotely relevant to the user's research topic is preserved verbatim (e.g. don't rewrite it, don't summarize it, don't paraphrase it).
 `;
 
-        const response = await model.invoke([
-            new SystemMessage({
-                content: prompt,
-            }),
+    const response = await model.invoke([
+        new SystemMessage({
+            content: prompt,
+        }),
 
-            new HumanMessage({
-                content: `Research Topic: ${topic}
+        new HumanMessage({
+            content: `Research Topic: ${topic}
 
 I have conducted research on this topic using various tools and web searches. Below are the raw findings I gathered from different webpages. Each webpage content is provided as a separate message in this conversation.
 
@@ -76,36 +86,28 @@ My task now is to clean up and organize all this information according to the gu
 Date of research: ${new Date().toISOString().split("T")[0]}.
 
 The following messages contain the webpage content I extracted during my research process.`,
-            }),
-            ...webpages.map((page) => {
-                return new HumanMessage({
-                    content: page,
-                });
-            }),
-        ]);
-
-        return response.text;
-    },
-    {
-        name: "compress_topic_details",
-        description: "compress topic details",
-        schema: z.object({
-            topic: z.string(),
-            webpages: z.array(z.string()),
-            lang: z.string(),
         }),
-    },
-);
+        ...webpages.map((page) => {
+            return new HumanMessage({
+                content: page,
+            });
+        }),
+    ]);
+
+    return response;
+};
 
 export const processSearchResults = async (
     searchResults: z.infer<typeof deepSearchResult>[],
     lang: string,
+    subagent_id: string,
 ) => {
     // 1. 抓取所有网页详情
     console.log(
         "crawling details",
         searchResults.reduce((col, cur) => col + cur.useful_webpages.length, 0),
     );
+    const middleMessages: BaseMessage[] = [];
     const crawlQueue = new PQueue({ concurrency: 3 });
     await crawlQueue.addAll(
         searchResults.flatMap((web, index) => {
@@ -129,12 +131,14 @@ export const processSearchResults = async (
     const compressTasks = searchResults.map((result) => {
         return async () => {
             try {
-                const compressedContent = await compressTopicDetails.invoke({
+                const compressedContent = await compressTopicDetails({
                     topic: result.topic,
                     webpages: result.useful_webpages,
                     lang,
+                    subagent_id,
                 });
-                result.compressed_content = compressedContent;
+                result.compressed_content = compressedContent.text;
+                middleMessages.push(compressedContent);
             } catch (error) {
                 console.error(
                     `Failed to compress topic "${result.topic}":`,
@@ -158,5 +162,5 @@ export const processSearchResults = async (
         console.error("Compress queue execution failed:", error);
     }
 
-    return { searchResults };
+    return { searchResults, middleMessages };
 };

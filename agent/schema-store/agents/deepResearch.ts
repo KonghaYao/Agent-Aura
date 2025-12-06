@@ -14,7 +14,7 @@ export const deepResearchAgent: AgentStoreItem = {
     llm: [
         {
             provider: "openai",
-            model: "gpt-4o-mini",
+            model: "gemini-2.5-flash",
         },
     ],
     tools: [],

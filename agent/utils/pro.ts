@@ -1,4 +1,9 @@
-import { AIMessage, ContentBlock, ToolMessage } from "@langchain/core/messages";
+import {
+    AIMessage,
+    BaseMessage,
+    ContentBlock,
+    ToolMessage,
+} from "@langchain/core/messages";
 
 export const getThreadId = (context: any) => {
     return context?.configurable?.thread_id as string;
@@ -44,10 +49,19 @@ export const createToolCall = (
     ] as const;
 };
 
-export const createSubAgentToolCall = (
-    toolName: string,
-    input: Record<string, any>,
-    output?: string | (ContentBlock | ContentBlock.Text)[],
-) => {
-    return createToolCall(toolName, input, output);
+export const mergeState = <
+    T extends { messages: BaseMessage[]; task_store?: Record<string, any> },
+>(
+    state: T,
+    data: Partial<T>,
+): T => {
+    return {
+        ...state,
+        ...data,
+        messages: [...state.messages, ...(data.messages || [])],
+        task_store: {
+            ...state.task_store,
+            ...(data.task_store || {}),
+        },
+    };
 };

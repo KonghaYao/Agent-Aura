@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
-import { deepSearchResult } from "./tools";
+import { deepSearchResult } from "../tools";
 
 export const generateFinalReport = async (
     searchResults: z.infer<typeof deepSearchResult>[],

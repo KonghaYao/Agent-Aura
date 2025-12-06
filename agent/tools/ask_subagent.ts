@@ -5,7 +5,7 @@ import { Message } from "@langchain/core/messages";
 import { type ToolRuntime } from "@langchain/core/tools";
 
 export const SubAgentStateSchema = z.object({
-    task_store: z.custom().default({}),
+    task_store: z.record(z.string(), z.any()).default({}),
 });
 
 const schema = z.object({

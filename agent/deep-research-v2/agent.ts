@@ -1,6 +1,29 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { createAgent } from "langchain";
-import { researchTools, stateSchema } from "./tools";
+import { createAgent, createMiddleware } from "langchain";
+import {
+    change_research_topic,
+    end_of_research,
+    stateSchema,
+    think_tool,
+} from "./tools";
+import { tavily_search } from "../tools/tavily";
+
+const createDynamicModelMiddleware = () => {
+    return createMiddleware({
+        name: "dynamic_model_middleware",
+        wrapModelCall: async (request, handler) => {
+            console.log(request.state);
+            const model = new ChatOpenAI({
+                /** @ts-ignore */
+                modelName: request.state.model_name,
+                streaming: true,
+                streamUsage: true,
+            });
+
+            return await handler({ ...request, model });
+        },
+    });
+};
 
 export const research_agent = createAgent({
     model: new ChatOpenAI({
@@ -8,7 +31,8 @@ export const research_agent = createAgent({
         streaming: true,
         streamUsage: true,
     }),
-    tools: researchTools,
+    // middleware: [createDynamicModelMiddleware()],
+    tools: [tavily_search, think_tool, change_research_topic, end_of_research],
     systemPrompt: `You are a research assistant conducting research on the user's input topic. For context, today's date is ${
         new Date().toISOString().split("T")[0]
     }.
@@ -19,13 +43,13 @@ You can use any of the tools provided to you to find resources that can help ans
 </Task>
 
 <Available Tools>
-You have access to three main tools:
-1. **tavily_extract**: For extracting content from web pages
+You have access to four main tools:
+1. **tavily_search**: For searching for information on web pages
 2. **think_tool**: For reflection and strategic planning during research
 3. **change_research_topic**: For changing the research topic when the user asks for a new topic, the context switches completely, or when you decide to pivot the research to a new direction based on findings.
 4. **end_of_research**: Call this tool when you have gathered enough information to answer the user's question comprehensively.
 
-**CRITICAL: Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool with the tavily_extract or any other tools. It should be to reflect on the results of the search.**
+**CRITICAL: Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool with the tavily_search or any other tools. It should be to reflect on the results of the search.**
 </Available Tools>
 
 <Instructions>
@@ -59,4 +83,3 @@ After each search tool call, use think_tool to analyze the results:
 </Show Your Thinking>`,
     stateSchema,
 });
-
