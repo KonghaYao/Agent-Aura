@@ -2,7 +2,7 @@ import { tool, ToolRuntime, HumanMessage } from "langchain";
 import { z } from "zod";
 import { RemoveMessage, ToolMessage } from "@langchain/core/messages";
 import { Command } from "@langchain/langgraph";
-import { getToolCallId } from "../utils/pro";
+import { getToolCallId } from "@langgraph-js/pro";
 import { deepSearchResult, webSearchResult, stateSchema } from "./state";
 
 export const think_tool = tool(

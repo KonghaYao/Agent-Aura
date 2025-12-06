@@ -17,7 +17,7 @@ export const sub_agents = createUITool({
                         子代理查询
                     </h4>
                     <div className="text-sm text-gray-600 bg-white p-2 rounded border">
-                        {tool.getInputRepaired().question}
+                        {tool.getInputRepaired().agent_id}
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -25,10 +25,7 @@ export const sub_agents = createUITool({
                         响应内容
                     </h5>
                     <MessagesBox
-                        renderMessages={tool.message.sub_agent_messages || []}
-                        collapsedTools={[]}
-                        toggleToolCollapse={() => {}}
-                        client={tool.client}
+                        renderMessages={tool.message?.sub_messages || []}
                     />
                 </div>
             </div>

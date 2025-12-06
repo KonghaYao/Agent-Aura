@@ -9,9 +9,9 @@ const webSearchResult = z.object({
     useful_webpages: z.array(z.string()),
 });
 
-const EndOfResearchSchema = z.object({
-    search_result_of_current_topic: webSearchResult
-});
+const EndOfResearchSchema = {
+    search_result_of_current_topic: webSearchResult,
+};
 
 export const end_of_search = createUITool({
     name: "end_of_research", // Matches the backend tool name
@@ -21,10 +21,13 @@ export const end_of_search = createUITool({
     render(tool) {
         const data = tool.getInputRepaired();
         // Safely access the nested data structure
-        const result = data.search_result_of_current_topic || { topic: "Unknown", useful_webpages: [] };
+        const result = data.search_result_of_current_topic || {
+            topic: "Unknown",
+            useful_webpages: [],
+        };
 
         return (
-             <Card className="w-full my-2 border-green-200 bg-green-50/30">
+            <Card className="w-full my-2 border-green-200 bg-green-50/30">
                 <CardHeader className="pb-3 p-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -33,7 +36,10 @@ export const end_of_search = createUITool({
                                 Research Completed
                             </CardTitle>
                         </div>
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                        <Badge
+                            variant="outline"
+                            className="bg-green-100 text-green-700 border-green-200"
+                        >
                             Done
                         </Badge>
                     </div>
@@ -48,37 +54,39 @@ export const end_of_search = createUITool({
                                 {result.topic}
                             </div>
                         </div>
-                        
-                        {result.useful_webpages && result.useful_webpages.length > 0 && (
-                            <div>
-                                <div className="text-xs font-medium text-green-600 mb-2 uppercase tracking-wider flex items-center gap-1 opacity-80">
-                                    <LinkIcon className="w-3 h-3" />
-                                    Collected Sources
+
+                        {result.useful_webpages &&
+                            result.useful_webpages.length > 0 && (
+                                <div>
+                                    <div className="text-xs font-medium text-green-600 mb-2 uppercase tracking-wider flex items-center gap-1 opacity-80">
+                                        <LinkIcon className="w-3 h-3" />
+                                        Collected Sources
+                                    </div>
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                                        {result.useful_webpages.map(
+                                            (url, idx) => (
+                                                <a
+                                                    key={idx}
+                                                    href={url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 p-2 text-xs text-gray-600 bg-white/60 hover:bg-white rounded border border-transparent hover:border-green-200 transition-all group"
+                                                >
+                                                    <span className="w-5 h-5 flex items-center justify-center bg-green-100/50 group-hover:bg-green-100 rounded text-[10px] text-green-700 flex-shrink-0 font-medium transition-colors">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <span className="truncate text-gray-600 group-hover:text-green-700 transition-colors">
+                                                        {url}
+                                                    </span>
+                                                </a>
+                                            ),
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-                                    {result.useful_webpages.map((url, idx) => (
-                                        <a 
-                                            key={idx}
-                                            href={url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 p-2 text-xs text-gray-600 bg-white/60 hover:bg-white rounded border border-transparent hover:border-green-200 transition-all group"
-                                        >
-                                            <span className="w-5 h-5 flex items-center justify-center bg-green-100/50 group-hover:bg-green-100 rounded text-[10px] text-green-700 flex-shrink-0 font-medium transition-colors">
-                                                {idx + 1}
-                                            </span>
-                                            <span className="truncate text-gray-600 group-hover:text-green-700 transition-colors">
-                                                {url}
-                                            </span>
-                                        </a>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                            )}
                     </div>
                 </CardContent>
             </Card>
         );
-    }
+    },
 });
-

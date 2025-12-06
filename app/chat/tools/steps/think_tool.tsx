@@ -3,9 +3,9 @@ import { z } from "zod";
 import { Brain } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-const ThinkToolSchema = z.object({
+const ThinkToolSchema = {
     reflection: z.string().describe("The reflection content"),
-});
+};
 
 export const think_tool = createUITool({
     name: "think_tool",
@@ -14,11 +14,11 @@ export const think_tool = createUITool({
     onlyRender: true,
     render(tool) {
         const data = tool.getInputRepaired();
-        
+
         return (
             <div className="flex flex-col w-full my-2">
                 <Card className="bg-amber-50/50 border-amber-200">
-                     <CardContent className="p-4">
+                    <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                             <div className="mt-1 p-1.5 bg-amber-100 rounded-full">
                                 <Brain className="w-4 h-4 text-amber-600" />
@@ -32,10 +32,9 @@ export const think_tool = createUITool({
                                 </div>
                             </div>
                         </div>
-                     </CardContent>
+                    </CardContent>
                 </Card>
             </div>
         );
-    }
+    },
 });
-

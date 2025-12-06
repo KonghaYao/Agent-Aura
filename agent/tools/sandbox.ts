@@ -1,7 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { Daytona } from "@daytonaio/sdk";
-import { getThreadId } from "../utils/pro";
+import { getThreadId } from "@langgraph-js/pro";
 
 const daytona = new Daytona();
 
