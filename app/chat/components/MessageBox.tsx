@@ -4,7 +4,7 @@ import MessageHuman from "./MessageHuman";
 import MessageAI from "./MessageAI";
 import MessageTool from "./MessageTool";
 import { type RenderMessage } from "@langgraph-js/sdk";
-import { Message } from "@/src/components/ai-elements/message";
+import { Message } from "@/components/ai-elements/message";
 
 const transTypeToOpenAIType = (type: string) => {
     switch (type) {

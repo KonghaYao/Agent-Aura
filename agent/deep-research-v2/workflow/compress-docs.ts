@@ -55,9 +55,9 @@ You must use the [URL] found at the beginning of each message for your citations
 
 <Guidelines>
 1. Your output should be fully comprehensive. Do not leave out any relevant details found in the sources.
-2. **Citations are mandatory**. Every factual statement must be backed by an inline citation like [1], [2].
-3. Include a "Sources" section at the very end, listing the URLs used.
-4. If multiple sources confirm the same fact, cite all of them, e.g., [1][2].
+2. **Citations are mandatory**. Every factual statement must be backed by an inline citation using markdown footnote syntax like [^1], [^2].
+3. Include a "Sources" section at the very end, listing the URLs as footnotes.
+4. If multiple sources confirm the same fact, cite all of them, e.g., [^1][^2].
 5. Please output in ${lang}.
 </Guidelines>
 
@@ -71,11 +71,13 @@ The report should be structured like this:
 </Output Format>
 
 <Citation Rules>
-- Assign each unique URL a single citation number [1], [2], etc.
-- The "Sources" section must list these numbers and their corresponding URLs.
-- Format:
-  [1] URL
-  [2] URL
+- Assign each unique URL a single footnote ID (e.g., 1, 2, 3...).
+- Use the standard markdown footnote syntax: \`[^id]\` for inline citations and \`[^id]: URL\` for the reference list.
+- Example format:
+  This is a fact[^1].
+  
+  [^1]: https://example.com/source1
+  [^2]: https://example.com/source2
 </Citation Rules>
 
 Critical Reminder: prioritize "Information Density". Do not summarize away specific details. We want a long, detailed report, not a high-level abstract.

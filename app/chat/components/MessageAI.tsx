@@ -8,7 +8,7 @@ import { Response } from "@/components/ai-elements/response";
 import {
     MessageContent,
     MessageResponse,
-} from "@/src/components/ai-elements/message";
+} from "@/components/ai-elements/message";
 
 interface MessageAIProps {
     message: RenderMessage;

@@ -1,51 +1,112 @@
-# Deep Research Agent V2 设计文档
+# Deep Research Agent V2
 
-本模块设计了一个能够进行深度网络搜索和信息整合的智能代理（Agent）。它模拟人类研究者的行为，通过多阶段的思考和执行循环来完成复杂的调研任务。
+Deep Research Agent V2 是一个专为深度网络调研设计的智能代理系统。它通过模拟人类研究员的思维模式（思考-执行-反思），结合动态的上下文管理和高效的信息处理流，实现对复杂主题的深度探索和综合报告生成。
 
-## 核心设计理念
-
-Agent 的运作模拟了人类进行深度研究时的心智模型：**理解 -> 思考 -> 行动 -> 反思 -> 调整 -> 总结**。
+## 核心架构与设计
 
 ### 1. 认知循环 (Cognitive Loop)
 
-Agent 不仅仅是执行搜索命令，而是被设计在一个强制性的“思考-行动”循环中运行：
+Agent 运行在一个基于 LangChain 的 ReAct 循环中，但强化了“元认知”能力：
 
--   思考与规划 (Think & Plan): 在执行任何具体操作之前或之后，Agent 必须使用 `think_tool` 进行反思。这不仅仅是记录日志，而是强制模型通过输出其内部独白（Internal Monologue）来评估当前进度：
-    -   我找到了什么？
-    -   还缺什么信息？
-    -   这些信息是否足以回答核心问题？
-    -   下一步应该做什么？是继续深挖还是扩展搜索范围？
--   执行 (Execute): 根据思考的结果，调用搜索工具获取信息。
--   动态调整 (Adapt): 如果在搜索过程中发现原来的方向不对，或者发现了一个更有价值的切入点，Agent 有能力通过 `change_research_topic` 主动切换研究主题，而不是死板地坚持最初的路径。
+-   **思考 (Think)**: 强制要求 Agent 在执行搜索前后使用 `think_tool`。这不仅是记录日志，更是强迫模型输出内部独白（Internal Monologue），评估当前信息缺口，规划下一步行动。
+-   **行动 (Act)**: 使用 `tavily_search` 进行广度和深度搜索。
+-   **决策 (Decide)**: 动态决定是继续当前方向，还是通过 `change_research_topic` 切换视角，或是通过 `end_of_research` 结束调研。
 
-### 2. 状态流转设计
+### 2. 动态上下文管理 (Context Optimization)
 
-Agent 的生命周期被划分为清晰的几个阶段，通过特定的工具调用来触发状态的流转：
+为了应对深度研究中容易出现的 Context Window 爆炸问题，V2 引入了创新的上下文清理机制：
 
--   探索阶段 (Exploration Phase):
-    -   这是默认的初始状态。Agent 自由地使用搜索工具探索问题。
-    -   它需要判断何时信息足够（Converge）或何时需要转向（Pivot）。
--   转向机制 (Pivot Mechanism):
-    -   通过 `change_research_topic` 工具，Agent 可以显式地“归档”当前的研究成果，清空短期的上下文噪音，开启一个新的研究分支。这模拟了人类“先把这个问题放一放，看看那个方面”的思维切换。
--   收敛阶段 (Convergence Phase):
-    -   当 Agent 判断已收集到足够的信息来回答用户的问题，或者达到了预设的资源限制时，它会调用 `end_of_research`。
-    -   这标志着主动探索的结束，进入信息处理和产出阶段。
+-   **Topic Switching**: 当 Agent 决定切换研究子主题时（调用 `change_research_topic`），系统会：
+    1.  **归档**: 将当前主题的搜索结果（URLs）保存到全局状态 (`state.search_results`)。
+    2.  **清理**: **物理删除** 当前对话历史中与上一主题相关的中间消息（Tool Calls, AI Responses），释放 Token 空间。
+    3.  **保留**: 仅保留原始用户指令和最新的状态变更信息。
+-   这使得 Agent 可以在单一会话中进行近乎无限轮次的多角度调研，而不受模型上下文长度的限制。
 
-### 3. 信息处理架构
+### 3. 后处理流水线 (Post-Processing Pipeline)
 
-为了处理网络上获取的海量非结构化信息，设计采用了“分层压缩”的策略：
+当 Agent 完成探索阶段（调用 `end_of_research`）后，系统进入高效的并行处理流程：
 
-1. 原始获取: 首先获取大量相关的网页链接。
-2. 并行抓取: 对选定的高质量链接进行全文抓取。
-3. 语义压缩: 这是一个关键的设计点。不是直接将所有原文丢给最终模型，而是引入了一个中间步骤 —— **Topic Compression**。
-    - 针对每个研究子主题，使用 LLM 对原始网页内容进行清洗和压缩。
-    - 目标是去除网页噪音（广告、导航等）和冗余信息，同时**严格保留**关键事实、数据和引用来源。
-4. 综合生成: 最终的报告生成器（Report Generator）接收的是经过清洗的高密度信息块，从而能够生成准确、详实且带有引用的最终报告。
+1.  **并发抓取 (Parallel Crawling)**:
 
-### 4. 防幻觉与准确性设计
+    -   从 `state.search_results` 中提取所有被标记为“有用”的网页链接。
+    -   使用 `tavily_extract` 并发获取网页全文内容。
 
-为了提高研究结果的可信度，设计中包含了以下原则：
+2.  **语义压缩 (Semantic Compression)**:
 
--   强制引用: 在信息压缩和报告生成阶段，都明确要求保留和标注来源。
--   原始数据保留: 尽管进行了压缩，但关键的引用句（Quotes）和数据点（Data Points）被要求逐字（Verbatim）保留，防止在总结过程中产生语义漂移。
--   硬性限制: 设置了搜索次数的预算限制，防止 Agent 陷入无休止的搜索循环，迫使其在有限资源下通过策略优化来获取最佳答案。
+    -   **Topic Compression**: 针对每个研究子主题，启动独立的 LLM 任务。
+    -   **信息密度优先**: 提示词要求 LLM 去除网页噪音，但**严格保留**所有关键事实、数据、日期和实体。
+    -   **引用保留**: 强制使用 Markdown 脚注格式（`[^1]`, `[^2]`）标记每一处事实来源。
+
+3.  **报告生成 (Report Generation)**:
+    -   汇聚所有压缩后的高密度信息块。
+    -   生成一份结构化、数据驱动的最终报告。
+    -   报告包含：摘要、核心发现、结论以及自动生成的参考文献列表。
+
+## 核心工具集
+
+Agent 配备了四个核心工具，覆盖了研究的全生命周期：
+
+1.  **`tavily_search`**:
+
+    -   执行网络搜索。
+    -   Agent 根据需要生成不同的查询词（Queries）。
+
+2.  **`think_tool`**:
+
+    -   **战略反思工具**。
+    -   用于记录：“我发现了什么？还缺什么？下一步该做什么？”
+    -   不产生实际数据，只用于指导 Agent 的下一步决策。
+
+3.  **`change_research_topic`**:
+
+    -   **关键流转工具**。
+    -   当 Agent 认为当前子主题信息已足够，或者需要转向新方向时调用。
+    -   参数：`new_topic`（新主题）, `reason`（原因）, `search_result_of_current_topic`（当前成果）。
+    -   **副作用**: 触发上下文清理。
+
+4.  **`end_of_research`**:
+    -   **终止工具**。
+    -   当 Agent 认为已收集到足以回答用户问题的全部信息时调用。
+    -   触发后续的抓取、压缩和报告生成流程。
+
+## 状态定义 (State Schema)
+
+系统状态由 `stateSchema` 定义，核心字段包括：
+
+-   `messages`: 对话历史（动态修剪）。
+-   `search_results`: 累积的研究成果列表，每一项包含：
+    -   `topic`: 研究子主题。
+    -   `useful_webpages`: 选定的高质量 URL 列表。
+    -   `compressed_content`: (后期生成) 经 LLM 压缩清洗后的高密度文本。
+-   `report`: 最终生成的 Markdown 报告。
+
+## 流程图解
+
+```mermaid
+graph TD
+    Start[User Query] --> AgentLoop
+
+    subgraph AgentLoop [Agent Exploration Phase]
+        Think[Think Tool] --> Search[Tavily Search]
+        Search --> Analyze{Analyze Results}
+        Analyze -->|Need more info| Think
+        Analyze -->|Pivot Topic| Change[Change Research Topic]
+        Change -->|Clear Context| Think
+        Analyze -->|Done| End[End of Research]
+    end
+
+    End --> PostProcess[Post Processing]
+
+    subgraph PostProcess [Deep Research Workflow]
+        Crawl[Parallel Crawling] --> Compress[Topic Compression]
+        Compress --> Report[Report Generation]
+    end
+
+    Report --> Final[Final Markdown Output]
+```
+
+## 使用场景
+
+-   **行业分析**: 需要从多个维度（市场规模、竞争对手、技术趋势）进行广泛调研。
+-   **学术综述**: 需要收集并整理大量文献摘要和关键结论。
+-   **深度事实核查**: 需要多源交叉验证某一复杂事件的来龙去脉。

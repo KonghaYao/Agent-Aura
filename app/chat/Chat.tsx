@@ -55,7 +55,7 @@ import {
     Conversation,
     ConversationContent,
     ConversationScrollButton,
-} from "@/src/components/ai-elements/conversation";
+} from "@/components/ai-elements/conversation";
 
 const ChatMessages: React.FC = () => {
     const {

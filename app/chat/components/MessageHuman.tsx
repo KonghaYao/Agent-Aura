@@ -10,7 +10,7 @@ import {
     MessageContent,
     MessageResponse,
     MessageToolbar,
-} from "@/src/components/ai-elements/message";
+} from "@/components/ai-elements/message";
 import { FileUIPart } from "ai";
 import { getMimeTypeFromUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
