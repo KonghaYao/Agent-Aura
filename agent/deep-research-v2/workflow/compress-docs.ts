@@ -7,68 +7,78 @@ import {
 import PQueue from "p-queue";
 import { tavily_extract } from "../../tools/tavily";
 import { z } from "zod";
-import { deepSearchResult, stateSchema } from "../tools";
+import { deepSearchResult } from "../state";
 
 export const getPage = async (page_url: string) => {
     const response = await tavily_extract.invoke({ urls: [page_url] });
     return response.results[0]?.raw_content || "";
 };
-export const compressTopicDetails = async ({
-    topic,
-    webpages,
-    lang,
-    subagent_id,
-}: {
-    topic: string;
-    webpages: string[];
-    lang: string;
-    subagent_id: string;
-}) => {
+export const compressTopicDetails = async (
+    modelName: string,
+    {
+        topic,
+        webpages,
+        lang,
+        subagent_id,
+    }: {
+        topic: string;
+        webpages: string[];
+        lang: string;
+        subagent_id: string;
+    },
+) => {
     const model = new ChatOpenAI({
-        modelName: "gpt-4o-mini",
+        modelName,
         temperature: 0,
         metadata: {
             subagent_id,
         },
     });
 
-    const prompt = `You are a research assistant that has conducted research on a topic by calling several tools and web searches. Your job is now to clean up the findings, but preserve all of the relevant statements and information that the researcher has gathered. 
+    const prompt = `You are a research assistant that has conducted research on a topic by calling several tools and web searches. Your job is now to create a comprehensive summary of the findings, preserving all relevant details and sources.
 
 <Task>
-You need to clean up information gathered from tool calls and web searches in the existing messages.
-All relevant information should be repeated and rewritten verbatim, but in a cleaner format.
-The purpose of this step is just to remove any obviously irrelevant or duplicative information.
-For example, if three sources all say "X", you could say "These three sources all stated X".
-Only these fully comprehensive cleaned findings are going to be returned to the user, so it's crucial that you don't lose any information from the raw messages.
+You need to process information gathered from web searches (provided as messages).
+The goal is to create a dense, information-rich report that answers the research topic.
+You must remove duplicate information and irrelevant fluff, BUT you must strictly preserve all specific facts, figures, dates, entities, and technical details found in the sources.
+Merge conflicting information by stating "Source A says X, while Source B says Y".
 </Task>
 
+<Input Format>
+The user will provide a series of messages. Each message represents a webpage and starts with:
+"From [URL]
+---
+[Content]"
+
+You must use the [URL] found at the beginning of each message for your citations.
+</Input Format>
+
 <Guidelines>
-1. Your output findings should be fully comprehensive and include ALL of the information and sources that the researcher has gathered from tool calls and web searches. It is expected that you repeat key information verbatim.
-2. This report can be as long as necessary to return ALL of the information that the researcher has gathered.
-3. In your report, you should return inline citations for each source that the researcher found.
-4. You should include a "Sources" section at the end of the report that lists all of the sources the researcher found with corresponding citations, cited against statements in the report.
-5. Make sure to include ALL of the sources that the researcher gathered in the report, and how they were used to answer the question!
-6. It's really important not to lose any sources. A later LLM will be used to merge this report with others, so having all of the sources is critical.
-7. Please output in ${lang}.
+1. Your output should be fully comprehensive. Do not leave out any relevant details found in the sources.
+2. **Citations are mandatory**. Every factual statement must be backed by an inline citation like [1], [2].
+3. Include a "Sources" section at the very end, listing the URLs used.
+4. If multiple sources confirm the same fact, cite all of them, e.g., [1][2].
+5. Please output in ${lang}.
 </Guidelines>
 
 <Output Format>
 The report should be structured like this:
-**List of Queries and Tool Calls Made**
 **Fully Comprehensive Findings**
-**List of All Relevant Sources (with citations in the report)**
+(Detailed content with inline citations)
+
+**Sources**
+(List of used sources)
 </Output Format>
 
 <Citation Rules>
-- Assign each unique URL a single citation number in your text
-- End with ### Sources that lists each source with corresponding numbers
-- IMPORTANT: Number sources sequentially without gaps (1,2,3,4...) in the final list regardless of which sources you choose
-- Example format:
-  [1] Source Title: URL
-  [2] Source Title: URL
+- Assign each unique URL a single citation number [1], [2], etc.
+- The "Sources" section must list these numbers and their corresponding URLs.
+- Format:
+  [1] URL
+  [2] URL
 </Citation Rules>
 
-Critical Reminder: It is extremely important that any information that is even remotely relevant to the user's research topic is preserved verbatim (e.g. don't rewrite it, don't summarize it, don't paraphrase it).
+Critical Reminder: prioritize "Information Density". Do not summarize away specific details. We want a long, detailed report, not a high-level abstract.
 `;
 
     const response = await model.invoke([
@@ -98,6 +108,7 @@ The following messages contain the webpage content I extracted during my researc
 };
 
 export const processSearchResults = async (
+    modelName: string,
     searchResults: z.infer<typeof deepSearchResult>[],
     lang: string,
     subagent_id: string,
@@ -131,12 +142,15 @@ export const processSearchResults = async (
     const compressTasks = searchResults.map((result) => {
         return async () => {
             try {
-                const compressedContent = await compressTopicDetails({
-                    topic: result.topic,
-                    webpages: result.useful_webpages,
-                    lang,
-                    subagent_id,
-                });
+                const compressedContent = await compressTopicDetails(
+                    modelName,
+                    {
+                        topic: result.topic,
+                        webpages: result.useful_webpages,
+                        lang,
+                        subagent_id,
+                    },
+                );
                 result.compressed_content = compressedContent.text;
                 middleMessages.push(compressedContent);
             } catch (error) {

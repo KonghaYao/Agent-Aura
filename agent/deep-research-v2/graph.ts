@@ -1,8 +1,8 @@
-import { stateSchema } from "./tools";
+import { stateSchema } from "./state";
 import { research_agent } from "./agent";
 import { createStateEntrypoint } from "@langgraph-js/pure-graph";
 import { checkLastMessage } from "../utils/checkMessages";
-import { process_research } from "./workflow/end_of_search";
+import { goDeepResearch } from "./workflow/go-deep-research";
 import { mergeState } from "../utils/pro";
 
 export const graph = createStateEntrypoint(
@@ -16,10 +16,13 @@ export const graph = createStateEntrypoint(
         if (
             checkLastMessage(search_result_state.messages).isTool(
                 "end_of_research",
-            ) ||
-            search_result_state.search_results.length === 0
+            ) &&
+            // 有未探索的主题
+            search_result_state.search_results.filter(
+                (i) => !i.compressed_content,
+            ).length > 0
         ) {
-            const data = await process_research(
+            const data = await goDeepResearch(
                 search_result_state,
                 search_result_state.messages.at(-1)!.id!,
             );

@@ -14,7 +14,11 @@ export const deepResearchAgent: AgentStoreItem = {
     llm: [
         {
             provider: "openai",
-            model: "gemini-2.5-flash",
+            model: "grok-4-fast",
+        },
+        {
+            provider: "openai",
+            model: "grok-code-fast-1",
         },
     ],
     tools: [],

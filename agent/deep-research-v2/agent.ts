@@ -1,18 +1,17 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { createAgent, createMiddleware } from "langchain";
-import {
-    change_research_topic,
-    end_of_research,
-    stateSchema,
-    think_tool,
-} from "./tools";
+import { change_research_topic, end_of_research, think_tool } from "./tools";
 import { tavily_search } from "../tools/tavily";
+import { InteropZodObject } from "@langchain/core/utils/types";
+import { stateSchema } from "./state";
 
-const createDynamicModelMiddleware = () => {
+const createDynamicModelMiddleware = <T extends InteropZodObject>(
+    stateSchema: T,
+) => {
     return createMiddleware({
+        stateSchema,
         name: "dynamic_model_middleware",
         wrapModelCall: async (request, handler) => {
-            console.log(request.state);
             const model = new ChatOpenAI({
                 /** @ts-ignore */
                 modelName: request.state.model_name,
@@ -31,7 +30,7 @@ export const research_agent = createAgent({
         streaming: true,
         streamUsage: true,
     }),
-    // middleware: [createDynamicModelMiddleware()],
+    middleware: [createDynamicModelMiddleware(stateSchema)],
     tools: [tavily_search, think_tool, change_research_topic, end_of_research],
     systemPrompt: `You are a research assistant conducting research on the user's input topic. For context, today's date is ${
         new Date().toISOString().split("T")[0]

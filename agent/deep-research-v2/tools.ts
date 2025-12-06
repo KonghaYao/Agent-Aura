@@ -1,43 +1,9 @@
 import { tool, ToolRuntime, HumanMessage } from "langchain";
-import { registry, z } from "zod";
-// import { AgentState } from "@langgraph-js/pro";
-import {
-    BaseMessage,
-    RemoveMessage,
-    ToolMessage,
-} from "@langchain/core/messages";
-import { Command, MessagesZodMeta } from "@langchain/langgraph";
+import { z } from "zod";
+import { RemoveMessage, ToolMessage } from "@langchain/core/messages";
+import { Command } from "@langchain/langgraph";
 import { getToolCallId } from "../utils/pro";
-import { SubAgentStateSchema } from "../tools/ask_subagent";
-import { MessagesZodState, StateGraph } from "@langchain/langgraph";
-import { withLangGraph } from "@langchain/langgraph/zod";
-
-const AgentState = z.object({
-    messages: withLangGraph(z.custom<BaseMessage[]>(), MessagesZodMeta).default(
-        [],
-    ),
-});
-export const webSearchResult = z.object({
-    topic: z.string().describe("the topic of the research"),
-    useful_webpages: z
-        .array(z.string())
-        .describe("the useful webpages for the research"),
-});
-
-export const deepSearchResult = webSearchResult.extend({
-    compressed_content: z
-        .string()
-        .optional()
-        .describe("the compressed content from all webpages"),
-});
-
-export const stateSchema = AgentState.extend({
-    model_name: z.string().optional().default("gpt-4o-mini"),
-    topics: z.array(z.string()).default([]),
-    search_results: z.array(deepSearchResult).default([]),
-    report: z.string().default(""),
-    lang: z.string().default("zh-CN"),
-}).merge(SubAgentStateSchema);
+import { deepSearchResult, webSearchResult, stateSchema } from "./state";
 
 export const think_tool = tool(
     (args) => {

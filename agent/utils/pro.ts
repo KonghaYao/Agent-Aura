@@ -49,6 +49,7 @@ export const createToolCall = (
     ] as const;
 };
 
+/** 合并两个 state，保证合并正确。messages 和 task_store 都会被合并 */
 export const mergeState = <
     T extends { messages: BaseMessage[]; task_store?: Record<string, any> },
 >(

@@ -9,7 +9,12 @@ import React, {
 } from "react";
 import { UnionTool } from "@langgraph-js/sdk";
 import { useChat } from "@langgraph-js/sdk/react";
-import { update_plan, image_generation } from "../tools/index";
+import {
+    update_plan,
+    image_generation,
+    think_tool,
+    end_of_search,
+} from "../tools/index";
 import { create_artifacts } from "../tools/create_artifacts";
 import { tavily_search_tool } from "../tools/tavily_search_tool";
 import { tavily_extract_tool } from "../tools/tavily_extract_tool";
@@ -23,6 +28,8 @@ const BUILTIN_TOOLS = [
     tavily_search_tool,
     tavily_extract_tool,
     sub_agents,
+    think_tool,
+    end_of_search,
 ];
 
 interface ToolsContextType {
