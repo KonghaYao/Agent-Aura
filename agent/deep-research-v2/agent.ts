@@ -1,28 +1,13 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { createAgent, createMiddleware } from "langchain";
+import { AgentMiddleware, createAgent } from "langchain";
 import { change_research_topic, end_of_research, think_tool } from "./tools";
 import { tavily_search } from "../tools/tavily";
-import { InteropZodObject } from "@langchain/core/utils/types";
 import { stateSchema } from "./state";
-
-const createDynamicModelMiddleware = <T extends InteropZodObject>(
-    stateSchema: T,
-) => {
-    return createMiddleware({
-        stateSchema,
-        name: "dynamic_model_middleware",
-        wrapModelCall: async (request, handler) => {
-            const model = new ChatOpenAI({
-                /** @ts-ignore */
-                modelName: request.state.model_name,
-                streaming: true,
-                streamUsage: true,
-            });
-
-            return await handler({ ...request, model });
-        },
-    });
-};
+import {
+    planSubAgent as ask_plan_subagent,
+    promptForPlan,
+} from "./agents/plan-agent";
+import { createDynamicModelMiddleware } from "@langgraph-js/pro";
 
 export const research_agent = createAgent({
     model: new ChatOpenAI({
@@ -30,8 +15,19 @@ export const research_agent = createAgent({
         streaming: true,
         streamUsage: true,
     }),
-    middleware: [createDynamicModelMiddleware(stateSchema)],
-    tools: [tavily_search, think_tool, change_research_topic, end_of_research],
+    middleware: [
+        createDynamicModelMiddleware(
+            stateSchema,
+            "model_name",
+        ) as AgentMiddleware<any, any, any>,
+    ],
+    tools: [
+        tavily_search,
+        think_tool,
+        change_research_topic,
+        end_of_research,
+        ask_plan_subagent,
+    ],
     systemPrompt: `You are a research assistant conducting research on the user's input topic. For context, today's date is ${
         new Date().toISOString().split("T")[0]
     }.
@@ -56,9 +52,10 @@ Think like a human researcher with limited time. Follow these steps:
 
 1. **Read the question carefully** - What specific information does the user need? If the user input indicates a change of topic, use the \`change_research_topic\` tool.
 2. **Start with broader searches** - Use broad, comprehensive queries first
-3. **After each search, pause and assess** - Do I have enough to answer? What's still missing?
-4. **Execute narrower searches as you gather information** - Fill in the gaps
-5. **Stop when you can answer confidently** - Don't keep searching for perfection. MUST call \`end_of_research\` to finish the research.
+3. **Filter Search Results** - **CRITICAL**: Search results often contain irrelevant, sponsored, or low-quality links. You MUST filter these out. Do not blindly trust or cite every result. Only select sources that directly answer the user's question.
+4. **After each search, pause and assess** - Do I have enough to answer? What's still missing?
+5. **Execute narrower searches as you gather information** - Fill in the gaps
+6. **Stop when you can answer confidently** - Don't keep searching for perfection. MUST call \`end_of_research\` to finish the research.
 </Instructions>
 
 <Hard Limits>
@@ -79,6 +76,10 @@ After each search tool call, use think_tool to analyze the results:
 - What's missing?
 - Do I have enough to answer the question comprehensively?
 - Should I search more or provide my answer?
-</Show Your Thinking>`,
+</Show Your Thinking>
+
+${promptForPlan}
+
+`,
     stateSchema,
 });

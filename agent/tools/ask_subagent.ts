@@ -9,7 +9,12 @@ export const SubAgentStateSchema = z.object({
 });
 
 const schema = z.object({
-    task_id: z.string().optional(),
+    task_id: z
+        .string()
+        .optional()
+        .describe(
+            "The task id to ask the subagent, if not provided, will use the tool call id",
+        ),
     subagent_id: z.string(),
     question: z.string(),
     data_transfer: z.any(),
@@ -19,6 +24,7 @@ export const ask_subagents = (
     agentCreator: (
         task_id: string,
         args: z.infer<typeof schema>,
+        parent_state: any,
     ) => Promise<any>,
 ) =>
     tool(
@@ -32,7 +38,7 @@ export const ask_subagents = (
                 sub_state = (state as any)?.["task_store"][taskId];
             }
 
-            const agent = await agentCreator(taskId, args);
+            const agent = await agentCreator(taskId, args, state);
             sub_state.messages.push(
                 new HumanMessage({ content: args.question }),
             );

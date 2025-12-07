@@ -11,7 +11,7 @@ import { deepSearchResult } from "../state";
 
 export const getPage = async (page_url: string) => {
     const response = await tavily_extract.invoke({ urls: [page_url] });
-    return response.results[0]?.raw_content || "";
+    return response?.results?.[0]?.raw_content || "";
 };
 export const compressTopicDetails = async (
     modelName: string,

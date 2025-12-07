@@ -5,11 +5,7 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "x-ai/grok-4.1-fast:free",
-    },
-    {
-        provider: "openai",
-        model: "grok-code-fast-1",
+        model: "grok-code-fast",
     },
     {
         provider: "openai",
@@ -21,11 +17,7 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "gpt-5",
-    },
-    {
-        provider: "openai",
-        model: "gpt-4.1",
+        model: "gpt-5-nano",
     },
     {
         provider: "openai",
@@ -37,7 +29,7 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "qwen-plus",
+        model: "deepseek-chat",
     },
 ];
 export const models = {

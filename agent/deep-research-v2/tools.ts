@@ -104,3 +104,38 @@ export const end_of_research = tool(
         }),
     },
 );
+
+export const ask_user_with_options = tool(
+    async (args) => {
+        return `user selected: answer will appear in human in the loop reject message`;
+    },
+    {
+        name: "ask_user_with_options",
+        description:
+            "Ask the user one question with options and optional custom input.",
+        schema: z
+            .object({
+                label: z.string().describe("Question text to display"),
+                type: z
+                    .enum(["single_select", "multi_select"])
+                    .optional()
+                    .default("single_select")
+                    .describe("Selection mode for this question"),
+                options: z
+                    .array(
+                        z.object({
+                            index: z.number().describe("Index of the option"),
+                            label: z
+                                .string()
+                                .describe("Optional display label"),
+                        }),
+                    )
+                    .describe("Selectable options for the question"),
+                allow_custom_input: z
+                    .boolean()
+                    .default(true)
+                    .describe("Allow user to input custom text"),
+            })
+            .describe("The single question to ask the user"),
+    },
+);

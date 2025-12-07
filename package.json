@@ -27,7 +27,7 @@
         "@langchain/tavily": "^1.0.1",
         "@langgraph-js/memory": "^1.4.1",
         "@langgraph-js/pro": "^2.2.0",
-        "@langgraph-js/pure-graph": "^2.7.0",
+        "@langgraph-js/pure-graph": "^2.7.2",
         "@langgraph-js/sdk": "^3.8.1",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-alert-dialog": "^1.1.15",
