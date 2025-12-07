@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
 import { Resend } from "resend";
-import { getEnv } from "../agent/getEnv";
+import { getEnv } from "../agent/utils/getEnv";
 
 async function sendEmail({
     to,

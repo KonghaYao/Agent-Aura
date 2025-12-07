@@ -1,7 +1,7 @@
 import { registerGraph } from "@langgraph-js/pure-graph";
 import { graph as agentGraph } from "./schema-agent/index";
 import { graph as deepResearchGraph } from "./deep-research-v2/graph";
-import { getEnv } from "./getEnv";
+import { getEnv } from "./utils/getEnv";
 
 if (
     getEnv("NODE_ENV") !== "production" &&

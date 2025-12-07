@@ -8,6 +8,7 @@ import { filesRouter } from "./filestore/routes";
 import { type AuthType, auth as betterAuth } from "../lib/auth";
 import { logger } from "hono/logger";
 import { agentsRouter } from "./schema-store/routes";
+import { OpenSmithApp } from "./open-smith";
 
 const app = new Hono<{ Variables: LangGraphServerContext }>();
 app.use(logger());
@@ -19,6 +20,7 @@ authRouter.on(["POST", "GET"], "/*", (c) => {
     return betterAuth.handler(c.req.raw);
 });
 app.route("/api/auth", authRouter);
+app.route("/api/open-smith", OpenSmithApp);
 
 // Middleware to inject custom context
 app.use("/*", auth);
@@ -26,8 +28,9 @@ app.use("/*", auth);
 app.route("/api/langgraph", LangGraphApp);
 app.route("/api/files", filesRouter);
 app.route("/api/agents", agentsRouter);
+
 export default {
-    idleTimeout: 300,
+    idleTimeout: 255,
     fetch: app.fetch,
     port: 8123,
 };

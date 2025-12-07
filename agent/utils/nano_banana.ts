@@ -1,4 +1,4 @@
-import { getEnv } from "../getEnv";
+import { getEnv } from "./getEnv";
 import { Buffer } from "node:buffer";
 
 export async function processGeminiImage(

@@ -1,5 +1,5 @@
 import { Meilisearch } from "meilisearch";
-import { getEnv } from "../getEnv";
+import { getEnv } from "../utils/getEnv";
 
 /**
  * 文件存储的数据结构

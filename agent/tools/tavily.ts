@@ -1,5 +1,5 @@
 import { TavilyExtract, TavilySearch } from "@langchain/tavily";
-import { getEnv } from "../getEnv";
+import { getEnv } from "../utils/getEnv";
 export const tavily_search = new TavilySearch({
     maxResults: 5,
     apiBaseUrl: getEnv("TAVILY_HOST"),

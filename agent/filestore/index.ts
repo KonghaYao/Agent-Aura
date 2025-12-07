@@ -1,7 +1,7 @@
 import { Generated, ColumnType, Kysely, PostgresDialect, sql } from "kysely";
 import { LangGraphGlobal } from "@langgraph-js/pure-graph";
 import { Pool } from "pg";
-import { getEnv } from "../getEnv";
+import { getEnv } from "../utils/getEnv";
 
 export interface Database {
     files: FilesTable;
