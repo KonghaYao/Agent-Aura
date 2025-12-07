@@ -83,11 +83,16 @@ export async function processGeminiImage(
         }
 
         const data = await response.json();
-        const imageData = data.candidates[0].content.parts[0].inlineData.data;
+        try {
+            const imageData =
+                data.candidates[0].content.parts[0].inlineData.data;
 
-        const imageBuffer = Buffer.from(imageData, "base64");
-
-        return imageBuffer;
+            const imageBuffer = Buffer.from(imageData, "base64");
+            return imageBuffer;
+        } catch (e) {
+            console.warn(data);
+            throw e;
+        }
     } catch (error) {
         console.error("Error processing image:", error);
         throw error;
