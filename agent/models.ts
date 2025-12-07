@@ -21,10 +21,6 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "gpt-4.1-mini",
-    },
-    {
-        provider: "openai",
         model: "gpt-4o-mini",
     },
     {
