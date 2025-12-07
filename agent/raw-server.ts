@@ -27,7 +27,7 @@ app.route("/api/langgraph", LangGraphApp);
 app.route("/api/files", filesRouter);
 app.route("/api/agents", agentsRouter);
 export default {
-    idleTimeout: 120,
+    idleTimeout: 300,
     fetch: app.fetch,
     port: 8123,
 };
