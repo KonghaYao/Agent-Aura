@@ -42,7 +42,7 @@ You have access to four main tools:
 1. **tavily_search**: For searching for information on web pages
 2. **think_tool**: For reflection and strategic planning during research
 3. **change_research_topic**: For changing the research topic when the user asks for a new topic, the context switches completely, or when you decide to pivot the research to a new direction based on findings.
-4. **end_of_research**: Call this tool when you have gathered enough information to answer the user's question comprehensively.
+4. **end_of_research**: Call this tool when you have gathered enough information to further research.
 
 **CRITICAL: Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool with the tavily_search or any other tools. It should be to reflect on the results of the search.**
 </Available Tools>

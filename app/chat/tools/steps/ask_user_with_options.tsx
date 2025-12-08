@@ -52,6 +52,7 @@ export const ask_user_with_options = createUITool({
         };
 
         const canInteract = tool.state === "interrupted";
+        console.log(tool);
         const handleSubmit = () => {
             const selectedLabels = selected
                 .map((i) => optionItems[i]?.label)
@@ -60,7 +61,8 @@ export const ask_user_with_options = createUITool({
                 ? `, Custom Text: ${customText.trim()}`
                 : "";
             tool.sendResumeData({
-                type: "reject",
+                /** @ts-ignore */
+                type: "reply",
                 message: `User Selected: ${
                     selected.length > 0 ? selectedLabels.join(", ") : "none"
                 } ${customTextLabel}`,
@@ -169,7 +171,7 @@ export const ask_user_with_options = createUITool({
                     </div>
                     {!canInteract && (
                         <div className="text-xs text-gray-500">
-                            当前状态仅展示，等待或已完成交互
+                            {tool.output || ""}
                         </div>
                     )}
                 </CardContent>

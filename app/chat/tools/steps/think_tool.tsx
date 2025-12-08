@@ -27,7 +27,7 @@ export const think_tool = createUITool({
                                 <h4 className="text-sm font-medium text-amber-900 mb-1 flex items-center gap-2">
                                     Strategic Reflection
                                 </h4>
-                                <div className="text-sm text-amber-800 whitespace-pre-wrap leading-relaxed font-medium opacity-90">
+                                <div className="text-sm text-amber-800 whitespace-pre-wrap leading-relaxed font-medium opacity-90 max-h-24 overflow-y-auto">
                                     {data.reflection}
                                 </div>
                             </div>

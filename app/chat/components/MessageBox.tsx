@@ -26,10 +26,7 @@ export const MessagesBox = ({
     return (
         <>
             {renderMessages.map((message, index) => (
-                <Message
-                    key={message.unique_id}
-                    from={transTypeToOpenAIType(message.type)}
-                >
+                <Message from={transTypeToOpenAIType(message.type)}>
                     {message.type === "human" ? (
                         <MessageHuman message={message}></MessageHuman>
                     ) : message.type === "tool" ? (

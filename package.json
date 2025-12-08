@@ -29,7 +29,7 @@
         "@langgraph-js/open-smith": "^2.3.0",
         "@langgraph-js/pro": "^2.2.0",
         "@langgraph-js/pure-graph": "^2.7.2",
-        "@langgraph-js/sdk": "^3.8.1",
+        "@langgraph-js/sdk": "^3.8.2",
         "@nanostores/react": "^1.0.0",
         "@radix-ui/react-alert-dialog": "^1.1.15",
         "@radix-ui/react-context-menu": "^2.2.16",

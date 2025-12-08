@@ -1,9 +1,9 @@
 import { ask_subagents } from "@/agent/tools/ask_subagent";
 import { ChatOpenAI } from "@langchain/openai";
 import { ask_user_with_options } from "../tools";
-import { createAgent, humanInTheLoopMiddleware } from "langchain";
+import { createAgent } from "langchain";
 import { stateSchema } from "../state";
-
+import { humanInTheLoopMiddleware } from "../../middlewares/hitl";
 export const planSubAgent = ask_subagents(
     async (taskId, args, parent_state) => {
         return createAgent({
@@ -23,7 +23,7 @@ export const planSubAgent = ask_subagents(
                 humanInTheLoopMiddleware({
                     interruptOn: {
                         ask_user_with_options: {
-                            allowedDecisions: ["reject"],
+                            allowedDecisions: ["reply"],
                         },
                     },
                 }),
