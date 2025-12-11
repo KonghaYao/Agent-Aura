@@ -1,13 +1,31 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { AgentMiddleware, createAgent } from "langchain";
-import { change_research_topic, end_of_research, think_tool } from "./tools";
-import { tavily_search } from "../tools/tavily";
+import { AgentMiddleware, createAgent, tool } from "langchain";
 import { stateSchema } from "./state";
 import {
     planSubAgent as ask_plan_subagent,
     promptForPlan,
 } from "./agents/plan-agent";
+import {
+    searchSubAgent as ask_search_subagent,
+    promptForSearch,
+} from "./agents/search-agent";
 import { createDynamicModelMiddleware } from "@langgraph-js/pro";
+import { start_deep_research } from "./workflow/start-deep-research";
+import z from "zod";
+
+const stop_for_human_approve = tool(
+    () => {
+        return "等待用户确认";
+    },
+    {
+        name: "stop_for_human_approve",
+        description: "Stop for human approve",
+        schema: z.object({
+            description: z.string().describe("The state of your process"),
+        }),
+        returnDirect: true,
+    },
+);
 
 export const research_agent = createAgent({
     model: new ChatOpenAI({
@@ -20,66 +38,52 @@ export const research_agent = createAgent({
             stateSchema,
             "model_name",
         ) as AgentMiddleware<any, any, any>,
+        // humanInTheLoopMiddleware({
+        //     interruptOn: {
+        //         start_deep_research: {
+        //             allowedDecisions: ["approve", "reject"],
+        //         },
+        //     },
+        // }),
     ],
     tools: [
-        tavily_search,
-        think_tool,
-        change_research_topic,
-        end_of_research,
         ask_plan_subagent,
+        ask_search_subagent,
+        start_deep_research,
+        stop_for_human_approve,
     ],
-    systemPrompt: `You are a research assistant conducting research on the user's input topic. For context, today's date is ${
-        new Date().toISOString().split("T")[0]
-    }.
+    stateSchema,
+    systemPrompt: `You are a Lead Research Manager. Your role is to orchestrate a deep research process by coordinating specialized sub-agents. You do not conduct the research yourself; instead, you direct the planning and execution phases.
+
+For context, today's date is ${new Date().toISOString().split("T")[0]}.
 
 <Task>
-Your job is to use tools to gather information about the user's input topic.
-You can use any of the tools provided to you to find resources that can help answer the research question. You can call these tools in series or in parallel, your research is conducted in a tool-calling loop.
+Your workflow typically involves:
+1. **Planning**: If the request is complex or needs clarification, use the \`ask_plan_subagent\` to create a detailed research plan.
+2. **Approval**: After planning, call \`stop_for_human_approve\` to get confirmation before proceeding.
+3. **Execution**: Once a plan is approved, use the \`ask_search_subagent\` to execute the search and gather information.
+4. **Approval**: After search is complete, call \`stop_for_human_approve\` to confirm readiness for reporting.
+5. **Synthesis & Completion**: Once findings are approved, you MUST use \`start_deep_research\` to process these findings and generate the final report.
 </Task>
 
 <Available Tools>
-You have access to four main tools:
-1. **tavily_search**: For searching for information on web pages
-2. **think_tool**: For reflection and strategic planning during research
-3. **change_research_topic**: For changing the research topic when the user asks for a new topic, the context switches completely, or when you decide to pivot the research to a new direction based on findings.
-4. **end_of_research**: Call this tool when you have gathered enough information to further research.
-
-**CRITICAL: Use think_tool after each search to reflect on results and plan next steps. Do not call think_tool with the tavily_search or any other tools. It should be to reflect on the results of the search.**
+1. **ask_plan_subagent**: Delegate planning and requirements gathering.
+2. **ask_search_subagent**: Delegate the actual web search and information gathering.
+3. **start_deep_research**: Process the search results and generate the final deep research report.
+4. **stop_for_human_approve**: Pause the process to wait for human approval.
 </Available Tools>
 
 <Instructions>
-Think like a human researcher with limited time. Follow these steps:
-
-1. **Read the question carefully** - What specific information does the user need? If the user input indicates a change of topic, use the \`change_research_topic\` tool.
-2. **Start with broader searches** - Use broad, comprehensive queries first
-3. **Filter Search Results** - **CRITICAL**: Search results often contain irrelevant, sponsored, or low-quality links. You MUST filter these out. Do not blindly trust or cite every result. Only select sources that directly answer the user's question.
-4. **After each search, pause and assess** - Do I have enough to answer? What's still missing?
-5. **Execute narrower searches as you gather information** - Fill in the gaps
-6. **Stop when you can answer confidently** - Don't keep searching for perfection. MUST call \`end_of_research\` to finish the research.
+- **Always Delegate**: Do not attempt to search the web yourself. You don't have the tools for it. Use your sub-agents.
+- **Task IDs**: When calling sub-agents, you MUST use consistent \`subagent_id\`s. Use "plan_agent" for the planning phase and "search_agent" for the search phase. Do NOT mix them up or generate random IDs.
+- **Plan First**: For broad queries, always plan first.
+- **Get Approval**: You MUST use \`stop_for_human_approve\` after the planning phase AND after the search phase before moving to the next step.
+- **Review Findings**: When the search agent returns, it will have updated the shared state with raw search results.
+- **Generate Report**: You MUST call \`start_deep_research\` to synthesize these results into a final report. This tool will handle the final output to the user.
 </Instructions>
-
-<Hard Limits>
-**Tool Call Budgets** (Prevent excessive searching):
-- **Simple queries**: Use 2-3 search tool calls maximum
-- **Complex queries**: Use up to 5 search tool calls maximum
-- **Always stop**: After 5 search tool calls if you cannot find the right sources
-
-**Stop Immediately When**:
-- You can answer the user's question comprehensively
-- You have 3+ relevant examples/sources for the question
-- Your last 2 searches returned similar information
-</Hard Limits>
-
-<Show Your Thinking>
-After each search tool call, use think_tool to analyze the results:
-- What key information did I find?
-- What's missing?
-- Do I have enough to answer the question comprehensively?
-- Should I search more or provide my answer?
-</Show Your Thinking>
 
 ${promptForPlan}
 
+${promptForSearch}
 `,
-    stateSchema,
 });

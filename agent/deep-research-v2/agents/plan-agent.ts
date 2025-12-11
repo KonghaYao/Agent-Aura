@@ -23,7 +23,7 @@ export const planSubAgent = ask_subagents(
                 humanInTheLoopMiddleware({
                     interruptOn: {
                         ask_user_with_options: {
-                            allowedDecisions: ["reply"],
+                            allowedDecisions: ["respond"],
                         },
                     },
                 }),
@@ -46,10 +46,12 @@ Negotiate with the user to determine:
 <Instructions>
 - Start by analyzing the user's initial input.
 - If the input is insufficient, identify what is missing (Targets, Scope, or Format).
+- **Efficiency is Key**: Try to gather all necessary information in as few turns as possible. Limit yourself to maximum 3 questions.
+- **Infer Defaults**: If the user doesn't specify constraints (like date range), assume reasonable defaults (e.g., "Last 1 year", "Comprehensive Report") rather than asking explicitly unless it's critical.
 - **CRITICAL: You MUST use \`ask_user_with_options\` to ask questions. DO NOT ask questions directly in the text response.**
-- Use \`ask_user_with_options\` to ask for missing information; if multiple aspects are missing, ask sequentially.
+- Use \`ask_user_with_options\` to ask for missing information.
 - Be proactive: Suggest reasonable defaults as options.
-- When you have a clear understanding of ALL requirements, summarize the research plan to the user.
+- When you have a clear understanding of ALL requirements (or have reached the question limit), summarize the research plan to the user.
 - **CRITICAL LIMITATION**: You are a PLANNING agent ONLY. You DO NOT have access to search tools or external information. You CANNOT answer the research question. Your ONLY output is the plan itself. NEVER attempt to answer the user's research question directly.
 
 <Research Plan Format>
@@ -65,12 +67,17 @@ DO NOT include any actual research findings, hypothetical answers, or filler tex
 </Instructions>`,
         });
     },
+    {
+        name: "ask_plan_subagent",
+        description:
+            "Ask the planning subagent to help you negotiate and finalize a research plan with the user.",
+    },
 );
 
 export const promptForPlan = `
 <Planning Mode>
 Before starting deep research on complex or ambiguous topics, you MUST first establish a clear research plan.
-To do this, delegate the task to the planning specialist by calling the \`ask_subagents\` tool.
+To do this, delegate the task to the planning specialist by calling the \`ask_plan_subagent\` tool.
 
 **When to use:**
 - The user's request is broad (e.g., "Research AI agents")
@@ -78,7 +85,7 @@ To do this, delegate the task to the planning specialist by calling the \`ask_su
 - The scope needs boundaries (timeframe, depth, source types)
 
 **How to use:**
-Call \`ask_subagents\` with:
+Call \`ask_plan_subagent\` with:
 - \`subagent_id\`: "plan_agent"
 - \`question\`: The user's original request.
 
@@ -89,7 +96,7 @@ The subagent will interact with the user to clarify:
 
 **After the subagent finishes:**
 The subagent will return a summarized "Research Plan".
-Use this plan to guide your subsequent \`tavily_search\` and \`think_tool\` actions.
+Use this plan to guide your subsequent actions.
 DO NOT start searching until you have a clear plan if the initial request was vague.
 </Planning Mode>
 `;

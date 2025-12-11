@@ -10,7 +10,6 @@ import {
 import { UsageMetadata } from "./components/UsageMetadata";
 import { type Message } from "@langgraph-js/sdk";
 import { ArtifactViewer } from "../artifacts/ArtifactViewer";
-// import "../markdown.css";
 import { ArtifactsProvider, useArtifacts } from "../artifacts/ArtifactsContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,22 +20,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
     Mention,
     MentionContent,
     MentionInput,
     MentionItem,
 } from "@/components/ui/mention";
-import {
-    Brain,
-    Send,
-    StopCircle,
-    Plus,
-    ClosedCaption,
-    XIcon,
-} from "lucide-react";
-import { models } from "@/agent/models";
+import { Brain, Send, StopCircle, Plus, XIcon } from "lucide-react";
 import {
     ResizablePanelGroup,
     ResizablePanel,
@@ -70,12 +60,7 @@ const ChatMessages: React.FC = () => {
 
     return (
         <div className="w-full p-4 pt-12 gap-4">
-            <MessagesBox
-                renderMessages={renderMessages}
-                collapsedTools={collapsedTools}
-                toggleToolCollapse={toggleToolCollapse}
-                client={client!}
-            />
+            <MessagesBox renderMessages={renderMessages} />
             <div className="flex items-center justify-center py-4 text-gray-500 h-10">
                 {loading && !isFELocking() && (
                     <>

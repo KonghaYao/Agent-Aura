@@ -1,9 +1,10 @@
 import { createUITool, ToolManager } from "@langgraph-js/sdk";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { ListChecks, MessageSquarePlus } from "lucide-react";
+import { ListChecks, MessageSquarePlus, RefreshCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const AskUserWithOptionsSchema = {
     label: z.string().describe("Question text to display"),
@@ -51,6 +52,11 @@ export const ask_user_with_options = createUITool({
             }
         };
 
+        const handleReset = () => {
+            setSelected([]);
+            setCustomText("");
+        };
+
         const canInteract = tool.state === "interrupted";
         console.log(tool);
         const handleSubmit = () => {
@@ -62,7 +68,7 @@ export const ask_user_with_options = createUITool({
                 : "";
             tool.sendResumeData({
                 /** @ts-ignore */
-                type: "reply",
+                type: "respond",
                 message: `User Selected: ${
                     selected.length > 0 ? selectedLabels.join(", ") : "none"
                 } ${customTextLabel}`,
@@ -84,12 +90,23 @@ export const ask_user_with_options = createUITool({
                                 Question
                             </CardTitle>
                         </div>
-                        <Badge
-                            variant="outline"
-                            className="bg-blue-100 text-blue-700 border-blue-200"
-                        >
-                            {isMulti ? "多选" : "单选"}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                                onClick={handleReset}
+                                title="重置选择"
+                            >
+                                <RefreshCcw className="h-3.5 w-3.5" />
+                            </Button>
+                            <Badge
+                                variant="outline"
+                                className="bg-blue-100 text-blue-700 border-blue-200"
+                            >
+                                {isMulti ? "多选" : "单选"}
+                            </Badge>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-3">

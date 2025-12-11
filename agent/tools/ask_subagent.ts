@@ -26,6 +26,11 @@ export const ask_subagents = (
         args: z.infer<typeof schema>,
         parent_state: any,
     ) => Promise<any>,
+    options?: {
+        name?: string;
+        description?: string;
+        pass_through_keys?: string[];
+    },
 ) =>
     tool(
         async (args, config: ToolRuntime<typeof SubAgentStateSchema, any>) => {
@@ -36,35 +41,51 @@ export const ask_subagents = (
             };
             if (taskId && (state as any)?.["task_store"]?.[taskId]) {
                 sub_state = (state as any)?.["task_store"][taskId];
+            } else {
+                // 全复制状态
+                sub_state = JSON.parse(JSON.stringify(state));
+                sub_state.messages = [];
+                /** @ts-ignore 不继承 task_store 中的信息 */
+                sub_state.task_store = {};
             }
 
             const agent = await agentCreator(taskId, args, state);
             sub_state.messages.push(
                 new HumanMessage({ content: args.question }),
             );
-            const new_state = await agent.invoke(sub_state as any);
+            const new_state = await agent.invoke(sub_state);
             const last_message = new_state["messages"].at(-1);
-            return new Command({
-                update: {
-                    task_store: {
-                        ...((state as any)?.["task_store"] || {}),
-                        [taskId]: new_state,
-                    },
-                    messages: [
-                        {
-                            role: "tool",
-                            content:
-                                `task_id: ${taskId}\n---` +
-                                (last_message?.text || ""),
-                            tool_call_id: config.toolCall!.id!,
-                        },
-                    ],
+
+            const update: any = {
+                task_store: {
+                    ...(state?.["task_store"] || {}),
+                    [taskId]: new_state,
                 },
+                messages: [
+                    {
+                        role: "tool",
+                        content:
+                            `task_id: ${taskId}\n---` +
+                            (last_message?.text || ""),
+                        tool_call_id: config.toolCall!.id!,
+                    },
+                ],
+            };
+
+            options?.pass_through_keys?.forEach((key) => {
+                if (key in new_state) {
+                    console.log(key, new_state[key]);
+                    update[key] = new_state[key];
+                }
+            });
+
+            return new Command({
+                update,
             });
         },
         {
-            name: "ask_subagents",
-            description: "ask subagents to help you",
+            name: options?.name || "ask_subagents",
+            description: options?.description || "ask subagents to help you",
             schema,
         },
     );

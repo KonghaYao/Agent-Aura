@@ -20,6 +20,10 @@ export const deepResearchAgent: AgentStoreItem = {
             provider: "openai",
             model: "grok-code-fast-1",
         },
+        {
+            provider: "openai",
+            model: "gpt-4o-mini",
+        },
     ],
     tools: [],
     subAgents: [],

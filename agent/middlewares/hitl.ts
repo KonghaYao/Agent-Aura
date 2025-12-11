@@ -73,7 +73,7 @@ export type DescriptionFactory = z.infer<typeof DescriptionFunctionSchema>;
 /**
  * The type of decision a human can make.
  */
-const ALLOWED_DECISIONS = ["approve", "edit", "reject", "reply"] as const;
+const ALLOWED_DECISIONS = ["approve", "edit", "reject", "respond"] as const;
 const DecisionType = z.enum(ALLOWED_DECISIONS);
 export type DecisionType = z.infer<typeof DecisionType>;
 
@@ -247,8 +247,8 @@ export interface RejectDecision {
 /**
  * Response when a human replies to the action.
  */
-export interface ReplyDecision {
-    type: "reply";
+export interface RespondDecision {
+    type: "respond";
     /**
      * The message sent to the model as the result of the action.
      */
@@ -262,7 +262,7 @@ export type Decision =
     | ApproveDecision
     | EditDecision
     | RejectDecision
-    | ReplyDecision;
+    | RespondDecision;
 
 /**
  * Response payload for a HITLRequest.
@@ -635,7 +635,10 @@ export function humanInTheLoopMiddleware(
             return { revisedToolCall: toolCall, toolMessage };
         }
 
-        if (decision.type === "reply" && allowedDecisions.includes("reply")) {
+        if (
+            decision.type === "respond" &&
+            allowedDecisions.includes("respond")
+        ) {
             if (typeof decision.message !== "string") {
                 throw new Error(
                     `Tool call response for "${
@@ -798,7 +801,8 @@ export function humanInTheLoopMiddleware(
                 const artificialToolMessages: ToolMessage[] = [];
                 const hasHandledToolCalls = decisions.some(
                     (decision) =>
-                        decision.type === "reject" || decision.type === "reply",
+                        decision.type === "reject" ||
+                        decision.type === "respond",
                 );
 
                 /**
@@ -824,7 +828,7 @@ export function humanInTheLoopMiddleware(
                          */
                         (!hasHandledToolCalls ||
                             decision.type === "reject" ||
-                            decision.type === "reply")
+                            decision.type === "respond")
                     ) {
                         revisedToolCalls.push(revisedToolCall);
                     }

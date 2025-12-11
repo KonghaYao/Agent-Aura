@@ -1,8 +1,6 @@
 import { z } from "zod";
-import { BaseMessage } from "@langchain/core/messages";
-import { MessagesZodMeta } from "@langchain/langgraph";
 import { SubAgentStateSchema } from "../tools/ask_subagent";
-import { withLangGraph } from "@langchain/langgraph/zod";
+import { AgentState } from "@langgraph-js/pro";
 
 export const webSearchResult = z.object({
     topic: z.string().describe("the topic of the research"),
@@ -16,12 +14,6 @@ export const deepSearchResult = webSearchResult.extend({
         .string()
         .optional()
         .describe("the compressed content from all webpages"),
-});
-
-const AgentState = z.object({
-    messages: withLangGraph(z.custom<BaseMessage[]>(), MessagesZodMeta).default(
-        [],
-    ),
 });
 
 export const stateSchema = AgentState.extend({

@@ -54,11 +54,11 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))
       '@langgraph-js/pure-graph':
-        specifier: ^2.7.2
-        version: 2.7.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(bun-types@1.3.2(@types/react@19.2.7))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))
+        specifier: ^2.7.3
+        version: 2.7.3(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(bun-types@1.3.2(@types/react@19.2.7))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))
       '@langgraph-js/sdk':
-        specifier: ^3.8.2
-        version: 3.8.2(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@nanostores/react@1.0.0(nanostores@1.1.0)(react@19.2.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+        specifier: ^4.0.1
+        version: 4.0.1(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@nanostores/react@1.0.0(nanostores@1.1.0)(react@19.2.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       '@nanostores/react':
         specifier: ^1.0.0
         version: 1.0.0(nanostores@1.1.0)(react@19.2.1)
@@ -1329,12 +1329,12 @@ packages:
   '@langgraph-js/pro@2.2.0':
     resolution: {integrity: sha512-x7l035FVEk+S5uXXfu0vQqjsSaLp10CWDTWXyiEU6sJm5D8S+OWZxDfwJe17+yFI8ZWkMFgZ75i5G4sWCS2dFA==}
 
-  '@langgraph-js/pure-graph@2.7.2':
-    resolution: {integrity: sha512-zh0Wp7FQA8ADMVjKSauF9LeGrHKYijd2A8ZEalhpYuXzpK3l3WDPyUA9dttAeECEr8izMy3tcaYZawpMJoQVXg==}
+  '@langgraph-js/pure-graph@2.7.3':
+    resolution: {integrity: sha512-o0DEIyjKt1gOrez6liaTuKtfQwBhpOim+OGEbFnjCohjRAYlOUuSIb1t0wqj9WF3GLWO6DlOM8zvxns35pAFVA==}
     engines: {node: '>=18.0.0'}
 
-  '@langgraph-js/sdk@3.8.2':
-    resolution: {integrity: sha512-6HRqSlVoq3TZybzfLwImdhYJWzTPhGMMSLKOHB1+NgUXLJ9jeNHvxvOi04RTRgJ25Ht5u7CJyynQDru/+aWlew==}
+  '@langgraph-js/sdk@4.0.1':
+    resolution: {integrity: sha512-ImvpJILXjlikDGoCMX+4fdIoF/guCij80U3xwLhRIbWH9xFLb4uLaBAObae06WtdEuqm8Xi7I305WYiWZzoYyw==}
     peerDependencies:
       '@nanostores/react': ^1.0.0
       '@nanostores/vue': ^1.0.0
@@ -7058,6 +7058,11 @@ packages:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
 
+  zod-defaults@0.2.3:
+    resolution: {integrity: sha512-7pYkOH1/c+Ril5AZUYtsbhMkehkI8CMqzFZ7YZXfC9SMLRvZuLyonQE7BAIVSNxeTpqTZmW5BLxGSzWMnKNdIw==}
+    peerDependencies:
+      zod: ^4.1.12
+
   zod-to-json-schema@3.24.6:
     resolution: {integrity: sha512-h/z3PKvcTcTetyjl1fkj79MHNEjm+HpD6NXheWjzOekY7kV+lwDYnHw+ivHkijnCSMz1yJaWBD9vu/Fcmk+vEg==}
     peerDependencies:
@@ -8537,7 +8542,7 @@ snapshots:
       - ws
       - zod-to-json-schema
 
-  '@langgraph-js/pure-graph@2.7.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(bun-types@1.3.2(@types/react@19.2.7))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))':
+  '@langgraph-js/pure-graph@2.7.3(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(bun-types@1.3.2(@types/react@19.2.7))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(ws@8.18.3)(zod-to-json-schema@3.25.0(zod@4.1.13))':
     dependencies:
       '@langchain/core': 1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))
       '@langchain/langgraph': 1.0.2(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(zod-to-json-schema@3.25.0(zod@4.1.13))(zod@4.1.13)
@@ -8548,6 +8553,7 @@ snapshots:
       kysely: 0.28.8
       langchain: 1.1.3(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(zod-to-json-schema@3.25.0(zod@4.1.13))
       zod: 4.1.13
+      zod-defaults: 0.2.3(zod@4.1.13)
     optionalDependencies:
       '@hono/zod-validator': 0.7.5(hono@4.10.7)(zod@4.1.13)
       '@langchain/langgraph-checkpoint-postgres': 1.0.0(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@langchain/langgraph-checkpoint@1.0.0(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13))))
@@ -8574,7 +8580,7 @@ snapshots:
       - ws
       - zod-to-json-schema
 
-  '@langgraph-js/sdk@3.8.2(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@nanostores/react@1.0.0(nanostores@1.1.0)(react@19.2.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
+  '@langgraph-js/sdk@4.0.1(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(@nanostores/react@1.0.0(nanostores@1.1.0)(react@19.2.1))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@langchain/langgraph-sdk': 1.1.0(@langchain/core@1.1.2(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(openai@6.9.1(ws@8.18.3)(zod@4.1.13)))(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
       camelcase-keys: 10.0.1
@@ -15173,6 +15179,10 @@ snapshots:
       archiver-utils: 5.0.2
       compress-commons: 6.0.2
       readable-stream: 4.7.0
+
+  zod-defaults@0.2.3(zod@4.1.13):
+    dependencies:
+      zod: 4.1.13
 
   zod-to-json-schema@3.24.6(zod@3.25.76):
     dependencies:

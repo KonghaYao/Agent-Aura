@@ -20,22 +20,32 @@ const transTypeToOpenAIType = (type: string) => {
 
 export const MessagesBox = ({
     renderMessages,
+    parent_id = "",
 }: {
     renderMessages: RenderMessage[];
+    parent_id?: string;
 }) => {
     return (
         <>
-            {renderMessages.map((message, index) => (
-                <Message from={transTypeToOpenAIType(message.type)}>
-                    {message.type === "human" ? (
-                        <MessageHuman message={message}></MessageHuman>
-                    ) : message.type === "tool" ? (
-                        <MessageTool message={message}></MessageTool>
-                    ) : (
-                        <MessageAI message={message}></MessageAI>
-                    )}
-                </Message>
-            ))}
+            {renderMessages
+                .filter((i) => i.unique_id)
+                .map((message, index) => (
+                    <Message
+                        from={transTypeToOpenAIType(message.type)}
+                        key={
+                            parent_id +
+                            (message.unique_id || crypto.randomUUID())
+                        }
+                    >
+                        {message.type === "human" ? (
+                            <MessageHuman message={message}></MessageHuman>
+                        ) : message.type === "tool" ? (
+                            <MessageTool message={message}></MessageTool>
+                        ) : (
+                            <MessageAI message={message}></MessageAI>
+                        )}
+                    </Message>
+                ))}
         </>
     );
 };

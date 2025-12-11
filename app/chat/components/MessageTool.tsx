@@ -14,7 +14,13 @@ import { ChevronDown, ChevronRight, Workflow } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
-const SubProcessViewer = ({ messages }: { messages: RenderMessage[] }) => {
+const SubProcessViewer = ({
+    messages,
+    parent_id,
+}: {
+    messages: RenderMessage[];
+    parent_id?: string;
+}) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -43,7 +49,10 @@ const SubProcessViewer = ({ messages }: { messages: RenderMessage[] }) => {
             </CardHeader>
             {isOpen && (
                 <div className="border-l border-gray-200 pl-2 ml-2">
-                    <MessagesBox renderMessages={messages} />
+                    <MessagesBox
+                        renderMessages={messages}
+                        parent_id={parent_id}
+                    />
                 </div>
             )}
         </div>
@@ -101,7 +110,10 @@ const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
                 </div>
             )}
             {message.sub_messages && message.sub_messages.length > 0 && (
-                <SubProcessViewer messages={message.sub_messages} />
+                <SubProcessViewer
+                    messages={message.sub_messages}
+                    parent_id={message.id}
+                />
             )}
         </div>
     );

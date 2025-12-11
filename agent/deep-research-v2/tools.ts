@@ -74,37 +74,6 @@ export const change_research_topic = tool(
     },
 );
 
-export const end_of_research = tool(
-    (args, config: ToolRuntime<typeof stateSchema, any>) => {
-        const state = config.state;
-        return new Command({
-            update: {
-                search_results: [
-                    ...state.search_results,
-                    args.search_result_of_current_topic,
-                ],
-                messages: [
-                    ...state.messages,
-                    new ToolMessage({
-                        name: "end_of_research",
-                        tool_call_id: getToolCallId(config),
-                        content: "end of research",
-                    }),
-                ],
-            },
-        });
-    },
-    {
-        name: "end_of_research",
-        returnDirect: true,
-        schema: z.object({
-            search_result_of_current_topic: webSearchResult.describe(
-                "the web search result",
-            ),
-        }),
-    },
-);
-
 export const ask_user_with_options = tool(
     async (args) => {
         return `user selected: answer will appear in human in the loop reject message`;
