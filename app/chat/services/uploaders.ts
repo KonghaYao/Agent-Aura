@@ -7,14 +7,9 @@ export class ImageKitUploader implements FileUploaderInterface {
         try {
             // 将文件转换为 base64
             const base64Data = await this.fileToBase64(file);
-            let url = "";
-            if ((globalThis as any).Bun) {
-                url = "http://localhost:8123/api/files/upload/imagekit";
-            } else {
-                url = "/api/files/upload/imagekit";
-            }
+
             // 调用服务端 ImageKit 上传 API
-            const response = await fetch(url, {
+            const response = await fetch("/api/files/upload/imagekit", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -29,8 +24,8 @@ export class ImageKitUploader implements FileUploaderInterface {
             if (response.ok) {
                 const data = await response.json();
                 // 返回 ImageKit 的文件 URL
-                if (data.data && data.data.imagekit && data.data.imagekit.url) {
-                    return data.data.imagekit.url;
+                if (data?.data?.image_url) {
+                    return data.data.image_url;
                 }
                 console.error(
                     "Invalid response format from ImageKit upload API",

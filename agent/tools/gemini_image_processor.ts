@@ -2,6 +2,7 @@ import { z } from "zod";
 import { tool } from "@langchain/core/tools";
 import { processGeminiImage } from "../utils/nano_banana";
 import { uploadToImageKit } from "../utils/imagekit";
+import { getConfig } from "@langchain/langgraph";
 
 export const gemini_image_processor = tool(
     async (input) => {
@@ -14,14 +15,22 @@ export const gemini_image_processor = tool(
                 input.model,
             );
             console.log("图片生成完成");
-
-            // 使用统一的 ImageKit 上传函数
-            const imageUrl = await uploadToImageKit(
+            const context = getConfig();
+            const userId = context?.configurable?.userId as string;
+            const threadId = context?.configurable?.thread_id as string;
+            // 使用统一的 ImageKit 上传函数（自动保存到数据库）
+            const { url: imageUrl } = await uploadToImageKit(
                 imageBuffer as Buffer,
                 `gemini-${Date.now()}.png`,
                 {
                     folder: "/generated-images",
                     tags: ["ai-generated", "gemini"],
+                    saveToDb: true,
+                    dbOptions: {
+                        userId: userId,
+                        conversationId: threadId,
+                        isAiGen: true,
+                    },
                 },
             );
             console.log("图片上传完成:", imageUrl);

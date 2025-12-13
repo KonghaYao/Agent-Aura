@@ -471,30 +471,22 @@ filesRouter.post(
             const { fileName, fileData, folder } = c.req.valid("json");
             const userId = c.get("userId") as string;
 
-            // 使用统一的 ImageKit 上传函数
-            const imageUrl = await uploadToImageKit(
-                fileData, // base64 数据
+            // 使用统一的 ImageKit 上传函数（自动保存到数据库）
+            const { url: imageUrl, file: savedFile } = await uploadToImageKit(
+                Buffer.from(fileData, "base64"), // base64 数据
                 fileName,
                 {
                     folder: folder || "/uploads", // 默认上传到 uploads 文件夹
                     tags: [`user:${userId}`], // 添加用户标签
+                    saveToDb: true, // 启用自动数据库保存
+                    dbOptions: {
+                        userId: userId,
+                        conversationId: null,
+                        category: "imagekit",
+                        isAiGen: false,
+                    },
                 },
             );
-
-            // 将文件信息保存到数据库（这里需要估算文件大小，因为只有 base64 数据）
-            const fileDataToSave: FileInsert = {
-                user_id: userId,
-                conversation_id: null,
-                file_name: fileName,
-                file_size: Math.ceil((fileData.length * 3) / 4), // 估算 base64 解码后的文件大小
-                file_type: "unknown", // 可以通过文件名推断，但这里简化处理
-                oss_url: imageUrl,
-                category: "imagekit",
-                tags: [`user:${userId}`, "imagekit"],
-                is_ai_gen: false,
-            };
-
-            const savedFile = await fileStoreService.createFile(fileDataToSave);
 
             return c.json(
                 {
