@@ -4,6 +4,8 @@ import { z } from "zod";
 import type { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index.js";
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
 import { TextStoreService } from "./text-store";
+import ImageKit from "imagekit";
+import { getEnv } from "../utils/getEnv";
 
 // 扩展上下文类型以包含自定义变量
 type ExtendedContext = LangGraphServerContext & {
@@ -15,6 +17,13 @@ export const filesRouter = new Hono<{ Variables: ExtendedContext }>();
 
 // 初始化文本存储服务
 export const textStoreService = new TextStoreService();
+
+// 初始化 ImageKit
+const imagekit = new ImageKit({
+    publicKey: getEnv("IMAGEKIT_PUBLIC_KEY") || "",
+    privateKey: getEnv("IMAGEKIT_PRIVATE_KEY") || "",
+    urlEndpoint: getEnv("IMAGEKIT_URL_ENDPOINT") || "",
+});
 
 // 请求/响应类型定义
 const createFileSchema = z.object({
@@ -449,3 +458,67 @@ filesRouter.get("/text/:id/download", async (c) => {
         return c.json({ error: "下载文本文档失败" }, 500);
     }
 });
+
+// ============================================================================
+// ImageKit 文件上传 API
+// ============================================================================
+
+// ImageKit 上传请求验证
+const imagekitUploadSchema = z.object({
+    fileName: z.string().min(1, "文件名不能为空"),
+    fileData: z.string().min(1, "文件数据不能为空"), // base64 编码的文件数据
+    folder: z.string().optional(), // 可选的文件夹路径
+});
+
+// ImageKit 文件上传
+filesRouter.post(
+    "/upload/imagekit",
+    zValidator("json", imagekitUploadSchema),
+    async (c) => {
+        try {
+            const { fileName, fileData, folder } = c.req.valid("json");
+            const userId = c.get("userId") as string;
+
+            // 使用 ImageKit 上传文件
+            const result = await imagekit.upload({
+                file: fileData, // base64 数据
+                fileName: fileName,
+                folder: folder || "/uploads", // 默认上传到 uploads 文件夹
+                useUniqueFileName: true, // 使用唯一文件名避免冲突
+                tags: [`user:${userId}`], // 添加用户标签
+            });
+
+            if (!result || !result.url) {
+                return c.json({ error: "ImageKit 上传失败" }, 500);
+            }
+
+            // 将文件信息保存到数据库
+            const fileDataToSave: FileInsert = {
+                user_id: userId,
+                conversation_id: null,
+                file_name: result.name || fileName,
+                file_size: result.size || 0,
+                file_type: result.fileType || "unknown",
+                oss_url: result.url,
+                category: "imagekit",
+                tags: [`user:${userId}`, "imagekit"],
+                is_ai_gen: false,
+            };
+
+            const savedFile = await fileStoreService.createFile(fileDataToSave);
+
+            return c.json(
+                {
+                    data: {
+                        file: savedFile,
+                        imagekit: result,
+                    },
+                },
+                201,
+            );
+        } catch (error) {
+            console.error("ImageKit 上传失败:", error);
+            return c.json({ error: "文件上传失败" }, 500);
+        }
+    },
+);
