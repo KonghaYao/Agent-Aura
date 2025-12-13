@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index.js";
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
 import { TextStoreService } from "./text-store";
+import { uploadToImageKit } from "../utils/imagekit";
 
 // 扩展上下文类型以包含自定义变量
 type ExtendedContext = LangGraphServerContext & {
@@ -449,3 +450,64 @@ filesRouter.get("/text/:id/download", async (c) => {
         return c.json({ error: "下载文本文档失败" }, 500);
     }
 });
+
+// ============================================================================
+// ImageKit 文件上传 API
+// ============================================================================
+
+// ImageKit 上传请求验证
+const imagekitUploadSchema = z.object({
+    fileName: z.string().min(1, "文件名不能为空"),
+    fileData: z.string().min(1, "文件数据不能为空"), // base64 编码的文件数据
+    folder: z.string().optional(), // 可选的文件夹路径
+});
+
+// ImageKit 文件上传
+filesRouter.post(
+    "/upload/imagekit",
+    zValidator("json", imagekitUploadSchema),
+    async (c) => {
+        try {
+            const { fileName, fileData, folder } = c.req.valid("json");
+            const userId = c.get("userId") as string;
+
+            // 使用统一的 ImageKit 上传函数
+            const imageUrl = await uploadToImageKit(
+                fileData, // base64 数据
+                fileName,
+                {
+                    folder: folder || "/uploads", // 默认上传到 uploads 文件夹
+                    tags: [`user:${userId}`], // 添加用户标签
+                },
+            );
+
+            // 将文件信息保存到数据库（这里需要估算文件大小，因为只有 base64 数据）
+            const fileDataToSave: FileInsert = {
+                user_id: userId,
+                conversation_id: null,
+                file_name: fileName,
+                file_size: Math.ceil((fileData.length * 3) / 4), // 估算 base64 解码后的文件大小
+                file_type: "unknown", // 可以通过文件名推断，但这里简化处理
+                oss_url: imageUrl,
+                category: "imagekit",
+                tags: [`user:${userId}`, "imagekit"],
+                is_ai_gen: false,
+            };
+
+            const savedFile = await fileStoreService.createFile(fileDataToSave);
+
+            return c.json(
+                {
+                    data: {
+                        file: savedFile,
+                        image_url: imageUrl,
+                    },
+                },
+                201,
+            );
+        } catch (error) {
+            console.error("ImageKit 上传失败:", error);
+            return c.json({ error: "文件上传失败" }, 500);
+        }
+    },
+);

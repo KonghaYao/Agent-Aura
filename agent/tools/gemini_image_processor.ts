@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { tool } from "@langchain/core/tools";
 import { processGeminiImage } from "../utils/nano_banana";
-import { defaultUploader } from "../../app/chat/services/uploaders";
+import { uploadToImageKit } from "../utils/imagekit";
 
 export const gemini_image_processor = tool(
     async (input) => {
@@ -14,10 +14,18 @@ export const gemini_image_processor = tool(
                 input.model,
             );
             console.log("图片生成完成");
-            const imageUrl = await defaultUploader.uploadFile(
-                new File([imageBuffer as any as string], "image.png"),
+
+            // 使用统一的 ImageKit 上传函数
+            const imageUrl = await uploadToImageKit(
+                imageBuffer as Buffer,
+                `gemini-${Date.now()}.png`,
+                {
+                    folder: "/generated-images",
+                    tags: ["ai-generated", "gemini"],
+                },
             );
-            console.log(imageUrl);
+            console.log("图片上传完成:", imageUrl);
+
             return {
                 image_url: imageUrl,
                 hint: "The image is generated and shown to the user. You don't need to show the image url to the user in your response.",
