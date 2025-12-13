@@ -191,12 +191,20 @@ export class FileService {
     /**
      * 获取文件列表
      */
-    async getFiles(category?: string): Promise<UploadFileType[]> {
+    async getFiles(
+        category?: string,
+        page: number = 1,
+        pageSize: number = 50,
+    ): Promise<{ files: UploadFileType[]; total: number }> {
         try {
-            let url = "/api/files";
+            const params = new URLSearchParams();
             if (category && category !== "all") {
-                url += `?category=${category}`;
+                params.append("category", category);
             }
+            params.append("limit", pageSize.toString());
+            params.append("offset", ((page - 1) * pageSize).toString());
+
+            const url = `/api/files?${params.toString()}`;
 
             const response = await fetch(url);
             if (!response.ok) {
@@ -204,7 +212,10 @@ export class FileService {
             }
 
             const data = await response.json();
-            return data.data || [];
+            return {
+                files: data.data || [],
+                total: data.total || 0, // 假设后端返回 total 字段
+            };
         } catch (error) {
             console.error("Failed to fetch files:", error);
             throw error;

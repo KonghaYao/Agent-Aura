@@ -108,8 +108,39 @@ filesRouter.get("/", zValidator("query", getFilesQuerySchema), async (c) => {
                 : undefined,
         };
 
-        const files = await fileStoreService.getFilesByUserId(userId, options);
-        return c.json({ data: files });
+        // 同时执行文件列表查询和总数查询
+        const [files, totalResult] = await Promise.all([
+            fileStoreService.getFilesByUserId(userId, options),
+            (async () => {
+                let countQuery = fileStoreService.countFilesByUserId(userId);
+
+                if (options.conversationId) {
+                    countQuery = countQuery.where(
+                        "conversation_id",
+                        "=",
+                        options.conversationId,
+                    );
+                }
+
+                if (options.category) {
+                    countQuery = countQuery.where(
+                        "category",
+                        "=",
+                        options.category,
+                    );
+                }
+
+                if (options.tags && options.tags.length > 0) {
+                    countQuery = countQuery.where("tags", "@>", options.tags);
+                }
+
+                return await countQuery.executeTakeFirst();
+            })(),
+        ]);
+
+        const total = Number(totalResult?.count || 0);
+
+        return c.json({ data: files, total });
     } catch (error) {
         console.error("获取文件列表失败:", error);
         return c.json({ error: "获取文件列表失败" }, 500);

@@ -178,7 +178,12 @@ export class FileStoreService {
         const result = await query.selectAll().execute();
         return result as unknown as FileSelect[];
     }
-
+    countFilesByUserId(userId: string) {
+        return this.db
+            .selectFrom("files")
+            .where("user_id", "=", userId)
+            .select((eb) => eb.fn.count("id").as("count"));
+    }
     /**
      * 更新文件记录
      */

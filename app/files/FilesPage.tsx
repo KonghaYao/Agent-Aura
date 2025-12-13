@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import type { File } from "./types";
 import FileTable from "./components/FileTable";
+import ImageGallery from "./components/ImageGallery";
 import FilePreviewContent from "./components/FilePreviewContent";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,15 @@ import {
     SheetDescription,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -48,23 +58,32 @@ const FilesPage: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState<string>("all");
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalFiles, setTotalFiles] = useState<number>(0);
+    const pageSize = 50;
 
     const fileService = FileService.getInstance(new TmpFilesClient());
 
     const fetchFiles = useCallback(
-        async (category: string = "all") => {
+        async (category: string = "all", page: number = 1) => {
             setLoading(true);
             setError(null);
             try {
-                const files = await fileService.getFiles(category);
-                setFiles(files);
+                const result = await fileService.getFiles(
+                    category,
+                    page,
+                    pageSize,
+                );
+                setFiles(result.files);
+                setTotalFiles(result.total);
+                setCurrentPage(page);
             } catch (err: any) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         },
-        [fileService],
+        [fileService, pageSize],
     );
 
     useEffect(() => {
@@ -99,6 +118,20 @@ const FilesPage: React.FC = () => {
             if (previewFile?.id === id) {
                 setPreviewFile(null);
             }
+
+            // 如果删除后当前页没有文件了，跳转到上一页
+            const remainingFiles = files.filter((file) => file.id !== id);
+            if (remainingFiles.length === 0 && currentPage > 1) {
+                fetchFiles(activeCategory, currentPage - 1);
+            } else {
+                // 重新获取总数
+                const result = await fileService.getFiles(
+                    activeCategory,
+                    currentPage,
+                    pageSize,
+                );
+                setTotalFiles(result.total);
+            }
         } catch (err: any) {
             setError(err.message);
         }
@@ -127,7 +160,10 @@ const FilesPage: React.FC = () => {
                                 activeCategory === category.id &&
                                     "bg-secondary text-secondary-foreground",
                             )}
-                            onClick={() => setActiveCategory(category.id)}
+                            onClick={() => {
+                                setActiveCategory(category.id);
+                                setCurrentPage(1); // 切换分类时重置到第一页
+                            }}
                         >
                             <category.icon className="mr-2 h-4 w-4" />
                             {category.label}
@@ -173,15 +209,123 @@ const FilesPage: React.FC = () => {
                 </div>
 
                 {/* File List */}
-                <div className="flex-1 p-6 overflow-auto">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-xl font-semibold tracking-tight">
-                            {CATEGORIES.find((c) => c.id === activeCategory)
-                                ?.label || "全部文件"}
-                            <span className="text-muted-foreground text-sm font-normal ml-2">
-                                ({filteredFiles.length} 个文件)
-                            </span>
-                        </h2>
+                <div className="flex-1 px-6 overflow-auto">
+                    <div className="mb-4 flex items-center justify-between sticky top-0 bg-white z-10">
+                        {CATEGORIES.find((c) => c.id === activeCategory)
+                            ?.label || "全部文件"}
+                        <span className="text-muted-foreground text-sm font-normal ml-2">
+                            ({filteredFiles.length} 个文件)
+                        </span>
+                        <div className="flex-1"></div>
+                        {totalFiles > pageSize && (
+                            <div className="flex justify-center mt-6">
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                onClick={() => {
+                                                    if (currentPage > 1) {
+                                                        fetchFiles(
+                                                            activeCategory,
+                                                            currentPage - 1,
+                                                        );
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    currentPage <= 1 &&
+                                                        "pointer-events-none opacity-50",
+                                                )}
+                                            />
+                                        </PaginationItem>
+
+                                        {/* Page numbers */}
+                                        {Array.from(
+                                            {
+                                                length: Math.ceil(
+                                                    totalFiles / pageSize,
+                                                ),
+                                            },
+                                            (_, i) => i + 1,
+                                        )
+                                            .filter((page) => {
+                                                const totalPages = Math.ceil(
+                                                    totalFiles / pageSize,
+                                                );
+                                                // Show first page, last page, current page and pages around current
+                                                return (
+                                                    page === 1 ||
+                                                    page === totalPages ||
+                                                    (page >= currentPage - 1 &&
+                                                        page <= currentPage + 1)
+                                                );
+                                            })
+                                            .map((page, index, array) => {
+                                                // Add ellipsis between non-consecutive pages
+                                                const prevPage =
+                                                    array[index - 1];
+                                                const showEllipsis =
+                                                    prevPage &&
+                                                    page - prevPage > 1;
+
+                                                return (
+                                                    <React.Fragment key={page}>
+                                                        {showEllipsis && (
+                                                            <PaginationItem>
+                                                                <PaginationEllipsis />
+                                                            </PaginationItem>
+                                                        )}
+                                                        <PaginationItem>
+                                                            <PaginationLink
+                                                                onClick={() =>
+                                                                    fetchFiles(
+                                                                        activeCategory,
+                                                                        page,
+                                                                    )
+                                                                }
+                                                                isActive={
+                                                                    currentPage ===
+                                                                    page
+                                                                }
+                                                                className="cursor-pointer"
+                                                            >
+                                                                {page}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    </React.Fragment>
+                                                );
+                                            })}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                onClick={() => {
+                                                    const totalPages =
+                                                        Math.ceil(
+                                                            totalFiles /
+                                                                pageSize,
+                                                        );
+                                                    if (
+                                                        currentPage < totalPages
+                                                    ) {
+                                                        fetchFiles(
+                                                            activeCategory,
+                                                            currentPage + 1,
+                                                        );
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    currentPage >=
+                                                        Math.ceil(
+                                                            totalFiles /
+                                                                pageSize,
+                                                        ) &&
+                                                        "pointer-events-none opacity-50",
+                                                )}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
                     </div>
 
                     {uploadProgress !== null && (
@@ -205,6 +349,13 @@ const FilesPage: React.FC = () => {
                         <div className="p-4 text-red-500 bg-red-50 rounded-md border border-red-200">
                             {error}
                         </div>
+                    ) : activeCategory === "image" ? (
+                        <ImageGallery
+                            files={filteredFiles}
+                            onDelete={handleDelete}
+                            onPreview={setPreviewFile}
+                            previewFile={previewFile}
+                        />
                     ) : (
                         <div className="rounded-md border">
                             <FileTable
@@ -215,6 +366,8 @@ const FilesPage: React.FC = () => {
                             />
                         </div>
                     )}
+
+                    {/* Pagination */}
                 </div>
             </div>
 
