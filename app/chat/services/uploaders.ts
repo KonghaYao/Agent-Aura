@@ -3,14 +3,18 @@ import type { FileUploaderInterface } from "../components/FileDropzone";
 // ImageKit 上传器
 export class ImageKitUploader implements FileUploaderInterface {
     isImageOnly = false; // ImageKit 支持多种文件类型
-
     async uploadFile(file: File): Promise<string | null> {
         try {
             // 将文件转换为 base64
             const base64Data = await this.fileToBase64(file);
-
+            let url = "";
+            if ((globalThis as any).Bun) {
+                url = "http://localhost:8123/api/files/upload/imagekit";
+            } else {
+                url = "/api/files/upload/imagekit";
+            }
             // 调用服务端 ImageKit 上传 API
-            const response = await fetch("/api/files/upload/imagekit", {
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -43,18 +47,35 @@ export class ImageKitUploader implements FileUploaderInterface {
         }
     }
 
-    private fileToBase64(file: File): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const result = reader.result as string;
-                // 移除 data:*/*;base64, 前缀，只保留 base64 数据
-                const base64Data = result.split(",")[1];
-                resolve(base64Data);
-            };
-            reader.onerror = (error) => reject(error);
-        });
+    private async fileToBase64(file: File): Promise<string> {
+        // 兼容全环境的文件转base64方法
+        if (typeof file.arrayBuffer === "function") {
+            const arrayBuffer = await file.arrayBuffer();
+            const bytes = new Uint8Array(arrayBuffer);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            // 优先使用 btoa（浏览器），否则使用 Buffer（Node.js/Bun）
+            return typeof btoa !== "undefined"
+                ? btoa(binary)
+                : Buffer.from(binary, "binary").toString("base64");
+        }
+
+        // 浏览器环境回退方案
+        if (typeof FileReader !== "undefined") {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result as string;
+                    resolve(result.split(",")[1]); // 移除 data URL 前缀
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        throw new Error("File reading not supported in this environment");
     }
 }
 

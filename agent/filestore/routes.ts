@@ -4,8 +4,7 @@ import { z } from "zod";
 import type { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapter/hono/index.js";
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
 import { TextStoreService } from "./text-store";
-import ImageKit from "imagekit";
-import { getEnv } from "../utils/getEnv";
+import { uploadToImageKit } from "../utils/imagekit";
 
 // 扩展上下文类型以包含自定义变量
 type ExtendedContext = LangGraphServerContext & {
@@ -17,13 +16,6 @@ export const filesRouter = new Hono<{ Variables: ExtendedContext }>();
 
 // 初始化文本存储服务
 export const textStoreService = new TextStoreService();
-
-// 初始化 ImageKit
-const imagekit = new ImageKit({
-    publicKey: getEnv("IMAGEKIT_PUBLIC_KEY") || "",
-    privateKey: getEnv("IMAGEKIT_PRIVATE_KEY") || "",
-    urlEndpoint: getEnv("IMAGEKIT_URL_ENDPOINT") || "",
-});
 
 // 请求/响应类型定义
 const createFileSchema = z.object({
@@ -479,27 +471,24 @@ filesRouter.post(
             const { fileName, fileData, folder } = c.req.valid("json");
             const userId = c.get("userId") as string;
 
-            // 使用 ImageKit 上传文件
-            const result = await imagekit.upload({
-                file: fileData, // base64 数据
-                fileName: fileName,
-                folder: folder || "/uploads", // 默认上传到 uploads 文件夹
-                useUniqueFileName: true, // 使用唯一文件名避免冲突
-                tags: [`user:${userId}`], // 添加用户标签
-            });
+            // 使用统一的 ImageKit 上传函数
+            const imageUrl = await uploadToImageKit(
+                fileData, // base64 数据
+                fileName,
+                {
+                    folder: folder || "/uploads", // 默认上传到 uploads 文件夹
+                    tags: [`user:${userId}`], // 添加用户标签
+                },
+            );
 
-            if (!result || !result.url) {
-                return c.json({ error: "ImageKit 上传失败" }, 500);
-            }
-
-            // 将文件信息保存到数据库
+            // 将文件信息保存到数据库（这里需要估算文件大小，因为只有 base64 数据）
             const fileDataToSave: FileInsert = {
                 user_id: userId,
                 conversation_id: null,
-                file_name: result.name || fileName,
-                file_size: result.size || 0,
-                file_type: result.fileType || "unknown",
-                oss_url: result.url,
+                file_name: fileName,
+                file_size: Math.ceil((fileData.length * 3) / 4), // 估算 base64 解码后的文件大小
+                file_type: "unknown", // 可以通过文件名推断，但这里简化处理
+                oss_url: imageUrl,
                 category: "imagekit",
                 tags: [`user:${userId}`, "imagekit"],
                 is_ai_gen: false,
@@ -511,7 +500,7 @@ filesRouter.post(
                 {
                     data: {
                         file: savedFile,
-                        imagekit: result,
+                        image_url: imageUrl,
                     },
                 },
                 201,
