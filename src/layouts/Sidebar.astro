@@ -1,28 +1,30 @@
 ---
 import UserAvatar from "../../components/UserAvatar";
+import { Sparkles, Bot, MessageCircle, Folder } from "lucide-react";
+
 const navigation = [
     {
         name: "Aura",
         path: "/",
-        icon: "🌟",
+        icon: Sparkles,
         description: "AI Agent Platform"
     },
     {
         name: "Agent Store",
         path: "/agent-store",
-        icon: "🤖",
+        icon: Bot,
         description: "浏览和创建代理"
     },
     {
         name: "Agent Chat",
         path: "/agent",
-        icon: "💬",
+        icon: MessageCircle,
         description: "与AI代理对话"
     },
     {
         name: "Files",
         path: "/files",
-        icon: "📂",
+        icon: Folder,
         description: "文件管理"
     }
 ];
@@ -31,14 +33,14 @@ const currentPath = Astro.url.pathname;
 ---
 
 <!-- Sidebar -->
-<aside class="group/sidebar bg-sidebar border-sidebar-border border-r w-16 hover:w-64 transition-all duration-300 ease-in-out h-screen flex flex-col shadow-sm overflow-hidden">
+<aside class="bg-sidebar border-sidebar-border border-r w-64 h-screen flex flex-col shadow-sm overflow-hidden">
     <!-- Logo Section -->
     <div class="flex items-center justify-center h-16 px-4 border-b border-sidebar-border">
         <div class="flex items-center gap-3 min-w-0">
             <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <span class="text-primary-foreground font-bold text-lg">A</span>
             </div>
-            <div class="hidden group-hover/sidebar:block transition-opacity duration-200">
+            <div class="block">
                 <h1 class="text-sidebar-foreground font-semibold text-lg truncate">
                     Agent Aura
                 </h1>
@@ -67,19 +69,14 @@ const currentPath = Astro.url.pathname;
                         )}
 
                         <!-- Icon -->
-                        <div class="flex items-center justify-center w-6 h-6 shrink-0 text-xl group-hover/nav-item:scale-110 transition-transform duration-200">
-                            {item.icon}
+                        <div class="flex items-center justify-center w-6 h-6 shrink-0">
+                            <item.icon className="w-5 h-5" />
                         </div>
 
                         <!-- Label -->
-                        <span class="hidden group-hover/sidebar:block text-sm font-medium truncate transition-opacity duration-200">
+                        <span class="block text-sm font-medium truncate">
                             {item.name}
                         </span>
-
-                        <!-- Tooltip for collapsed state -->
-                        <div class="group-hover/sidebar:hidden absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover/nav-item:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
-                            {item.description}
-                        </div>
                     </a>
                 </li>
             ))}

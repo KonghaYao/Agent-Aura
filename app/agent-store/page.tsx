@@ -97,7 +97,7 @@ export default function AgentStorePage() {
     }
 
     return (
-        <div className="container mx-auto py-8 space-y-6">
+        <div className="container mx-auto p-8 space-y-6">
             {/* 标题栏 */}
             <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center gap-4">
