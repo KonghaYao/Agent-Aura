@@ -14,10 +14,10 @@ import { noneAgent } from "../schema-store/agents/noneAgent";
 import { graph as deepResearchGraph } from "../deep-research-v2/graph";
 import { AgentSchemaList } from "../schema-store";
 import { stateSchema as DeepResearchState } from "../deep-research-v2/state";
-import { AgentState } from "@langgraph-js/pro";
+import { AgentState, mergeState } from "@langgraph-js/pro";
 export const AgentGraphState = AgentState.merge(AgentProtocolSchema)
     .merge(SubAgentStateSchema)
-    .merge(DeepResearchState);
+    .passthrough();
 
 registerPrebuiltAgent("deep-research-v2", deepResearchGraph);
 
@@ -55,6 +55,6 @@ export const graph = createStateEntrypoint(
         );
 
         const response = await agent.invoke(state);
-        return response;
+        return mergeState({ ...state, messages: [] }, response);
     },
 );

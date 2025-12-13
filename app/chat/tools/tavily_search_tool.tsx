@@ -2,15 +2,16 @@
 
 import { createUITool } from "@langgraph-js/sdk";
 import {
-    LinkIcon,
     ExternalLinkIcon,
     ChevronDownIcon,
     ChevronUpIcon,
+    Search,
 } from "lucide-react";
 import { FaviconDisplay } from "@/components/shared/FaviconDisplay";
-import { Source, SourceTrigger, SourceContent } from "@/components/ui/source";
+import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface TavilySearchResult {
     title: string;
@@ -35,7 +36,7 @@ interface TavilySearchInput {
 export const tavily_search_tool = createUITool({
     name: "tavily_search",
     description:
-        "Advanced web search powered by Tavily AI. Provides high-quality, relevant search results with content snippets, relevance scoring, and fast response times. Perfect for research, fact-checking, and gathering current information from the web.",
+        "Advanced web search powered by Tavily AI. Provides high-quality, relevant search results with content snippets, relevance scoring, and fast response times.",
     parameters: {
         query: z.string(),
         max_results: z.number().optional(),
@@ -62,153 +63,128 @@ export const tavily_search_tool = createUITool({
             }
         };
 
-        const getRelevanceColor = (score: number): string => {
-            if (score >= 0.8) return "text-green-600";
-            if (score >= 0.6) return "text-yellow-600";
-            return "text-gray-600";
+        const getRelevanceColor = (score: number) => {
+            if (score >= 0.8)
+                return "bg-green-100 text-green-700 hover:bg-green-100/80 border-green-200";
+            if (score >= 0.6)
+                return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80 border-yellow-200";
+            return "bg-gray-100 text-gray-700 hover:bg-gray-100/80 border-gray-200";
         };
 
         return (
-            <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                        Tavily Search: {data.query}
-                        {data.max_results &&
-                            ` • Max results: ${data.max_results}`}
+            <div className="flex flex-col gap-2 my-2">
+                {/* Header */}
+                <div
+                    className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-2xl cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="shrink-0 w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                            <Search className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                                Tavily Search
+                            </div>
+                            <div className="text-xs text-gray-500 truncate">
+                                {data.query}
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-1">
-                        <span>Powered by Tavily AI</span>
-                        <ExternalLinkIcon className="w-3 h-3" />
+
+                    <div className="flex items-center gap-3 shrink-0">
+                        {tool.state === "loading" ? (
+                            <div className="flex items-center gap-2">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                                <span className="text-xs text-gray-400">
+                                    Searching...
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400 font-medium px-2 py-0.5 bg-gray-100 rounded-full">
+                                    {feedback.length} results
+                                </span>
+                                {feedback.length > 0 && (
+                                    <div className="hidden sm:flex -space-x-1.5">
+                                        {feedback
+                                            .slice(0, 3)
+                                            .map((result, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="relative z-10 rounded-full ring-2 ring-white bg-white"
+                                                >
+                                                    <FaviconDisplay
+                                                        url={result.url}
+                                                        className="w-5 h-5 rounded-full"
+                                                    />
+                                                </div>
+                                            ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {isExpanded ? (
+                            <ChevronUpIcon className="w-4 h-4 text-gray-400" />
+                        ) : (
+                            <ChevronDownIcon className="w-4 h-4 text-gray-400" />
+                        )}
                     </div>
                 </div>
 
-                {tool.state === "loading" && (
-                    <div className="text-sm text-gray-500 flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                        Searching with Tavily AI...
-                    </div>
-                )}
-
-                {feedback.length > 0 && (
-                    <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-500">
-                            Found {feedback.length} relevant results
-                        </div>
-                        <button
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="flex items-center gap-2 px-3 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-md transition-colors"
-                        >
-                            {isExpanded ? (
-                                <ChevronUpIcon className="w-3 h-3" />
-                            ) : (
-                                <ChevronDownIcon className="w-3 h-3" />
-                            )}
-                        </button>
-                    </div>
-                )}
-
-                {/* Collapsed/Tag View */}
-                {!isExpanded && feedback.length > 0 && (
-                    <div className="overflow-x-auto py-2">
-                        <div className="flex gap-2 min-w-max">
-                            {feedback.map((result, index) => (
-                                <Source key={index} href={result.url}>
-                                    <SourceTrigger
-                                        label={result.title}
-                                        showFavicon
-                                        className="bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 px-3 py-2 rounded-full"
-                                    />
-                                    <SourceContent
-                                        title={`${result.title} - ${(
-                                            result.score * 100
-                                        ).toFixed(0)}% relevance`}
-                                        description={`${getDomainFromUrl(
-                                            result.url,
-                                        )} • ${result.content.substring(
-                                            0,
-                                            100,
-                                        )}...`}
-                                    />
-                                </Source>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Expanded/Detailed View */}
-                {isExpanded && (
-                    <div className="max-h-[400px] overflow-y-auto space-y-3">
+                {/* Expanded Content */}
+                {isExpanded && feedback.length > 0 && (
+                    <div className="grid gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
                         {feedback.map((result, index) => (
                             <div
                                 key={index}
-                                className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow"
+                                className="group relative flex flex-col gap-2 p-3 bg-white border border-gray-100 rounded-2xl hover:border-blue-300 transition-all"
                             >
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex-1 min-w-0">
-                                        {/* Title and URL */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <FaviconDisplay
-                                                url={result.url}
-                                                className="flex-shrink-0"
-                                            />
-                                            <h3
-                                                className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer truncate text-sm"
-                                                onClick={() =>
-                                                    openLink(result.url)
-                                                }
-                                                title={result.title}
-                                            >
-                                                {result.title}
-                                            </h3>
-                                        </div>
-
-                                        {/* Domain and Score */}
-                                        <div className="flex items-center gap-2 mb-2 text-xs text-gray-500">
-                                            <span className="truncate">
-                                                {getDomainFromUrl(result.url)}
-                                            </span>
-                                            <span>•</span>
-                                            <div className="flex items-center gap-1">
-                                                <span>Relevance:</span>
-                                                <span
-                                                    className={`font-medium ${getRelevanceColor(
-                                                        result.score,
-                                                    )}`}
-                                                >
-                                                    {(
-                                                        result.score * 100
-                                                    ).toFixed(0)}
-                                                    %
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Content Snippet */}
-                                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3">
-                                            {result.content}
-                                        </p>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <FaviconDisplay
+                                            url={result.url}
+                                            className="w-4 h-4 shrink-0 opacity-70"
+                                        />
+                                        <span className="text-xs text-gray-500 truncate">
+                                            {getDomainFromUrl(result.url)}
+                                        </span>
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                "text-[10px] h-5 px-1.5 font-normal border",
+                                                getRelevanceColor(result.score),
+                                            )}
+                                        >
+                                            {(result.score * 100).toFixed(0)}%
+                                            match
+                                        </Badge>
                                     </div>
-
-                                    {/* Action Button */}
                                     <button
-                                        onClick={() => openLink(result.url)}
-                                        className="flex-shrink-0 p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            openLink(result.url);
+                                        }}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors opacity-0 group-hover:opacity-100"
                                         title="Open in new tab"
                                     >
                                         <ExternalLinkIcon className="w-4 h-4" />
                                     </button>
                                 </div>
+
+                                <div className="space-y-1">
+                                    <h3
+                                        onClick={() => openLink(result.url)}
+                                        className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer hover:underline decoration-blue-200 underline-offset-2 line-clamp-1"
+                                    >
+                                        {result.title}
+                                    </h3>
+                                    <p className="text-xs leading-relaxed text-gray-600 line-clamp-3">
+                                        {result.content}
+                                    </p>
+                                </div>
                             </div>
                         ))}
-                    </div>
-                )}
-
-                {feedback.length === 0 && tool.state !== "loading" && (
-                    <div className="text-center py-8 text-gray-500">
-                        <div className="text-sm">No search results found</div>
-                        <div className="text-xs mt-1">
-                            Try adjusting your search query
-                        </div>
                     </div>
                 )}
             </div>

@@ -1,10 +1,17 @@
 import { createUITool, ToolManager } from "@langgraph-js/sdk";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { ListChecks, MessageSquarePlus, RefreshCcw } from "lucide-react";
+import {
+    ListChecks,
+    MessageSquarePlus,
+    RefreshCcw,
+    Check,
+    User,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const AskUserWithOptionsSchema = {
     label: z.string().describe("Question text to display"),
@@ -58,7 +65,7 @@ export const ask_user_with_options = createUITool({
         };
 
         const canInteract = tool.state === "interrupted";
-        console.log(tool);
+
         const handleSubmit = () => {
             const selectedLabels = selected
                 .map((i) => optionItems[i]?.label)
@@ -80,117 +87,154 @@ export const ask_user_with_options = createUITool({
             (selected.length === 0 &&
                 (!data.allow_custom_input || !customText));
 
+        // 完成状态视图
+        if (!canInteract) {
+            return (
+                <div className="flex flex-col gap-3 my-2 p-4 bg-gray-50/50 border border-gray-200 rounded-2xl">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                            <ListChecks className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="font-medium">Question Answered</span>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="text-sm text-gray-600 pl-1">
+                            {data.label}
+                        </div>
+                        <div className="flex items-start gap-2 text-sm text-gray-900 bg-white px-3 py-2.5 rounded-xl border border-gray-200">
+                            <User className="w-4 h-4 mt-0.5 text-blue-500 shrink-0" />
+                            <div className="break-all leading-relaxed">
+                                {tool.output
+                                    ? typeof tool.output === "string"
+                                        ? tool.output
+                                        : JSON.stringify(tool.output)
+                                    : "Response submitted"}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // 交互状态视图
         return (
-            <Card className="w-full my-2 border-blue-200 bg-blue-50/30">
-                <CardHeader className="pb-3 p-4">
+            <Card className="w-full my-2 border-gray-200 bg-white shadow-none rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3 p-4 border-b border-gray-50 bg-gray-50/30">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <ListChecks className="w-5 h-5 text-blue-600" />
-                            <CardTitle className="text-base font-medium text-blue-900">
-                                Question
+                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <ListChecks className="w-4 h-4" />
+                            </div>
+                            <CardTitle className="text-base font-medium text-gray-900">
+                                User Input Required
                             </CardTitle>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 text-blue-600 hover:text-blue-800 hover:bg-blue-100"
+                                className="h-7 w-7 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full"
                                 onClick={handleReset}
-                                title="重置选择"
+                                title="Reset selection"
                             >
                                 <RefreshCcw className="h-3.5 w-3.5" />
                             </Button>
                             <Badge
                                 variant="outline"
-                                className="bg-blue-100 text-blue-700 border-blue-200"
+                                className="bg-white text-gray-600 border-gray-200 font-normal"
                             >
-                                {isMulti ? "多选" : "单选"}
+                                {isMulti ? "Multi Select" : "Single Select"}
                             </Badge>
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 space-y-3">
-                    <div className="text-sm font-medium text-gray-900 bg-white p-3 rounded-md border border-blue-100 shadow-sm">
+                <CardContent className="p-4 space-y-4">
+                    <div className="text-sm font-medium text-gray-900">
                         {data.label}
                     </div>
 
                     {optionItems.length > 0 && (
                         <div className="space-y-2">
-                            <div className="text-xs font-medium text-blue-600 uppercase tracking-wider opacity-80">
-                                Options
-                            </div>
-                            <div className="space-y-1">
-                                {optionItems.map((opt: any) => (
-                                    <div
-                                        key={opt.index}
-                                        className={`flex items-center gap-2 p-2 bg-white/60 rounded border transition-all ${
-                                            canInteract &&
-                                            "hover:border-blue-200"
-                                        }`}
-                                        onClick={() =>
-                                            canInteract &&
-                                            toggleOption(opt.index)
-                                        }
-                                    >
-                                        <span className="w-6 h-6 flex items-center justify-center bg-blue-100 rounded text-[11px] text-blue-700 font-semibold">
-                                            {opt.index}
-                                        </span>
-                                        <span className="text-sm text-gray-800 flex-1">
-                                            {opt.label}
-                                        </span>
-                                        {canInteract && (
-                                            <span
-                                                className={`text-xs font-semibold ${
-                                                    selected.includes(opt.index)
-                                                        ? "text-blue-700"
-                                                        : "text-gray-400"
-                                                }`}
+                            <div className="space-y-2">
+                                {optionItems.map((opt: any) => {
+                                    const isSelected = selected.includes(
+                                        opt.index,
+                                    );
+                                    return (
+                                        <div
+                                            key={opt.index}
+                                            className={cn(
+                                                "flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group",
+                                                isSelected
+                                                    ? "bg-blue-50/50 border-blue-500 shadow-sm"
+                                                    : "bg-white border-gray-200 hover:border-blue-300",
+                                            )}
+                                            onClick={() =>
+                                                toggleOption(opt.index)
+                                            }
+                                        >
+                                            <div
+                                                className={cn(
+                                                    "w-5 h-5 rounded flex items-center justify-center border text-[10px] font-medium transition-colors shrink-0",
+                                                    isSelected
+                                                        ? "bg-blue-500 border-blue-500 text-white"
+                                                        : "bg-gray-50 border-gray-200 text-gray-500 group-hover:border-blue-300",
+                                                )}
                                             >
-                                                {selected.includes(opt.index)
-                                                    ? isMulti
-                                                        ? "已选择"
-                                                        : "当前选择"
-                                                    : "可选择"}
+                                                {isSelected ? (
+                                                    <Check className="w-3 h-3" />
+                                                ) : (
+                                                    opt.index
+                                                )}
+                                            </div>
+                                            <span
+                                                className={cn(
+                                                    "text-sm flex-1 leading-snug",
+                                                    isSelected
+                                                        ? "text-blue-900 font-medium"
+                                                        : "text-gray-700",
+                                                )}
+                                            >
+                                                {opt.label}
                                             </span>
-                                        )}
-                                    </div>
-                                ))}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
 
                     {data.allow_custom_input && (
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-xs text-blue-700">
-                                <MessageSquarePlus className="w-4 h-4" />
-                                <span>用户可输入自定义文本</span>
+                        <div className="space-y-2 pt-2">
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <MessageSquarePlus className="w-3.5 h-3.5" />
+                                <span>Additional Comments</span>
                             </div>
                             <textarea
-                                className="w-full rounded border border-blue-100 bg-white/70 p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                                placeholder="请输入补充信息（可选）"
+                                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all resize-none"
+                                placeholder="Type your answer here..."
                                 value={customText}
                                 onChange={(e) => setCustomText(e.target.value)}
-                                disabled={!canInteract}
                                 rows={3}
                             />
                         </div>
                     )}
 
                     <div className="flex justify-end pt-2">
-                        <button
-                            type="button"
+                        <Button
                             onClick={handleSubmit}
                             disabled={isSubmitDisabled}
-                            className="px-3 py-1.5 text-sm font-medium rounded bg-blue-600 text-white shadow hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                            className={cn(
+                                "px-5 rounded-full transition-all duration-200",
+                                isSubmitDisabled
+                                    ? "bg-gray-100 text-gray-400"
+                                    : "bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg hover:shadow-blue-200",
+                            )}
                         >
-                            提交
-                        </button>
+                            Submit Response
+                        </Button>
                     </div>
-                    {!canInteract && (
-                        <div className="text-xs text-gray-500">
-                            {tool.output || ""}
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         );

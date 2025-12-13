@@ -24,7 +24,7 @@ const SubProcessViewer = ({
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="w-full mt-4">
+        <div className="w-full mb-4">
             <CardHeader
                 className="p-3 cursor-pointer hover:bg-muted/20 transition-colors flex flex-row items-center justify-between space-y-0 border rounded-2xl"
                 onClick={() => setIsOpen(!isOpen)}
@@ -72,6 +72,12 @@ const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
             className="flex flex-col w-full mb-2"
             key={(message.status || "") + message.content}
         >
+            {message.sub_messages && message.sub_messages.length > 0 && (
+                <SubProcessViewer
+                    messages={message.sub_messages}
+                    parent_id={message.id}
+                />
+            )}
             {render ? (
                 (render(message) as JSX.Element)
             ) : (
@@ -108,12 +114,6 @@ const MessageTool: React.FC<MessageToolProps> = ({ message }) => {
                         </div>
                     )}
                 </div>
-            )}
-            {message.sub_messages && message.sub_messages.length > 0 && (
-                <SubProcessViewer
-                    messages={message.sub_messages}
-                    parent_id={message.id}
-                />
             )}
         </div>
     );

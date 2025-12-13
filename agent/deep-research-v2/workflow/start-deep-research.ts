@@ -71,5 +71,6 @@ ${processedResults.map((r) => `- ${r.topic}`).join("\n")}`,
         schema: z.object({
             topic: z.string().describe("the topic of the research"),
         }),
+        returnDirect: true,
     },
 );

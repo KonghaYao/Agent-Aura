@@ -65,7 +65,7 @@ export const ask_subagents = (
                     {
                         role: "tool",
                         content:
-                            `task_id: ${taskId}\n---` +
+                            `task_id: ${taskId}\n---\n` +
                             (last_message?.text || ""),
                         tool_call_id: config.toolCall!.id!,
                     },
