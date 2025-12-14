@@ -6,6 +6,8 @@ import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import { ClientTool, ServerTool } from "@langchain/core/tools";
 import { CompiledGraph } from "@langchain/langgraph";
+import { AgentSchemaList } from "../schema-store";
+import { humanInTheLoopMiddleware } from "../middlewares/hitl";
 
 export const AgentProtocolSchema = z.object({
     agent_id: z.string(),
@@ -68,9 +70,33 @@ export const createSchemaAgent = async (
         subagent_id?: string;
     } = {},
 ) => {
+    const isSubAgentMode = options.subagent_id !== undefined;
     if (prebuiltAgent[protocol.id]) {
         return prebuiltAgent[protocol.id] as any as ReactAgent;
     }
+    const subAgents = protocol.subAgents
+        .map((i) => {
+            return AgentSchemaList.find((ii) => ii.id === i.protocolId);
+        })
+        .filter((i) => i !== undefined);
+    const subAgentsPrompt = !isSubAgentMode
+        ? `
+## SubAgents Information
+
+You have access to the following subagents. Use the \`ask_subagent\` tool to delegate tasks to them.
+
+${subAgents
+    .map(
+        (i) => `
+<subagent>
+    <id>${i.id}</id>
+    <description>${i.description}</description>
+</subagent>
+    `,
+    )
+    .join("\n")}
+    `
+        : "";
     const [tools, model] = await Promise.all([
         createTools(protocol),
         createLLM(protocol, select_model_name, {
@@ -87,8 +113,17 @@ export const createSchemaAgent = async (
             | ClientTool
             | ServerTool
         )[],
-        systemPrompt: protocol.systemPrompt,
-        middleware: [FileUploadMiddleware()],
+        systemPrompt: `${protocol.systemPrompt}\n${subAgentsPrompt}`,
+        middleware: [
+            FileUploadMiddleware(),
+            humanInTheLoopMiddleware({
+                interruptOn: {
+                    ask_user_with_options: {
+                        allowedDecisions: ["respond"],
+                    },
+                },
+            }),
+        ],
         stateSchema,
     });
 };

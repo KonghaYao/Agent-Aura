@@ -1,4 +1,4 @@
-import { BuiltinTool } from "../schema-agent/types";
+import { BuiltinTool, InnerTool } from "../schema-agent/types";
 export const createArtifactsToolDefine: BuiltinTool = {
     tool_type: "builtin",
     name: "create_artifacts",
@@ -29,4 +29,10 @@ export const geminiImageProcessorToolDefine: BuiltinTool = {
     tool_type: "builtin",
     name: "gemini_image_processor",
     description: "Generate an image based on a prompt.",
+};
+export const askUserWithOptionsToolDefine: BuiltinTool = {
+    tool_type: "builtin",
+    name: "ask_user_with_options",
+    description:
+        "Ask the user one question with options and optional custom input.",
 };

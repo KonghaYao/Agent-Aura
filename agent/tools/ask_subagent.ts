@@ -16,8 +16,15 @@ const schema = z.object({
             "The task id to ask the subagent, if not provided, will use the tool call id",
         ),
     subagent_id: z.string(),
-    question: z.string(),
-    data_transfer: z.any(),
+    task_description: z
+        .string()
+        .describe(
+            "Describe the user state and what you want the subagent to do.",
+        ),
+    data_transfer: z
+        .any()
+        .optional()
+        .describe("Data to transfer to the subagent."),
 });
 
 export const ask_subagents = (
@@ -51,8 +58,19 @@ export const ask_subagents = (
 
             const agent = await agentCreator(taskId, args, state);
             sub_state.messages.push(
-                new HumanMessage({ content: args.question }),
+                new HumanMessage({ content: args.task_description }),
             );
+            if (args.data_transfer) {
+                sub_state.messages.push(
+                    new HumanMessage({
+                        content: `Here is the data to help you complete the task: ${JSON.stringify(
+                            args.data_transfer,
+                            null,
+                            2,
+                        )}`,
+                    }),
+                );
+            }
             const new_state = await agent.invoke(sub_state);
             const last_message = new_state["messages"].at(-1);
 

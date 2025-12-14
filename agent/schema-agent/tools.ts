@@ -5,6 +5,7 @@ import * as tavily from "../tools/tavily";
 import { create_artifacts } from "../tools/create_artifacts";
 import { send_sandbox_file_to_user, run_sandbox_code } from "../tools/sandbox";
 import { gemini_image_processor } from "../tools/gemini_image_processor";
+import { ask_user_with_options } from "../deep-research-v2/tools";
 
 const prebuiltTools: Record<string, ClientTool> = {
     ...tavily,
@@ -12,6 +13,7 @@ const prebuiltTools: Record<string, ClientTool> = {
     send_sandbox_file_to_user,
     run_sandbox_code,
     gemini_image_processor,
+    ask_user_with_options,
 } as any;
 
 export const createPrebuiltTools = async (

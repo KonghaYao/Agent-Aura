@@ -9,9 +9,20 @@ import { z } from "zod";
 
 interface ImageGenerationInput {
     prompt: string;
-    size?: string;
-    seed?: number;
-    steps?: number;
+    inputImageUrls?: string[];
+    resolution?: "1K" | "2K" | "4K";
+    aspectRatio?:
+        | "21:9"
+        | "16:9"
+        | "4:3"
+        | "3:2"
+        | "1:1"
+        | "9:16"
+        | "3:4"
+        | "2:3"
+        | "5:4"
+        | "4:5";
+    model?: string;
 }
 
 interface ImageGenerationResponse {
@@ -30,9 +41,23 @@ export const image_generation = createUITool({
     description: " ",
     parameters: {
         prompt: z.string(),
-        size: z.string().default("1024*1024"),
-        seed: z.number().optional(),
-        steps: z.number().default(4),
+        inputImageUrls: z.array(z.string()).optional(),
+        resolution: z.enum(["1K", "2K", "4K"]).default("1K"),
+        aspectRatio: z
+            .enum([
+                "21:9",
+                "16:9",
+                "4:3",
+                "3:2",
+                "1:1",
+                "9:16",
+                "3:4",
+                "2:3",
+                "5:4",
+                "4:5",
+            ])
+            .default("16:9"),
+        model: z.string().default("gemini-3-pro-image-preview"),
     },
     onlyRender: true,
     render(tool: ToolRenderData<ImageGenerationInput, any>) {
@@ -98,9 +123,11 @@ export const image_generation = createUITool({
                         {data.prompt}
                     </div>
                     <div className="flex gap-4 text-xs text-gray-400">
-                        <span>Size: {data.size || "1024*1024"}</span>
-                        {data.seed && <span>Seed: {data.seed}</span>}
-                        <span>Steps: {data.steps || 4}</span>
+                        <span>Resolution: {data.resolution || "1K"}</span>
+                        <span>Aspect Ratio: {data.aspectRatio || "16:9"}</span>
+                        <span>
+                            Model: {data.model || "gemini-3-pro-image-preview"}
+                        </span>
                     </div>
                 </div>
 

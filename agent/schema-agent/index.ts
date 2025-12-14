@@ -1,8 +1,4 @@
-import { entrypoint, MessagesZodMeta } from "@langchain/langgraph";
-import {
-    createEntrypointGraph,
-    createStateEntrypoint,
-} from "@langgraph-js/pure-graph";
+import { createStateEntrypoint } from "@langgraph-js/pure-graph";
 import { z } from "zod";
 import {
     AgentProtocolSchema,
@@ -10,10 +6,9 @@ import {
     registerPrebuiltAgent,
 } from "./agent";
 import { ask_subagents, SubAgentStateSchema } from "../tools/ask_subagent";
-import { noneAgent } from "../schema-store/agents/noneAgent";
+
 import { graph as deepResearchGraph } from "../deep-research-v2/graph";
 import { AgentSchemaList } from "../schema-store";
-import { stateSchema as DeepResearchState } from "../deep-research-v2/state";
 import { AgentState, mergeState } from "@langgraph-js/pro";
 export const AgentGraphState = AgentState.merge(AgentProtocolSchema)
     .merge(SubAgentStateSchema)
@@ -40,16 +35,35 @@ export const graph = createStateEntrypoint(
             state.model_name,
             {
                 extra_tools: [
-                    ask_subagents((taskId, args) =>
-                        createSchemaAgent(
+                    ask_subagents((taskId, args, state) => {
+                        const subagentProtocol = AgentSchemaList.find(
+                            (agent) => agent.id === args.subagent_id,
+                        );
+                        if (!subagentProtocol) {
+                            throw new Error(
+                                `Agent ${args.subagent_id} not found`,
+                            );
+                        }
+
+                        return createSchemaAgent(
                             AgentGraphState,
-                            noneAgent,
-                            "gpt-4o-mini",
+                            {
+                                ...subagentProtocol,
+                                systemPrompt: `${
+                                    subagentProtocol.systemPrompt
+                                }\n${
+                                    protocol.subAgents.find(
+                                        (i) =>
+                                            i.protocolId === args.subagent_id,
+                                    )?.extraSystemPrompt || ""
+                                }`,
+                            },
+                            state.model_name,
                             {
                                 subagent_id: taskId,
                             },
-                        ),
-                    ),
+                        );
+                    }),
                 ],
             },
         );

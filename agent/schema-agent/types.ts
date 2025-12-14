@@ -21,6 +21,8 @@ export interface InnerTool extends AgentTool {
 export interface SubAgent {
     protocolId: string;
     protocol?: AgentProtocol;
+    /** 额外加入到子 agent 的提示词 */
+    extraSystemPrompt?: string;
 }
 
 export interface AgentProtocol {

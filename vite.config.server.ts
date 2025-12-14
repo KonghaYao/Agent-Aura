@@ -31,7 +31,7 @@ export default defineConfig({
     ],
     define: {
         __filename: "import.meta.filename",
-        window: "globalThis",
+        "window.FormData": "globalThis.FormData",
     },
     resolve: {
         alias: {
