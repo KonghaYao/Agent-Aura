@@ -54,7 +54,12 @@ export const graph = createStateEntrypoint(
             },
         );
 
-        const response = await agent.invoke(state);
-        return mergeState({ ...state, messages: [] }, response);
+        const response: z.infer<typeof AgentGraphState> = await agent.invoke(
+            state,
+        );
+        response.messages = response.messages.filter(
+            (msg) => !state.messages.find((i) => i.id === msg.id),
+        );
+        return mergeState(state, response);
     },
 );
