@@ -31,6 +31,7 @@ export default defineConfig({
     ],
     define: {
         __filename: "import.meta.filename",
+        window: "globalThis",
     },
     resolve: {
         alias: {
@@ -42,7 +43,7 @@ export default defineConfig({
         outDir: "./build",
         target: "es2022",
         lib: {
-            entry: ["./agent/raw-server.ts"],
+            entry: ["./agent/raw-server.ts", "./agent/node.ts"],
             formats: ["es"],
         },
         minify: false,

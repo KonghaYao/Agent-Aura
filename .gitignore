@@ -67,3 +67,5 @@ pnpm-debug.log*
 .idea/
 .netlify
 build/
+serverless.yml
+scf_bootstrap
