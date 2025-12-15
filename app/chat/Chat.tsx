@@ -48,18 +48,10 @@ import {
 } from "@/components/ai-elements/conversation";
 
 const ChatMessages: React.FC = () => {
-    const {
-        renderMessages,
-        loading,
-        inChatError,
-        client,
-        collapsedTools,
-        toggleToolCollapse,
-        isFELocking,
-    } = useChat();
+    const { renderMessages, loading, inChatError, isFELocking } = useChat();
 
     return (
-        <div className="w-full p-4 pt-12 gap-4">
+        <div className="w-full p-4 pt-12 gap-4 hover-scrollbar">
             <MessagesBox renderMessages={renderMessages} />
             <div className="flex items-center justify-center py-4 text-gray-500 h-10">
                 {loading && !isFELocking() && (

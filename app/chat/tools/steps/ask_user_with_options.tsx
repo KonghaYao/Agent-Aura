@@ -90,15 +90,24 @@ export const ask_user_with_options = createUITool({
         // 完成状态视图
         if (!canInteract) {
             return (
-                <div className="flex flex-col gap-3 my-2 p-4 bg-gray-50/50 border border-gray-200 rounded-2xl">
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
-                            <ListChecks className="w-3.5 h-3.5" />
+                <div className="flex flex-col gap-2 my-1 p-3 bg-gray-50/50 border border-gray-200 rounded-xl">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+                            <ListChecks className="w-3 h-3" />
                         </div>
                         <span className="font-medium">Question Answered</span>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+                            onClick={handleReset}
+                            title="Reset selection"
+                        >
+                            <RefreshCcw className="h-3.5 w-3.5" />
+                        </Button>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         <div className="text-sm text-gray-600 pl-1">
                             {data.label}
                         </div>
@@ -119,14 +128,14 @@ export const ask_user_with_options = createUITool({
 
         // 交互状态视图
         return (
-            <Card className="w-full my-2 border-gray-200 bg-white shadow-none rounded-2xl overflow-hidden">
-                <CardHeader className="pb-3 p-4 border-b border-gray-50 bg-gray-50/30">
+            <Card className="w-full my-1 border-gray-200 bg-white shadow-none rounded-xl overflow-hidden">
+                <CardHeader className="pb-2 p-3 border-b border-gray-50 bg-gray-50/30">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <ListChecks className="w-4 h-4" />
+                            <div className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <ListChecks className="w-3.5 h-3.5" />
                             </div>
-                            <CardTitle className="text-base font-medium text-gray-900">
+                            <CardTitle className="text-sm font-medium text-gray-900">
                                 User Input Required
                             </CardTitle>
                         </div>
@@ -149,14 +158,14 @@ export const ask_user_with_options = createUITool({
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent className="p-4 space-y-4">
+                <CardContent className="p-3 space-y-3">
                     <div className="text-sm font-medium text-gray-900">
                         {data.label}
                     </div>
 
                     {optionItems.length > 0 && (
-                        <div className="space-y-2">
-                            <div className="space-y-2">
+                        <div className="space-y-1.5">
+                            <div className="space-y-1.5">
                                 {optionItems.map((opt: any) => {
                                     const isSelected = selected.includes(
                                         opt.index,
@@ -165,7 +174,7 @@ export const ask_user_with_options = createUITool({
                                         <div
                                             key={opt.index}
                                             className={cn(
-                                                "flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer group",
+                                                "flex items-center gap-2 p-2 rounded-lg border transition-all cursor-pointer group",
                                                 isSelected
                                                     ? "bg-blue-50/50 border-blue-500 shadow-sm"
                                                     : "bg-white border-gray-200 hover:border-blue-300",
@@ -206,17 +215,17 @@ export const ask_user_with_options = createUITool({
                     )}
 
                     {data.allow_custom_input && (
-                        <div className="space-y-2 pt-2">
-                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <MessageSquarePlus className="w-3.5 h-3.5" />
+                        <div className="space-y-1.5 pt-1">
+                            <div className="flex items-center gap-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                                <MessageSquarePlus className="w-3 h-3" />
                                 <span>Additional Comments</span>
                             </div>
                             <textarea
-                                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all resize-none"
+                                className="w-full rounded-lg border border-gray-200 bg-gray-50/50 p-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all resize-none"
                                 placeholder="Type your answer here..."
                                 value={customText}
                                 onChange={(e) => setCustomText(e.target.value)}
-                                rows={3}
+                                rows={2}
                             />
                         </div>
                     )}

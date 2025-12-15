@@ -59,7 +59,6 @@
         "file-saver-es": "^2.0.5",
         "flexsearch": "^0.8.212",
         "hono": "^4.11.0",
-        "imagekit": "^6.0.0",
         "kysely": "^0.28.9",
         "lucide-react": "^0.546.0",
         "meilisearch": "^0.54.0",

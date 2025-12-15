@@ -1,13 +1,69 @@
-import ImageKit from "imagekit";
 import { getEnv } from "./getEnv";
 import { fileStoreService, type FileInsert } from "../filestore";
 
-// 统一的 ImageKit 实例
-export const imagekit = new ImageKit({
-    publicKey: getEnv("IMAGEKIT_PUBLIC_KEY") || "",
-    privateKey: getEnv("IMAGEKIT_PRIVATE_KEY") || "",
-    urlEndpoint: getEnv("IMAGEKIT_URL_ENDPOINT") || "",
-});
+// 手写 fetch 上传到 ImageKit
+async function uploadToImageKitAPI(
+    file: string | Buffer,
+    fileName: string,
+    options: {
+        folder?: string;
+        tags?: string[];
+        useUniqueFileName?: boolean;
+    } = {},
+): Promise<any> {
+    const url = "https://upload.imagekit.io/v1/files/upload";
+    const form = new FormData();
+
+    // 处理文件数据
+    if (Buffer.isBuffer(file)) {
+        form.append("file", new Blob([file as unknown as BlobPart]), fileName);
+    } else {
+        // base64 字符串
+        const blob = Buffer.from(file, "base64");
+        form.append("file", new Blob([blob]), fileName);
+    }
+
+    form.append("fileName", fileName);
+    form.append("useUniqueFileName", String(options.useUniqueFileName ?? true));
+    if (options.tags && options.tags.length > 0) {
+        form.append("tags", options.tags.join(","));
+    }
+    if (options.folder) {
+        form.append("folder", options.folder);
+    }
+
+    // 创建 Basic Auth token (注意末尾的冒号)
+    const privateKey = getEnv("IMAGEKIT_PRIVATE_KEY") || "";
+    const authToken = btoa(`${privateKey}:`);
+
+    const requestOptions = {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            Authorization: `Basic ${authToken}`,
+            // 移除手动设置的 Content-Type，让 fetch 自动处理 multipart/form-data
+        },
+        body: form,
+    };
+
+    try {
+        const response = await fetch(url, requestOptions);
+
+        if (!response.ok) {
+            throw new Error(
+                `ImageKit upload failed: ${response.status} ${
+                    response.statusText
+                } ${await response.text()}`,
+            );
+        }
+        const data = await response.json();
+
+        return data;
+    } catch (error) {
+        console.error("ImageKit upload error:", error);
+        throw error;
+    }
+}
 
 // 统一的上传函数
 export async function uploadToImageKit(
@@ -66,9 +122,7 @@ export async function uploadToImageKit(
         }
     }
 
-    const result = await imagekit.upload({
-        file: fileData,
-        fileName: fileName,
+    const result = await uploadToImageKitAPI(file, fileName, {
         folder: folder,
         useUniqueFileName: useUniqueFileName,
         tags: tags,
