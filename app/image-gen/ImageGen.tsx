@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Card,
     CardContent,
@@ -44,6 +44,32 @@ export default function ImageGen() {
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const STORAGE_KEY = "image-gen-generated-images";
+
+    // 从 localStorage 加载保存的图片
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setGeneratedImages(parsed);
+                }
+            }
+        } catch (error) {
+            console.error("加载保存的图片失败:", error);
+        }
+    }, []);
+
+    // 保存图片到 localStorage
+    const saveToLocalStorage = (images: GeneratedImage[]) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(images));
+        } catch (error) {
+            console.error("保存图片到 localStorage 失败:", error);
+        }
+    };
+
     const handleGenerate = async () => {
         if (!prompt.trim()) {
             toast.error("请输入提示词");
@@ -72,7 +98,11 @@ export default function ImageGen() {
 
             const data = await response.json();
             if (data.data) {
-                setGeneratedImages((prev) => [...data.data, ...prev]);
+                setGeneratedImages((prev) => {
+                    const newImages = [...data.data, ...prev];
+                    saveToLocalStorage(newImages);
+                    return newImages;
+                });
                 toast.success("图片生成成功");
             }
         } catch (error) {
@@ -362,6 +392,14 @@ export default function ImageGen() {
                     ) : (
                         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {loading && (
+                                    <div className="aspect-16/10 rounded-xl bg-muted/10 border border-dashed border-purple-200 flex flex-col items-center justify-center animate-pulse">
+                                        <Loader2 className="h-8 w-8 animate-spin text-purple-500 mb-2" />
+                                        <span className="text-sm text-purple-500 font-medium">
+                                            绘制中...
+                                        </span>
+                                    </div>
+                                )}
                                 {generatedImages.map((img, index) => (
                                     <div
                                         key={index}
@@ -408,14 +446,6 @@ export default function ImageGen() {
                                         </div>
                                     </div>
                                 ))}
-                                {loading && (
-                                    <div className="aspect-16/10 rounded-xl bg-muted/10 border border-dashed border-purple-200 flex flex-col items-center justify-center animate-pulse">
-                                        <Loader2 className="h-8 w-8 animate-spin text-purple-500 mb-2" />
-                                        <span className="text-sm text-purple-500 font-medium">
-                                            绘制中...
-                                        </span>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     )}

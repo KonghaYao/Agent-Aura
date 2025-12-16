@@ -561,8 +561,8 @@ filesRouter.post(
             } = c.req.valid("json");
             const userId = c.get("userId") as string;
 
-            const results = [];
-            for (let i = 0; i < count; i++) {
+            const baseTimestamp = Date.now();
+            const promises = Array.from({ length: count }, async (_, i) => {
                 try {
                     const imageBuffer = await processGeminiImage(
                         prompt,
@@ -576,7 +576,7 @@ filesRouter.post(
                     const { url: imageUrl, file: savedFile } =
                         await uploadToImageKit(
                             imageBuffer as Buffer,
-                            `gemini-${Date.now()}-${i}.png`,
+                            `gemini-${baseTimestamp}-${i}.png`,
                             {
                                 folder: "/generated-images",
                                 tags: [
@@ -593,15 +593,30 @@ filesRouter.post(
                                 },
                             },
                         );
-                    results.push({
+                    return {
                         url: imageUrl,
                         file: savedFile,
-                    });
+                    };
                 } catch (err) {
                     console.error(`生成第 ${i + 1} 张图片失败:`, err);
-                    // 继续生成下一张，或者记录错误
+                    throw err;
                 }
-            }
+            });
+
+            const settledResults = await Promise.allSettled(promises);
+            const results = settledResults
+                .map((result, index) => {
+                    if (result.status === "fulfilled") {
+                        return result.value;
+                    } else {
+                        console.error(
+                            `生成第 ${index + 1} 张图片失败:`,
+                            result.reason,
+                        );
+                        return null;
+                    }
+                })
+                .filter((result) => result !== null);
 
             if (results.length === 0) {
                 return c.json({ error: "图片生成失败" }, 500);
