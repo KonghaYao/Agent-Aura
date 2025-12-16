@@ -3,7 +3,37 @@ import { tool } from "@langchain/core/tools";
 import { processGeminiImage } from "../utils/nano_banana";
 import { uploadToImageKit } from "../utils/imagekit";
 import { getConfig } from "@langchain/langgraph";
-
+export const generateImageSchema = z.object({
+    prompt: z.string().describe("图片提示词"),
+    inputImageUrls: z.array(z.string()).optional().describe("图片 URL 数组"),
+    resolution: z
+        .enum(["1K", "2K", "4K"])
+        .optional()
+        .default("1K")
+        .describe("图片分辨率"),
+    aspectRatio: z
+        .enum([
+            "21:9",
+            "16:9",
+            "4:3",
+            "3:2",
+            "1:1",
+            "9:16",
+            "3:4",
+            "2:3",
+            "5:4",
+            "4:5",
+        ])
+        .optional()
+        .default("16:9")
+        .describe("图片宽高比"),
+    model: z
+        .string()
+        .optional()
+        // .default("gemini-2.5-flash-image")
+        .default("gemini-3-pro-image-preview")
+        .describe("使用的 Gemini 模型"),
+});
 export const gemini_image_processor = tool(
     async (input) => {
         try {
@@ -66,39 +96,6 @@ Based on Image 1, change the dog's color to black
 
 Example 3: Merge Multiple Images
 Merge Image 1 and Image 2 together, create a double portrait scene, add a warm sunset background`,
-        schema: z.object({
-            prompt: z.string().describe("图片提示词"),
-            inputImageUrls: z
-                .array(z.string())
-                .optional()
-                .describe("图片 URL 数组"),
-            resolution: z
-                .enum(["1K", "2K", "4K"])
-                .optional()
-                .default("1K")
-                .describe("图片分辨率"),
-            aspectRatio: z
-                .enum([
-                    "21:9",
-                    "16:9",
-                    "4:3",
-                    "3:2",
-                    "1:1",
-                    "9:16",
-                    "3:4",
-                    "2:3",
-                    "5:4",
-                    "4:5",
-                ])
-                .optional()
-                .default("16:9")
-                .describe("图片宽高比"),
-            model: z
-                .string()
-                .optional()
-                // .default("gemini-2.5-flash-image")
-                .default("gemini-3-pro-image-preview")
-                .describe("使用的 Gemini 模型"),
-        }),
+        schema: generateImageSchema,
     },
 );

@@ -5,6 +5,8 @@ import type { LangGraphServerContext } from "@langgraph-js/pure-graph/dist/adapt
 import { fileStoreService, type FileInsert, type FileUpdate } from "./index";
 import { TextStoreService } from "./text-store";
 import { uploadToImageKit } from "../utils/imagekit";
+import { processGeminiImage } from "../utils/nano_banana";
+import { generateImageSchema } from "../tools/gemini_image_processor";
 
 // 扩展上下文类型以包含自定义变量
 type ExtendedContext = LangGraphServerContext & {
@@ -531,6 +533,84 @@ filesRouter.post(
         } catch (error) {
             console.error("ImageKit 上传失败:", error);
             return c.json({ error: "文件上传失败" }, 500);
+        }
+    },
+);
+
+// ============================================================================
+// 图片生成 API (Gemini)
+// ============================================================================
+
+filesRouter.post(
+    "/generate-image",
+    zValidator(
+        "json",
+        generateImageSchema.merge(
+            z.object({ count: z.number().int().min(1).max(4).default(1) }),
+        ),
+    ),
+    async (c) => {
+        try {
+            const {
+                prompt,
+                count,
+                resolution,
+                aspectRatio,
+                model,
+                inputImageUrls,
+            } = c.req.valid("json");
+            const userId = c.get("userId") as string;
+
+            const results = [];
+            for (let i = 0; i < count; i++) {
+                try {
+                    const imageBuffer = await processGeminiImage(
+                        prompt,
+                        inputImageUrls,
+                        resolution as "1K" | "2K" | "4K",
+                        aspectRatio as any,
+                        model,
+                    );
+
+                    // 上传到 ImageKit
+                    const { url: imageUrl, file: savedFile } =
+                        await uploadToImageKit(
+                            imageBuffer as Buffer,
+                            `gemini-${Date.now()}-${i}.png`,
+                            {
+                                folder: "/generated-images",
+                                tags: [
+                                    "ai-generated",
+                                    "gemini",
+                                    `user:${userId}`,
+                                ],
+                                saveToDb: true,
+                                dbOptions: {
+                                    userId: userId,
+                                    conversationId: null,
+                                    category: "ai-image",
+                                    isAiGen: true,
+                                },
+                            },
+                        );
+                    results.push({
+                        url: imageUrl,
+                        file: savedFile,
+                    });
+                } catch (err) {
+                    console.error(`生成第 ${i + 1} 张图片失败:`, err);
+                    // 继续生成下一张，或者记录错误
+                }
+            }
+
+            if (results.length === 0) {
+                return c.json({ error: "图片生成失败" }, 500);
+            }
+
+            return c.json({ data: results }, 201);
+        } catch (error) {
+            console.error("图片生成 API 失败:", error);
+            return c.json({ error: "图片生成失败" }, 500);
         }
     },
 );

@@ -1,31 +1,47 @@
 ---
 import UserAvatar from "../../components/UserAvatar";
-import { Sparkles, Bot, MessageCircle, Folder } from "lucide-react";
+import { LayoutGrid, ShoppingBag, MessageSquare, FolderOpen, Image } from "lucide-react";
 
 const navigation = [
     {
         name: "Aura",
         path: "/",
-        icon: Sparkles,
-        description: "AI Agent Platform"
+        icon: LayoutGrid,
+        description: "AI Agent Platform",
+        colorClass: "text-purple-600 dark:text-purple-400",
+        bgClass: "bg-purple-100 dark:bg-purple-900/30"
     },
     {
         name: "Agent Store",
         path: "/agent-store",
-        icon: Bot,
-        description: "浏览和创建代理"
+        icon: ShoppingBag,
+        description: "浏览和创建代理",
+        colorClass: "text-blue-600 dark:text-blue-400",
+        bgClass: "bg-blue-100 dark:bg-blue-900/30"
     },
     {
         name: "Agent Chat",
         path: "/agent",
-        icon: MessageCircle,
-        description: "与AI代理对话"
+        icon: MessageSquare,
+        description: "与AI代理对话",
+        colorClass: "text-emerald-600 dark:text-emerald-400",
+        bgClass: "bg-emerald-100 dark:bg-emerald-900/30"
+    },
+    {
+        name: "Image Gen",
+        path: "/image-gen",
+        icon: Image,
+        description: "AI 图片生成",
+        colorClass: "text-pink-600 dark:text-pink-400",
+        bgClass: "bg-pink-100 dark:bg-pink-900/30"
     },
     {
         name: "Files",
         path: "/files",
-        icon: Folder,
-        description: "文件管理"
+        icon: FolderOpen,
+        description: "文件管理",
+        colorClass: "text-amber-600 dark:text-amber-400",
+        bgClass: "bg-amber-100 dark:bg-amber-900/30"
     }
 ];
 
@@ -33,15 +49,15 @@ const currentPath = Astro.url.pathname;
 ---
 
 <!-- Sidebar -->
-<aside class="bg-sidebar border-sidebar-border border-r w-64 h-screen flex flex-col shadow-sm overflow-hidden">
+<aside class="bg-background border-r border-border w-64 h-screen flex flex-col">
     <!-- Logo Section -->
-    <div class="flex items-center justify-center h-16 px-4 border-b border-sidebar-border">
+    <div class="flex items-center h-16 px-6 border-b border-border/40">
         <div class="flex items-center gap-3 min-w-0">
-            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-                <span class="text-primary-foreground font-bold text-lg">A</span>
+            <div class="w-8 h-8 border border-border rounded-md flex items-center justify-center shrink-0 bg-secondary/30">
+                <span class="text-foreground font-bold text-lg">A</span>
             </div>
             <div class="block">
-                <h1 class="text-sidebar-foreground font-semibold text-lg truncate">
+                <h1 class="text-foreground font-semibold text-lg tracking-tight">
                     Agent Aura
                 </h1>
             </div>
@@ -50,31 +66,31 @@ const currentPath = Astro.url.pathname;
 
     <!-- Navigation -->
     <nav class="flex-1 px-3 py-6">
-        <ul class="space-y-2">
+        <ul class="space-y-1">
             {navigation.map((item) => (
                 <li>
                     <a
                         href={item.path}
                         class:list={[
-                            "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 group/nav-item relative",
+                            "flex items-center gap-3 px-3 py-2 transition-colors duration-200 group/nav-item rounded-md",
                             currentPath === item.path
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                ? "bg-secondary text-foreground font-medium"
+                                : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
                         ]}
                         title={item.description}
                     >
-                        <!-- Active Indicator -->
-                        {currentPath === item.path && (
-                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"></div>
-                        )}
-
                         <!-- Icon -->
-                        <div class="flex items-center justify-center w-6 h-6 shrink-0">
-                            <item.icon className="w-5 h-5" />
+                        <div class:list={[
+                            "flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-all duration-200",
+                            item.bgClass,
+                            item.colorClass,
+                            currentPath === item.path ? '' + item.colorClass.replace('text-', 'ring-') : "opacity-80 group-hover/nav-item:opacity-100"
+                        ]}>
+                            <item.icon className="w-4 h-4 fill-current" />
                         </div>
 
                         <!-- Label -->
-                        <span class="block text-sm font-medium truncate">
+                        <span class="block text-sm">
                             {item.name}
                         </span>
                     </a>
@@ -84,7 +100,7 @@ const currentPath = Astro.url.pathname;
     </nav>
 
     <!-- Footer -->
-    <div class="p-3 border-t border-sidebar-border">
+    <div class="p-4 border-t border-border/40">
        <UserAvatar client:only="react" ></UserAvatar>
     </div>
 </aside>
