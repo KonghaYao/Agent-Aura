@@ -5,12 +5,12 @@ import { getEnv } from "../agent/utils/getEnv";
 import { sendEmail } from "./email";
 
 export const auth = betterAuth({
-    // advanced: {
-    //     crossSubDomainCookies: getEnv("AUTH_COOKIE_DOMAIN") && {
-    //         enabled: true,
-    //         domain: getEnv("AUTH_COOKIE_DOMAIN"),
-    //     },
-    // },
+    advanced: {
+        crossSubDomainCookies: getEnv("AUTH_COOKIE_DOMAIN") && {
+            enabled: true,
+            domain: getEnv("AUTH_COOKIE_DOMAIN"),
+        },
+    },
     session: {
         cookieCache: {
             enabled: true,

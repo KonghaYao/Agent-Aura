@@ -5,7 +5,7 @@ import * as tavily from "../tools/tavily";
 import { create_artifacts } from "../tools/create_artifacts";
 import { send_sandbox_file_to_user, run_sandbox_code } from "../tools/sandbox";
 import { gemini_image_processor } from "../tools/gemini_image_processor";
-import { ask_user_with_options } from "../deep-research-v2/tools";
+import { ask_user_with_options } from "@langgraph-js/auk";
 
 const prebuiltTools: Record<string, ClientTool> = {
     ...tavily,

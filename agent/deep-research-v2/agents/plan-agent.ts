@@ -1,9 +1,13 @@
 import { ask_subagents } from "@/agent/tools/ask_subagent";
 import { ChatOpenAI } from "@langchain/openai";
-import { ask_user_with_options } from "../tools";
+import {
+    ask_user_with_options,
+    ask_user_with_options_config,
+} from "@langgraph-js/auk";
 import { createAgent } from "langchain";
 import { stateSchema } from "../state";
-import { humanInTheLoopMiddleware } from "../../middlewares/hitl";
+import { humanInTheLoopMiddleware } from "@langgraph-js/auk";
+
 export const planSubAgent = ask_subagents(
     async (taskId, args, parent_state) => {
         return createAgent({
@@ -22,9 +26,7 @@ export const planSubAgent = ask_subagents(
             middleware: [
                 humanInTheLoopMiddleware({
                     interruptOn: {
-                        ask_user_with_options: {
-                            allowedDecisions: ["respond"],
-                        },
+                        ...ask_user_with_options_config.interruptOn,
                     },
                 }),
             ],

@@ -2,8 +2,7 @@ import { tool, ToolRuntime, HumanMessage } from "langchain";
 import { z } from "zod";
 import { RemoveMessage, ToolMessage } from "@langchain/core/messages";
 import { Command } from "@langchain/langgraph";
-import { getToolCallId } from "@langgraph-js/pro";
-import { deepSearchResult, webSearchResult, stateSchema } from "./state";
+import { webSearchResult, stateSchema } from "./state";
 
 export const think_tool = tool(
     (args) => {
@@ -46,7 +45,7 @@ export const change_research_topic = tool(
 
                     new ToolMessage({
                         name: "change_research_topic",
-                        tool_call_id: config.toolCall!.id!,
+                        tool_call_id: config.toolCallId!,
                         content:
                             "ok, I done change search topic to " +
                             args.new_topic +
@@ -71,40 +70,5 @@ export const change_research_topic = tool(
             ),
         }),
         returnDirect: true,
-    },
-);
-
-export const ask_user_with_options = tool(
-    async (args) => {
-        return `user selected: answer will appear in human in the loop reject message`;
-    },
-    {
-        name: "ask_user_with_options",
-        description:
-            "Ask the user one question with options and optional custom input.",
-        schema: z
-            .object({
-                label: z.string().describe("Question text to display"),
-                type: z
-                    .enum(["single_select", "multi_select"])
-                    .optional()
-                    .default("single_select")
-                    .describe("Selection mode for this question"),
-                options: z
-                    .array(
-                        z.object({
-                            index: z.number().describe("Index of the option"),
-                            label: z
-                                .string()
-                                .describe("Optional display label"),
-                        }),
-                    )
-                    .describe("Selectable options for the question"),
-                allow_custom_input: z
-                    .boolean()
-                    .default(true)
-                    .describe("Allow user to input custom text"),
-            })
-            .describe("The single question to ask the user"),
     },
 );

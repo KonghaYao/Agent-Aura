@@ -7,7 +7,10 @@ import { z } from "zod";
 import { ClientTool, ServerTool } from "@langchain/core/tools";
 import { CompiledGraph } from "@langchain/langgraph";
 import { AgentSchemaList } from "../schema-store";
-import { humanInTheLoopMiddleware } from "../middlewares/hitl";
+import {
+    ask_user_with_options_config,
+    humanInTheLoopMiddleware,
+} from "@langgraph-js/auk";
 
 export const AgentProtocolSchema = z.object({
     agent_id: z.string(),
@@ -118,9 +121,7 @@ ${subAgents
             FileUploadMiddleware(),
             humanInTheLoopMiddleware({
                 interruptOn: {
-                    ask_user_with_options: {
-                        allowedDecisions: ["respond"],
-                    },
+                    ...ask_user_with_options_config.interruptOn,
                 },
             }),
         ],

@@ -9,10 +9,18 @@ import { type AuthType, auth as betterAuth } from "../lib/auth";
 import { logger } from "hono/logger";
 import { agentsRouter } from "./schema-store/routes";
 import { OpenSmithApp } from "./open-smith";
-
+import { cors } from "hono/cors";
+import { getEnv } from "./utils/getEnv";
 const app = new Hono<{ Variables: LangGraphServerContext }>();
 app.use(logger());
-
+const baseURL = getEnv("CORS_ORIGIN");
+baseURL &&
+    app.use(
+        cors({
+            origin: baseURL,
+            credentials: true,
+        }),
+    );
 const authRouter = new Hono<{ Bindings: AuthType }>({
     strict: false,
 });
