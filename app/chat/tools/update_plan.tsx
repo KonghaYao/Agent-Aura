@@ -1,4 +1,4 @@
-import { ToolManager, ToolRenderData, createToolUI } from "@langgraph-js/sdk";
+import { createUITool, ToolRenderData } from "@langgraph-js/sdk";
 import { FileEdit, Globe, Brain } from "lucide-react";
 
 interface Step {
@@ -17,11 +17,12 @@ interface Plan {
     steps: Step[];
 }
 
-export const update_plan = createToolUI({
+export const update_plan = createUITool({
     name: "update_plan",
     description: "展示当前执行计划，等待用户确认",
-    parameters: [],
+    parameters: {},
     onlyRender: true,
+    /** @ts-ignore */
     render(tool: ToolRenderData<Plan, string>) {
         const data = tool.getInputRepaired();
         const plan = data || {
