@@ -1,7 +1,19 @@
 export const defaultModelsAllowed = [
     {
         provider: "openai",
-        model: "grok-4-fast",
+        model: "mino-v2-flash",
+    },
+    {
+        provider: "openai",
+        model: "glm-4.7",
+    },
+    {
+        provider: "openai",
+        model: "kimi-k2-0905",
+    },
+    {
+        provider: "openai",
+        model: "grok-4-1-fast",
     },
     {
         provider: "openai",
@@ -9,7 +21,7 @@ export const defaultModelsAllowed = [
     },
     {
         provider: "openai",
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
     },
     {
         provider: "openai",
